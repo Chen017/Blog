@@ -2,11 +2,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { footerConfig, profileConfig } from "@/config";
-import { url } from "@utils/url";
+import { footerConfig } from "@/config";
 
-
-const currentYear = new Date().getFullYear();
 
 // HTML 内容获取逻辑
 let customFooterHtml = "";
@@ -38,10 +35,7 @@ if (footerConfig.enable) {
         {customFooterHtml && (
             <div class="mb-2" set:html={customFooterHtml}></div>
         )}
-        &copy; <span id="copyright-year">{currentYear}</span> {profileConfig.name}. All Rights Reserved. /
-        <a class="transition link text-(--primary) font-medium" href={url('rss/')} onclick={`event.preventDefault(); navigateToPage('${url('rss/')}')`}>RSS</a> /
-        <a class="transition link text-(--primary) font-medium" href={url('atom/')} onclick={`event.preventDefault(); navigateToPage('${url('atom/')}')`}>Atom</a> /
-        <a class="transition link text-(--primary) font-medium" target="_blank" href={url('sitemap-index.xml')}>Sitemap</a><br>
+        &copy; 2026 AI. All Rights Reserved.<br>
         Powered by
         <a class="transition link text-(--primary) font-medium" target="_blank" href="https://astro.build">Astro</a> &
         <a class="transition link text-(--primary) font-medium" target="_blank" href="https://github.com/Spr-Aachen/Twilight">Twilight</a>&nbsp; Version <a class="transition link text-(--primary) font-medium" target="_blank" href="https://github.com/Spr-Aachen/Twilight/releases">1.0</a><br>

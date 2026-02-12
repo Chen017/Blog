@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  twilight-blog:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: twilight-blog
+    ports:
+      - "127.0.0.1:8070:80"
+    restart: unless-stopped

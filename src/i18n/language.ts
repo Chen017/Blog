@@ -19,83 +19,11 @@ export interface LanguageConfig {
  * 单一数据源，避免重复定义
  */
 export const LANGUAGE_CONFIG = {
-    zh: {
-        translateCode: "chinese_simplified",
-        displayName: "中文",
-        locale: "zh-CN",
-        icon: "🇨🇳",
-    },
     en: {
         translateCode: "english",
         displayName: "English",
         locale: "en-US",
         icon: "🇺🇸",
-    },
-    ja: {
-        translateCode: "japanese",
-        displayName: "日本語",
-        locale: "ja-JP",
-        icon: "🇯🇵",
-    },
-    ko: {
-        translateCode: "korean",
-        displayName: "한국어",
-        locale: "ko-KR",
-        icon: "🇰🇷",
-    },
-    es: {
-        translateCode: "spanish",
-        displayName: "Español",
-        locale: "es-ES",
-        icon: "🇪🇸",
-    },
-    th: {
-        translateCode: "thai",
-        displayName: "ไทย",
-        locale: "th-TH",
-        icon: "🇹🇭",
-    },
-    vi: {
-        translateCode: "vietnamese",
-        displayName: "Tiếng Việt",
-        locale: "vi-VN",
-        icon: "🇻🇳",
-    },
-    tr: {
-        translateCode: "turkish",
-        displayName: "Türkçe",
-        locale: "tr-TR",
-        icon: "🇹🇷",
-    },
-    id: {
-        translateCode: "indonesian",
-        displayName: "Bahasa Indonesia",
-        locale: "id-ID",
-        icon: "🇮🇩",
-    },
-    fr: {
-        translateCode: "french",
-        displayName: "Français",
-        locale: "fr-FR",
-        icon: "🇫🇷",
-    },
-    de: {
-        translateCode: "german",
-        displayName: "Deutsch",
-        locale: "de-DE",
-        icon: "🇩🇪",
-    },
-    ru: {
-        translateCode: "russian",
-        displayName: "Русский",
-        locale: "ru-RU",
-        icon: "🇷🇺",
-    },
-    ar: {
-        translateCode: "arabic",
-        displayName: "العربية",
-        locale: "ar-SA",
-        icon: "🇸🇦",
     },
 } as const satisfies Record<string, LanguageConfig>;
 

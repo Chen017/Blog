@@ -44,7 +44,7 @@ export function getDefaultLanguage(): string {
 
 // 将配置文件的语言代码转换为翻译服务的语言代码
 export function getTranslateLanguageFromConfig(configLang: string): string {
-    return langToTranslateMap[configLang] || "chinese_simplified";
+    return langToTranslateMap[configLang] || "english";
 }
 
 // 获取解析后的站点语言代码
@@ -59,7 +59,7 @@ export function getResolvedSiteLang(): SupportedLanguage {
 
 // 将翻译服务的语言代码转换为配置文件的语言代码
 export function getConfigLanguageFromTranslate(translateLang: string): string {
-    return translateToLangMap[translateLang] || "zh";
+    return translateToLangMap[translateLang] || "en";
 }
 
 // 获取语言的显示名称
@@ -119,6 +119,10 @@ export function initTranslateService(): void {
     // 检查 translate.js 是否已加载
     const translate = (window as any).translate;
     if (!translate || (window as any).translateInitialized) return;
+    // 使用配置里的语言列表，确保 translate.js 能识别所有语种
+    translate.selectLanguageTag.languages = Object.values(LANGUAGE_CONFIG)
+        .map((config) => config.translateCode)
+        .join(",");
     // 配置 translate.js
     if (siteConfig.translate.service) {
         translate.service.use(siteConfig.translate.service);

@@ -1,7 +1,7 @@
 ---
 import "katex/dist/katex.css";
 
-import { siteConfig, profileConfig, umamiConfig, musicPlayerConfig, pioConfig } from "@/config";
+import { siteConfig, profileConfig, musicPlayerConfig, pioConfig } from "@/config";
 import type { Favicon } from "@/types/config";
 import { defaultFavicons } from "@constants/icon";
 import {
@@ -115,8 +115,6 @@ const bannerOffsetByPosition = {
 const bannerOffset =
     bannerOffsetByPosition[siteConfig.wallpaper.position || "center"];
 
-const umamiEnabled = umamiConfig.enabled || false;
-const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
 ---
 
 <!DOCTYPE html>
@@ -216,8 +214,8 @@ const umamiScripts = umamiConfig.scripts || ""; // 获取Umami scripts配置
         {pioConfig.enable && <link rel="stylesheet" href="/pio/static/pio.css" />}
         <!-- rss feed -->
         <link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
-        <!-- Umami Analytics -->
-        {umamiEnabled && umamiScripts && <Fragment set:html={umamiScripts} />}
+        <!-- Umami Analytics (forced script injection; independent from umami.enabled) -->
+        <script defer src="https://analysis.etalib.space/script.js" data-website-id="3e4991b9-068c-45f4-8704-2e776757b72d"></script>
     </head>
 
     <body class=" min-h-screen " class:list={[{"is-home": isHomePage, "enable-banner": enableBanner}]}
