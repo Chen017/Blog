@@ -189,7 +189,7 @@ export const en: Translation = {
     [Key.animeEmptyBangumi]: "Please check Bangumi configuration or network connection",
 
     // Friends Page
-    [Key.friends]: "Friends",
+    [Key.friends]: "Links",
 
     // RSS Page
     [Key.rss]: "RSS Feed",

@@ -12,10 +12,13 @@ import type {
     ParticleConfig,
     MusicPlayerConfig,
     PioConfig,
+    Favicon,
 } from "./types/config";
 import { LinkPreset } from "./types/config";
 import rawConfig from "../twilight.config.yaml?raw";
 
+
+type FaviconInput = Favicon | string;
 
 type ConfigFile = {
     site: SiteConfig;
@@ -39,6 +42,16 @@ type ConfigFile = {
 };
 
 const config = yaml.load(rawConfig) as ConfigFile;
+
+const normalizeFavicons = (favicons: FaviconInput[] | undefined): Favicon[] =>
+    (favicons ?? [])
+        .map((favicon) =>
+            typeof favicon === "string" ? { src: favicon } : favicon,
+        )
+        .filter(
+            (favicon): favicon is Favicon =>
+                typeof favicon.src === "string" && favicon.src.length > 0,
+        );
 
 const linkPresetNameMap: Record<string, LinkPreset> = {
     Home: LinkPreset.Home,
@@ -87,7 +100,10 @@ const resolvedPostConfig: PostConfig = {
 };
 
 // 站点配置
-export const siteConfig: SiteConfig = config.site;
+export const siteConfig: SiteConfig = {
+    ...config.site,
+    favicon: normalizeFavicons(config.site.favicon),
+};
 
 // Umami统计配置
 export const umamiConfig = {
