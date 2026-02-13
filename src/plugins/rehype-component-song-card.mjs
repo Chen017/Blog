@@ -261,6 +261,18 @@ export function SongCardComponent(properties, children) {
         legacyArtist.textContent = rawArtist;
       }
 
+      const updateTitleMarquee = () => {
+        if (!titlelineEl) return;
+        titlelineEl.classList.remove("is-overflowing");
+        titlelineEl.style.removeProperty("--song-marquee-distance");
+        const diff = titlelineEl.scrollWidth - titlelineEl.clientWidth;
+        if (diff > 4) {
+          titlelineEl.style.setProperty("--song-marquee-distance", diff + 16 + "px");
+          titlelineEl.classList.add("is-overflowing");
+        }
+      };
+      updateTitleMarquee();
+
       const formatTime = (value) => {
         if (!Number.isFinite(value) || value < 0) return "0:00";
         const minute = Math.floor(value / 60);

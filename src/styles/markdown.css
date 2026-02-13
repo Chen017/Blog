@@ -364,7 +364,7 @@
         .song-card__cover-wrap {
             border-right: 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
+            border-radius: calc(1rem - 1px);
             width: 100%;
             max-width: 172px;
             margin-inline: auto;
