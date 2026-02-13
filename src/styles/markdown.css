@@ -49,8 +49,7 @@
         min-width: 148px;
         max-width: 148px;
         overflow: hidden;
-        border-top-left-radius: calc(1rem - 1px);
-        border-bottom-left-radius: calc(1rem - 1px);
+        border-radius: calc(1rem - 1px);
     }
 
     .song-card__cover {
@@ -59,6 +58,7 @@
         height: 100%;
         object-fit: cover;
         min-height: 148px;
+        border-radius: inherit;
     }
 
     .song-card__body {
@@ -364,6 +364,7 @@
         .song-card__cover-wrap {
             border-right: 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
             width: 100%;
             min-width: 100%;
             max-width: 100%;

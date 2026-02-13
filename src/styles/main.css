@@ -749,8 +749,7 @@
     min-width: 148px;
     max-width: 148px;
     overflow: hidden;
-    border-top-left-radius: calc(1rem - 1px);
-    border-bottom-left-radius: calc(1rem - 1px);
+    border-radius: calc(1rem - 1px);
     border-right: 1px solid rgba(255, 255, 255, 0.14);
 }
 
@@ -759,6 +758,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: inherit;
 }
 
 .custom-md .song-card__body {
@@ -994,6 +994,12 @@
     background: var(--song-accent);
     border: 2px solid white;
     box-shadow: 0 0 0 1px color-mix(in oklch, var(--song-accent), black 16%);
+}
+
+@media (max-width: 640px) {
+    .custom-md .song-card__cover-wrap {
+        border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
+    }
 }
 
 @keyframes song-lyric-enter {
