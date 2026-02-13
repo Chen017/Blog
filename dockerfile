@@ -6,6 +6,7 @@ FROM node:lts-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable
+ENV NODE_OPTIONS=--no-deprecation
 
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile --prefer-offline
