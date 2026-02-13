@@ -3,7 +3,7 @@ title: "Solve Umami No Data with NGINX Reverse Proxy"
 published: 2025-02-24
 description: "Fix Umami analytics not receiving data after NGINX reverse proxy by handling CORS correctly."
 category: "Development"
-cover: "屏幕截图 2025-02-24 194029.png"
+cover: "umami-2025-02-24-194029.png"
 ---
 
 # Background
@@ -65,7 +65,7 @@ This is my configuration:
 
 After that, you can see the statistics in Umami.
 
-![](屏幕截图%202025-02-24%20194029.png)
+![](umami-2025-02-24-194029.png)
 
 # Reason by Grok3
 

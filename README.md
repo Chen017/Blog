@@ -9,7 +9,10 @@ English | [**中文**](docs/README_ZH.md)
 
 ## ✨ Features
 
-Based on upstream, with several modifications for personal use.
+Based on upstream, with several modifications for personal use:
+1. Introduce **music card**, which features Gaussian blur, color picking, lyric scrolling, song covers, customizable playback bars. See the specific effects on [demo](https://www.etalib.space/about/)
+2. Remove translation and theme
+3. Change `Friend` to `Link`
 
 ## 💻 Configuration
 

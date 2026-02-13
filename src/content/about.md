@@ -1,8 +1,9 @@
-# About ME
+# About Me
 
 :::song{title="末日飞船 (诺曼底 Live 版)" artist="唐汉霄" cover="https://s3.etalib.space/alist/website%20resource/唐汉霄 - 末日飞船 (诺曼底 Live 版).jpg" audio="https://s3.etalib.space/alist/website%20resource/唐汉霄 - 末日飞船 (诺曼底 Live 版).mp3" lyricsTitle="展开歌词"}
-[00:00.000] 作词 : 唐汉霄
-[00:01.000] 作曲 : 唐汉霄
+```lrc
+[00:00.000]作词: 唐汉霄
+[00:01.000]作曲: 唐汉霄
 [00:11.004]不再有彗星划过宇宙
 [00:17.195]不再有阳光刺进午后
 [00:23.499]不再有人去歌颂自由
@@ -37,4 +38,5 @@
 [03:26.445]混音及母带 Mixing&Mastering：刘俊杰
 [03:27.312]OP：唐汉霄工作室
 [03:29.396]SP：北京石刻欣乐文化有限公司
+```
 :::
