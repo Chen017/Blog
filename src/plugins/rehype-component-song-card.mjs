@@ -150,8 +150,8 @@ export function SongCardComponent(properties, children) {
                 h("p", { class: "song-card__lyrics-exit", "data-lyrics-exit": "true", "aria-hidden": "true" }, ""),
                 h("p", { class: "song-card__lyrics-current", "data-lyrics-current": "true" }, firstLine),
             ]),
-            h("audio", { class: "song-card__audio-el", preload: "metadata", "data-song-audio": "true" }, [
-                h("source", { src: audio, type: "audio/mpeg" }),
+            h("audio", { class: "song-card__audio-el", preload: "none", "data-song-audio": "true" }, [
+                h("source", { "data-src": audio, type: "audio/mpeg" }),
                 "Your browser does not support the audio element.",
             ]),
             h("div", { class: "song-card__player", "data-player": "true" }, [
@@ -216,7 +216,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v3";
+  const SCRIPT_VERSION = "song-card-v4";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -234,6 +234,19 @@ export function SongCardComponent(properties, children) {
       const lines = Array.from(card.querySelectorAll('[data-lrc-source="true"] [data-lrc-time]'));
       const coverImg = card.querySelector('.song-card__cover');
       if (!audio || !toggle || !progress || !currentTimeEl || !durationEl) return;
+      let audioLoaded = false;
+
+      const ensureAudioLoaded = () => {
+        if (audioLoaded) return;
+        const sourceEl = audio.querySelector("source[data-src]");
+        if (sourceEl && !sourceEl.getAttribute("src")) {
+          const src = sourceEl.getAttribute("data-src");
+          if (src) sourceEl.setAttribute("src", src);
+        }
+        audio.preload = "metadata";
+        audio.load();
+        audioLoaded = true;
+      };
 
       const titlelineEl = card.querySelector('.song-card__titleline');
       const rawTitle = (card.dataset.songTitle || "").trim();
@@ -332,6 +345,7 @@ export function SongCardComponent(properties, children) {
 
       toggle.addEventListener("click", () => {
         if (audio.paused) {
+          ensureAudioLoaded();
           audio.play().catch(() => {});
         } else {
           audio.pause();
