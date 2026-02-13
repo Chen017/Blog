@@ -248,26 +248,11 @@ export function SongCardComponent(properties, children) {
       };
 
       const titlelineEl = card.querySelector('.song-card__titleline');
-      const metaRowEl = card.querySelector('.song-card__meta-row');
       const rawTitle = (card.dataset.songTitle || "").trim();
       const rawArtist = (card.dataset.songArtist || "").trim();
       if (titlelineEl && rawTitle && rawArtist) {
         titlelineEl.textContent = rawTitle + " - " + rawArtist;
       }
-
-      const updateTitleMarquee = () => {
-        if (!titlelineEl) return;
-        titlelineEl.classList.remove("is-overflowing");
-        titlelineEl.style.removeProperty("--song-marquee-distance");
-        const containerWidth = metaRowEl?.clientWidth || titlelineEl.clientWidth;
-        const diff = titlelineEl.scrollWidth - containerWidth;
-        if (diff > 4) {
-          titlelineEl.style.setProperty("--song-marquee-distance", diff + 16 + "px");
-          titlelineEl.classList.add("is-overflowing");
-        }
-      };
-      updateTitleMarquee();
-      window.addEventListener("resize", updateTitleMarquee);
 
       const formatTime = (value) => {
         if (!Number.isFinite(value) || value < 0) return "0:00";
