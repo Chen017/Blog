@@ -1,6 +1,6 @@
 # About Me
 
-:::song{title="末日飞船 (诺曼底 Live 版)" artist="唐汉霄" cover="https://s3.etalib.space/alist/website%20resource/唐汉霄 - 末日飞船 (诺曼底 Live 版).jpg" audio="https://s3.etalib.space/alist/website%20resource/唐汉霄 - 末日飞船 (诺曼底 Live 版).mp3" lyricsTitle="展开歌词"}
+:::song{title="末日飞船 (诺曼底 Live 版)" artist="唐汉霄" cover="https://s3.etalib.space/alist/website%20resource/唐汉霄 - 末日飞船 (诺曼底 Live 版).jpg" audio="https://s3.etalib.space/alist/website%20resource/唐汉霄 - 末日飞船 (诺曼底 Live 版).mp3"}
 ```lrc
 [00:00.000]作词: 唐汉霄
 [00:01.000]作曲: 唐汉霄
