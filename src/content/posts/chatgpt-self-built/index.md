@@ -2,7 +2,7 @@
 title: "ChatGPT (Self-built)"
 published: 2024-12-15
 description: "Built a personal AI chatbot site with Open WebUI to access multiple LLM APIs."
-category: "Tech"
+category: "Development"
 draft: false
 cover: "image-nfez.png"
 ---
