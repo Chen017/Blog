@@ -88,38 +88,12 @@
         line-height: 1.35;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.98);
-        overflow: hidden;
-        text-overflow: ellipsis;
+        display: inline-block;
         white-space: nowrap;
+        padding-right: 2.5rem;
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
-    }
-
-    /* Legacy markup compatibility: if old DOM still renders title/artist nodes */
-    .song-card__title {
-        margin: 0;
-        font-size: 1.06rem;
-        line-height: 1.35;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.98);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .song-card__artist {
-        margin: 0;
-        font-size: 1.02rem;
-        line-height: 1.35;
-        color: rgba(255, 255, 255, 0.86);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.32);
-    }
-
-    .song-card__meta-row .song-card__title + .song-card__artist::before {
-        content: " - ";
-        opacity: 0.72;
+        will-change: transform;
+        transform: translateX(0);
     }
 
     .song-card__audio-el {
@@ -386,11 +360,21 @@
         .song-card__lyrics-live {
             min-height: 2.85rem;
         }
+
+        .song-card__titleline {
+            animation: song-title-marquee var(--song-marquee-duration, 9s) linear infinite;
+        }
     }
 
-    .song-card__lyrics-list {
-        margin: 0;
-        padding: 0;
+    @keyframes song-title-marquee {
+        0%,
+        20% {
+            transform: translateX(0);
+        }
+        80%,
+        100% {
+            transform: translateX(-40%);
+        }
     }
 
     h1 {

@@ -105,7 +105,6 @@ export function SongCardComponent(properties, children) {
     const safeCover = String(cover).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
     const firstLine = lrcLines[0]?.text || stripTimestampPrefix(fallbackLines[0] || "") || "No lyrics provided.";
-    const secondLine = lrcLines[1]?.text || stripTimestampPrefix(fallbackLines[1] || "");
 
     const lyricsSource =
         lrcLines.length > 0
@@ -249,29 +248,26 @@ export function SongCardComponent(properties, children) {
       };
 
       const titlelineEl = card.querySelector('.song-card__titleline');
+      const metaRowEl = card.querySelector('.song-card__meta-row');
       const rawTitle = (card.dataset.songTitle || "").trim();
       const rawArtist = (card.dataset.songArtist || "").trim();
       if (titlelineEl && rawTitle && rawArtist) {
         titlelineEl.textContent = rawTitle + " - " + rawArtist;
-      }
-      const legacyTitle = card.querySelector('.song-card__title');
-      const legacyArtist = card.querySelector('.song-card__artist');
-      if (legacyTitle && legacyArtist && rawTitle && rawArtist) {
-        legacyTitle.textContent = rawTitle;
-        legacyArtist.textContent = rawArtist;
       }
 
       const updateTitleMarquee = () => {
         if (!titlelineEl) return;
         titlelineEl.classList.remove("is-overflowing");
         titlelineEl.style.removeProperty("--song-marquee-distance");
-        const diff = titlelineEl.scrollWidth - titlelineEl.clientWidth;
+        const containerWidth = metaRowEl?.clientWidth || titlelineEl.clientWidth;
+        const diff = titlelineEl.scrollWidth - containerWidth;
         if (diff > 4) {
           titlelineEl.style.setProperty("--song-marquee-distance", diff + 16 + "px");
           titlelineEl.classList.add("is-overflowing");
         }
       };
       updateTitleMarquee();
+      window.addEventListener("resize", updateTitleMarquee);
 
       const formatTime = (value) => {
         if (!Number.isFinite(value) || value < 0) return "0:00";
@@ -427,7 +423,6 @@ export function SongCardComponent(properties, children) {
           card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
           card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + Math.max(38, sat - 16) + "% " + Math.min(68, light + 16) + "% / 0.2)");
         } catch (_e) {
-          // External images without CORS may block canvas reads. Keep fallback colors.
         }
       };
 
