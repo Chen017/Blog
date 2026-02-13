@@ -294,7 +294,7 @@ post:
     # 许可证配置
     license:
         # 启用许可证
-        enable: true
+        enable: false
         # 许可证名称
         name: "CC BY-NC-SA 4.0"
         # 许可证链接
