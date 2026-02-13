@@ -3,7 +3,7 @@ title: "OPPOWATCH应用开发浅指引"
 published: 2025-02-06
 description: "Quick setup guide for integrating OPPO Watch UI control packages in Android Studio."
 category: "Development"
-cover: "屏幕截图 2025-02-06 220429.png"
+cover: "oppowatch-2025-02-06-220429.png"
 ---
 
 # Step 1
@@ -15,7 +15,7 @@ cover: "屏幕截图 2025-02-06 220429.png"
 打开Android Studio 创建`libs`文件夹 将`aar`压缩包放入 如图
 
   
-![](屏幕截图%202025-02-06%20220429.png)
+![](oppowatch-2025-02-06-220429.png)
 
 # Step 3
 
@@ -31,7 +31,7 @@ repositories {
     }
 ```
 
-![](屏幕截图%202025-02-06%20220839.png)
+![](oppowatch-2025-02-06-220839.png)
 
 # Step 4
 
@@ -41,7 +41,7 @@ repositories {
 implementation fileTree(includes: ['*.aar'], dir: 'libs')
 ```
 
-![](屏幕截图%202025-02-06%20221417.png)
+![](oppowatch-2025-02-06-221417.png)
 
 # Step 5
 

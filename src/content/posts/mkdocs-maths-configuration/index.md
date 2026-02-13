@@ -3,7 +3,7 @@ title: "Recommending Configuration of MkDocs for Maths"
 published: 2025-02-27
 description: "Recommended MkDocs setup for math rendering, file ordering, and list formatting fixes."
 category: "Development"
-cover: "屏幕截图 2025-02-27 213409.png"
+cover: "mkdocs-2025-02-27-213409.png"
 ---
 
 # Background
@@ -78,7 +78,7 @@ I use python to generate a manual navigation tree and add it into `mkdocs.yml` ,
 !!!Please ensure the .md file including YAML metadata. You can add this when exporting .md file in your own markdown editor (if have).
 
 Example of YAML metadata in markdown:  
-![](屏幕截图%202025-02-27%20203615.png)
+![](mkdocs-2025-02-27-203615.png)
 
 * * *
 
@@ -220,7 +220,7 @@ Check: If you see `nav:` at the end of your `mkdocs.yml` , then it succeeded.
 
 Example:
 
-![](屏幕截图%202025-02-27%20213409.png)
+![](mkdocs-2025-02-27-213409.png)
 
 ## Issue of breaking into new lines in list
 

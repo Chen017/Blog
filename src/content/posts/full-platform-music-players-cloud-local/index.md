@@ -4,7 +4,7 @@ published: 2025-02-24
 description: "A cross-platform music player roundup with elegant lyric animations for local and cloud playback."
 category: "Recommended Projects"
 draft: false
-cover: "屏幕截图 2025-02-28 092610.png"
+cover: "music-2025-02-28-092610.png"
 ---
 
 In this article i will show several music software that has a elegant and wonderful animations of lyrics on both local and cloud.
@@ -35,7 +35,7 @@ You can join the test and view more information here: [Salt Player for Windows](
 
 Preview:
 
-![](屏幕截图%202025-02-28%20092610.png)
+![](music-2025-02-28-092610.png)
 
 ## AMLL Player (Beta)
 
@@ -43,7 +43,7 @@ A lyric player component library aims to look similar to iPad version of Apple M
 
 Preview:
 
-![](屏幕截图%202025-02-24%20202316.png)
+![](music-2025-02-24-202316.png)
 
 You can join the test and view more information here: [AMLL(applemusic-like-lyrics)](https://github.com/Steve-xmh/applemusic-like-lyrics)
 
@@ -71,7 +71,7 @@ It's total similar or same with **Salt Player**. Here is the link: [Qinalt Playe
 
 This player is not beautiful enough compared to Salt Player. But it is stable. You can download form Google Store: [Symfonium](https://play.google.com/store/apps/details?id=app.symfonik.music.player)
 
-![](屏幕截图%202025-02-24%20205941.png)
+![](music-2025-02-24-205941.png)
 
 ## Windows
 
@@ -83,7 +83,7 @@ Frankly, i didn't find a beautiful enough player. But it can be used. [Astiga - 
 
 The music player in web of alist is also not beautiful enough.....
 
-![](屏幕截图%202025-02-24%20210934.png)
+![](music-2025-02-24-210934.png)
 
 ## iPhone
 

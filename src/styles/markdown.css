@@ -12,6 +12,9 @@
         display: grid;
         grid-template-columns: 148px 1fr;
         color: rgba(255, 255, 255, 0.94);
+        --song-accent: color-mix(in oklch, var(--primary), white 12%);
+        --song-accent-soft: color-mix(in oklch, var(--song-accent), transparent 72%);
+        align-items: stretch;
     }
 
     .song-card__bg {
@@ -40,6 +43,8 @@
     .song-card__cover-wrap {
         height: 100%;
         border-right: 1px solid rgba(255, 255, 255, 0.14);
+        aspect-ratio: 1 / 1;
+        align-self: stretch;
     }
 
     .song-card__cover {
@@ -47,11 +52,21 @@
         height: 100%;
         object-fit: cover;
         min-height: 148px;
-        max-height: 230px;
     }
 
     .song-card__body {
         padding: 1rem 1rem 0.95rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .song-card__meta-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        margin-bottom: 0.55rem;
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .song-card__title {
@@ -60,76 +75,180 @@
         line-height: 1.35;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.98);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .song-card__meta-sep {
+        opacity: 0.5;
+        flex: 0 0 auto;
     }
 
     .song-card__artist {
-        margin: 0.28rem 0 0.7rem;
+        margin: 0;
         font-size: 0.88rem;
         color: rgba(255, 255, 255, 0.72);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 0 1 auto;
     }
 
-    .song-card__audio {
-        width: 100%;
+    /* Backward-compat fallback for older DOM structure without meta-row */
+    .song-card__body > .song-card__title,
+    .song-card__body > .song-card__artist {
+        display: inline;
+        margin: 0;
+        white-space: nowrap;
     }
 
-    .song-card__lyrics-details {
-        margin-top: 0.72rem;
+    .song-card__body > .song-card__title + .song-card__artist::before {
+        content: " · ";
+        opacity: 0.5;
     }
 
-    .song-card__lyrics-summary {
-        cursor: pointer;
-        user-select: none;
-        font-size: 0.82rem;
-        color: rgba(129, 202, 255, 0.98);
+    .song-card__audio-el {
+        display: none;
     }
 
-    .song-card__lyrics {
-        margin-top: 0.55rem;
-        padding: 0.6rem 0.7rem;
-        border-radius: 0.75rem;
+    .song-card__player {
+        margin-top: 0.25rem;
         border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(8, 11, 18, 0.36);
-        max-height: 230px;
-        overflow: auto;
-        scroll-behavior: smooth;
+        border-radius: 999px;
+        padding: 0.58rem 0.85rem;
+        background: color-mix(in oklch, black 35%, var(--song-accent-soft));
+        display: grid;
+        grid-template-columns: auto auto auto auto 1fr;
+        align-items: center;
+        gap: 0.55rem;
+        order: 3;
     }
 
-    .song-card__lyrics p {
-        margin: 0.15rem 0;
-        font-size: 0.88rem;
-        line-height: 1.78;
-        color: rgba(255, 255, 255, 0.78);
-        white-space: pre-wrap;
-    }
-
-    .song-card__lyrics-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .song-card__lyrics-line {
-        margin: 0;
-        padding: 0.16rem 0.32rem;
-        border-radius: 0.45rem;
-        color: rgba(255, 255, 255, 0.74);
-        font-size: 0.9rem;
-        line-height: 1.8;
+    .song-card__play-btn {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in oklch, var(--song-accent), white 10%);
+        background: color-mix(in oklch, var(--song-accent), black 42%);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        line-height: 1;
         cursor: pointer;
-        transition: color 160ms ease, background-color 180ms ease, transform 160ms ease;
+        transition: transform 140ms ease, background-color 140ms ease;
     }
 
-    .song-card__lyrics-line:hover {
-        color: rgba(255, 255, 255, 0.95);
-        background: rgba(255, 255, 255, 0.08);
+    .song-card__play-btn:hover {
+        transform: scale(1.03);
+        background: color-mix(in oklch, var(--song-accent), black 36%);
     }
 
-    .song-card__lyrics-line.is-active {
-        color: rgba(255, 255, 255, 1);
-        background: color-mix(in oklch, var(--primary), transparent 76%);
-        transform: translateX(2px);
-        font-weight: 600;
-        text-shadow: 0 0 12px color-mix(in oklch, var(--primary), transparent 64%);
+    .song-card__play-btn:active {
+        transform: scale(0.96);
+    }
+
+    .song-card__time,
+    .song-card__time-sep {
+        font-size: 0.83rem;
+        color: rgba(255, 255, 255, 0.82);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .song-card__time-sep {
+        opacity: 0.65;
+    }
+
+    .song-card__progress {
+        width: 100%;
+        accent-color: var(--song-accent);
+        cursor: pointer;
+    }
+
+    .song-card__progress::-webkit-slider-runnable-track {
+        height: 0.33rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .song-card__progress::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 0.8rem;
+        height: 0.8rem;
+        border-radius: 999px;
+        background: var(--song-accent);
+        border: 2px solid white;
+        margin-top: -0.235rem;
+    }
+
+    .song-card__lyrics-live {
+        margin-top: 0.2rem;
+        margin-bottom: 0.7rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 0.75rem;
+        background: color-mix(in oklch, black 48%, var(--song-accent-soft));
+        padding: 0.7rem 0.9rem;
+        min-height: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        order: 2;
+    }
+
+    .song-card__meta-row {
+        order: 1;
+    }
+
+    /* Hide old expandable lyrics UI if any stale markup remains in cache */
+    .song-card__lyrics-details,
+    .song-card__lyrics-next {
+        display: none !important;
+    }
+
+    .song-card__lyrics-current {
+        margin: 0;
+        color: color-mix(in oklch, white 84%, var(--song-accent) 16%);
+        text-shadow: 0 0 14px color-mix(in oklch, var(--song-accent), transparent 72%);
+        font-size: 1rem;
+        line-height: 1.55;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .song-card__lyrics-current.is-changing {
+        animation: song-lyric-fade-slide 320ms ease;
+    }
+
+    .song-card__lyrics-source {
+        display: none;
+    }
+
+    @keyframes song-lyric-fade-slide {
+        0% {
+            opacity: 0.28;
+            transform: translateY(9px);
+            filter: blur(1px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+    }
+
+    @media (max-width: 880px) {
+        .song-card__player {
+            grid-template-columns: auto auto auto auto;
+            row-gap: 0.38rem;
+        }
+
+        .song-card__progress {
+            grid-column: 1 / -1;
+        }
     }
 
     @media (max-width: 640px) {
@@ -145,6 +264,15 @@
         .song-card__cover {
             max-height: 285px;
         }
+
+        .song-card__lyrics-live {
+            min-height: 2.85rem;
+        }
+    }
+
+    .song-card__lyrics-list {
+        margin: 0;
+        padding: 0;
     }
 
     h1 {

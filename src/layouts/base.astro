@@ -8,9 +8,6 @@ import {
     BANNER_HEIGHT,
     BANNER_HEIGHT_EXTEND,
     BANNER_HEIGHT_HOME,
-    LIGHT_MODE,
-    DARK_MODE,
-    SYSTEM_MODE,
     PAGE_WIDTH,
     NAVBAR_HEIGHT,
 } from "@constants/constants";
@@ -169,31 +166,11 @@ const bannerOffset =
             />
         ))}
         <!-- Set the theme before the page is rendered to avoid a flash -->
-        <script is:inline define:vars={{LIGHT_MODE, DARK_MODE, SYSTEM_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, NAVBAR_HEIGHT, configHue, defaultTheme: siteConfig.defaultTheme}}>
-            // Load the theme from local storage
-            const theme = localStorage.getItem('theme') || defaultTheme;
-            // Apply the theme to the document
-            let isDark = false;
-            switch (theme) {
-                case LIGHT_MODE:
-                    document.documentElement.classList.remove('dark');
-                    isDark = false;
-                    break
-                case DARK_MODE:
-                    document.documentElement.classList.add('dark');
-                    isDark = true;
-                    break
-                case SYSTEM_MODE:
-                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                        document.documentElement.classList.add('dark');
-                        isDark = true;
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        isDark = false;
-                    }
-            }
-            const expressiveTheme = isDark ? "github-dark" : "github-light";
-            document.documentElement.setAttribute("data-theme", expressiveTheme);
+        <script is:inline define:vars={{BANNER_HEIGHT_EXTEND, PAGE_WIDTH, NAVBAR_HEIGHT, configHue}}>
+            // Force dark mode before paint to avoid light flash.
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute("data-theme", "github-dark");
+            localStorage.setItem("theme", "dark");
             // Load the hue from local storage
             const hue = localStorage.getItem('hue') || configHue;
             // Apply the hue to the document
@@ -283,7 +260,6 @@ import { initTheme } from "@utils/theme";
 import { initHue } from "@utils/hue";
 import { initMarkdownActions } from "@/utils/markdown";
 import { initFancybox, cleanupFancybox } from "@utils/fancybox";
-import { loadAndInitTranslate } from "@utils/language";
 import { setupParticleEffects } from "@/utils/particle";
 
 
@@ -472,9 +448,6 @@ initWallpaperMode();
 
 // 初始化 Markdown 相关操作以防止因 Swup 无刷新跳转的机制限制而导致操作失效
 initMarkdownActions();
-
-// Initialize translate.js
-loadAndInitTranslate();
 
 // Initialize particle effects
 setupParticleEffects();
