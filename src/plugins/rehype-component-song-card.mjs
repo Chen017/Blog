@@ -408,6 +408,7 @@ export function SongCardComponent(properties, children) {
           card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
           card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + Math.max(38, sat - 16) + "% " + Math.min(68, light + 16) + "% / 0.2)");
         } catch (_e) {
+          // External images without CORS may block canvas reads. Keep fallback colors.
         }
       };
 

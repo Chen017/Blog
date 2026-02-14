@@ -1,0 +1,12 @@
+{
+    "name": "Python",
+    "description": "Scripting, dynamic typing, and rapid prototyping.",
+    "icon": "logos:python",
+    "category": "backend",
+    "level": "intermediate",
+    "experience": {
+        "years": 0,
+        "months": 3
+    },
+    "color": "#3776AB"
+}
