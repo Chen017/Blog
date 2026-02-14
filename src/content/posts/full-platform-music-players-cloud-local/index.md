@@ -13,86 +13,75 @@ In this article i will show several music software that has a elegant and wonder
 
 ## Androids
 
-[**Salt Player**](https://play.google.com/store/apps/details?id=com.salt.music) is created by a Chinese [developer](https://github.com/Moriafly) Moriafly. Chinese official website: [Salt Player](https://moriafly.com/program/salt-player.html)
+### Salt Player
 
-You can also download it in Chinese app market (app store): [酷安](https://www.coolapk.com/) [小米应用商店](https://app.mi.com/) [OPPO应用商店](https://store.oppomobile.com/) and so on...
+[Link](https://moriafly.com/program/salt-player.html)
 
-Preview:
+<img src="Screenshot_2025-02-24-20-00-19-46_e53b20ddbf74fed48fbb876ec4945b7f.jpg" width="30%"> <img src="Screenshot_2025-02-24-20-00-22-41_e53b20ddbf74fed48fbb876ec4945b7f.jpg" width="30%">
+<img src="Screenshot_2025-02-24-20-00-33-35_e53b20ddbf74fed48fbb876ec4945b7f.jpg" width="61%">
 
-![](Screenshot_2025-02-24-20-00-19-46_e53b20ddbf74fed48fbb876ec4945b7f.jpg)
+### ConePlayer
 
-![](Screenshot_2025-02-24-20-00-22-41_e53b20ddbf74fed48fbb876ec4945b7f.jpg)
+[Link](https://coneplayer.trantor.ink/#/)
 
-![](Screenshot_2025-02-24-20-00-33-35_e53b20ddbf74fed48fbb876ec4945b7f.jpg)
+<img src="Screenshot_2026-02-14-15-10-10-31_04814864e9c70fe90b37f4e96675ca75.jpg" width="30%"> <img src="Screenshot_2026-02-14-15-10-29-07_04814864e9c70fe90b37f4e96675ca75.jpg" width="30%">
+
+
+
+
+### Accompanist Lyrics UI (Beta)
+
+[Link](https://github.com/6xingyv/accompanist-lyrics-ui)
+
+![](image2.png)
 
 ## Windows
 
-### Salt Player for Windows (Beta)
+### Salt Player for Windows
 
-Similar to **Salt Player for Androids**, but it's still in beta stage.
-
-You can join the test and view more information here: [Salt Player for Windows](https://moriafly.com/program/spw.html)
-
-Preview:
+Similar to **Salt Player for Androids**. [Link](https://moriafly.com/program/spw.html)
 
 ![](music-2025-02-28-092610.png)
 
 ## AMLL Player (Beta)
 
-A lyric player component library aims to look similar to iPad version of Apple Music.
-
-Preview:
+[Link](https://github.com/Steve-xmh/applemusic-like-lyrics)
 
 ![](music-2025-02-24-202316.png)
 
-You can join the test and view more information here: [AMLL(applemusic-like-lyrics)](https://github.com/Steve-xmh/applemusic-like-lyrics)
-
-## iPhone
-
-Apple Music !!!
-
-## iMac
-
-Apple Music !!!
-
-## iPad
-
-Apple Music !!!
-
-# Cloud (Support S3/Webdav/Cloud Drive)
+# Cloud (Support S3/Webdav/Navidrome)
 
 ## Androids
 
-### Qinalt Player (Beta)
+### Qinalt Player
 
-It's total similar or same with **Salt Player**. Here is the link: [Qinalt Player](https://moriafly.com/program/qinalt.html)
+Support **Webdav**. It's total similar or same with **Salt Player**. [Link](https://moriafly.com/program/qinalt.html)
 
-### Symfonium
+### Musly
 
-This player is not beautiful enough compared to Salt Player. But it is stable. You can download form Google Store: [Symfonium](https://play.google.com/store/apps/details?id=app.symfonik.music.player)
+Support **Navidrome**. [Link](https://github.com/dddevid/Musly)
 
-![](music-2025-02-24-205941.png)
+![](image.png)
 
+### Castafiore
+
+Support **Navidrome**. [Link](https://github.com/sawyerf/Castafiore)
+
+![](image4.png)
+
+###
 ## Windows
 
-### Astiga
+### Feishin
 
-Frankly, i didn't find a beautiful enough player. But it can be used. [Astiga - Your online cloud music player](https://asti.ga/)
+Support **Navidrome**. [Link](https://github.com/jeffvli/feishin)
 
-### Alist
+![](image3.png)
 
-The music player in web of alist is also not beautiful enough.....
+### Musly
 
-![](music-2025-02-24-210934.png)
+Support **Navidrome** and have windows version. The interface should be consistent with Android's
+Link: [Musly](https://github.com/dddevid/Musly)
 
-## iPhone
+![](image.png)
 
-Apple Music !!!
-
-## iMac
-
-Apple Music !!!
-
-## iPad
-
-Apple Music !!!
