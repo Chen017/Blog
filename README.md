@@ -23,7 +23,7 @@ which features **Gaussian blur**, **color picking**, **lyric scrolling vivid ani
 1. **Clone the repository:**
    ```bash
    git clone
-   cd Twilight
+   cd Blog
    ```
 
 2. **Install dependencies:**
