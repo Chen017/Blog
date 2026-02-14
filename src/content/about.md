@@ -1,6 +1,6 @@
 # About
 
-:::song{title="在夜里跳舞xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" artist="唐汉霄xxxxxxxxxxxxxxxxxxxxxxx" cover="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.jpg" audio="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.mp3"}
+:::song{title="在夜里跳舞" artist="唐汉霄" cover="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.jpg" audio="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.mp3"}
 ```lrc
 [00:00.00]作词 : 唐汉霄
 [00:01.00]作曲 : 唐汉霄
