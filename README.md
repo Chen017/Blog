@@ -10,10 +10,12 @@ A CMS integrated static blog template built with Astro framework and based on [U
 Based on upstream, I have added some modifications and new features:
 
 ### 1. **Music card**
-which features Gaussian blur, color picking, lyric scrolling vivid animation, song covers, customizable playback bars. See the specific effects on [demo](https://www.etalib.space/about/)
+which features **Gaussian blur**, **color picking**, **lyric scrolling vivid animation**, **song covers**, **customizable playback bars**. See the specific effects on [demo](https://www.etalib.space/about/)
 
 ![](image.png)
+
 2. Remove translation and theme
+
 3. Change `Friend` to `Link`
 
 ## 💻 Configuration
