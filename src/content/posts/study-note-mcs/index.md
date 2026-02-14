@@ -9,19 +9,18 @@ cover: "image-cerp.png"
 
 **"Knowledge should be free and accessible."**
 
-There are **two note websites** available, you can choose the one you like.
+### Note
 
-1.  [Mkdocs](http://markdown.etalib.space)
+The url is https://note.etalib.space. [Click here to open link](https://note.etalib.space)
     
-2.  [Siyuan share](https://note.etalib.space)
-    
+### Courses copies on moodle
 
-Also, here is the **sources of past courses in moodle**: [Alist](https://alist.etalib.space)
+The url is https://alist.etalib.space. [Click here to open link](https://alist.etalib.space)
 
-* * *
+I believe you can figure out the password if you are a student of GTIIT
 
-**How to get a PDF file of maths note?**
+### How to get a PDF file of maths note?
 
-You need to copy the specific note link in **Siyuan share** website and convert it to PDF by some tools (HTML to PDF)
+You need to copy the specific note link in the website and convert it to PDF by some tools (HTML to PDF)
 
 A recommended tool link: [Click here](https://www.ilovepdf.com/zh-cn/html-to-pdf)
