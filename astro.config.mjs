@@ -10,6 +10,7 @@ import cloudflarePages from "@astrojs/cloudflare";
 import decapCmsOauth from "astro-decap-cms-oauth";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
+import mdx from "@astrojs/mdx";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeComponents from "rehype-components"; /* Render the custom directive content */
 import rehypeKatex from "rehype-katex";
@@ -46,41 +47,6 @@ export default defineConfig({
     },
     adapter: adapter,
     integrations: [
-        decapCmsOauth({
-            decapCMSVersion: "3.9.0",
-            oauthDisabled: true, // Disable it to use oauth, requires .env configuration
-        }),
-        swup({
-            theme: false,
-            animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
-            containers: [
-                "#swup-container",
-                "#left-sidebar",
-                "#right-sidebar",
-            ],
-            cache: true,
-            preload: true,
-            accessibility: true,
-            updateHead: true,
-            updateBodyClass: false,
-            globalInstance: true,
-            // Scroll related configuration optimization
-            smoothScrolling: false, // Disable smooth scrolling to improve performance and avoid conflicts with anchor navigation
-            resolveUrl: (url) => url,
-            animateHistoryBrowsing: false,
-            skipPopStateHandling: (event) => {
-                // Skip anchor link handling, let the browser handle it natively
-                return event.state && event.state.url && event.state.url.includes("#");
-            },
-        }),
-        icon({
-            include: {
-                "fa6-brands": ["*"],
-                "fa6-regular": ["*"],
-                "fa6-solid": ["*"],
-                mdi: ["*"],
-            },
-        }),
         expressiveCode({
             themes: ["github-light", "github-dark"],
             themeCSSSelector: (theme) => `[data-theme="${theme}"]`,
@@ -130,6 +96,96 @@ export default defineConfig({
             },
             frames: {
                 showCopyToClipboardButton: false,
+            },
+        }),
+        mdx({
+            extendMarkdownConfig: true,
+            remarkPlugins: [
+                remarkMath,
+                remarkReadingTime,
+                remarkExcerpt,
+                remarkGithubAdmonitionsToDirectives,
+                remarkDirective,
+                remarkSectionize,
+                parseDirectiveNode,
+                remarkMermaid,
+            ],
+            rehypePlugins: [
+                rehypeKatex,
+                rehypeSlug,
+                rehypeMermaid,
+                [
+                    rehypeComponents,
+                    {
+                        components: {
+                            github: GithubCardComponent,
+                            song: SongCardComponent,
+                            note: (x, y) => AdmonitionComponent(x, y, "note"),
+                            tip: (x, y) => AdmonitionComponent(x, y, "tip"),
+                            important: (x, y) => AdmonitionComponent(x, y, "important"),
+                            caution: (x, y) => AdmonitionComponent(x, y, "caution"),
+                            warning: (x, y) => AdmonitionComponent(x, y, "warning"),
+                        },
+                    },
+                ],
+                [
+                    rehypeAutolinkHeadings,
+                    {
+                        behavior: "append",
+                        properties: {
+                            className: ["anchor"],
+                        },
+                        content: {
+                            type: "element",
+                            tagName: "span",
+                            properties: {
+                                className: ["anchor-icon"],
+                                "data-pagefind-ignore": true,
+                            },
+                            children: [
+                                {
+                                    type: "text",
+                                    value: "#",
+                                },
+                            ],
+                        },
+                    },
+                ],
+            ],
+        }),
+        decapCmsOauth({
+            decapCMSVersion: "3.9.0",
+            oauthDisabled: true, // Disable it to use oauth, requires .env configuration
+        }),
+        swup({
+            theme: false,
+            animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
+            containers: [
+                "#swup-container",
+                "#left-sidebar",
+                "#right-sidebar",
+            ],
+            cache: true,
+            preload: true,
+            accessibility: true,
+            updateHead: true,
+            updateBodyClass: false,
+            globalInstance: true,
+            // Scroll related configuration optimization
+            smoothScrolling: false, // Disable smooth scrolling to improve performance and avoid conflicts with anchor navigation
+            resolveUrl: (url) => url,
+            animateHistoryBrowsing: false,
+            skipPopStateHandling: (event) => {
+                // Skip anchor link handling, let the browser handle it natively
+                return event.state && event.state.url && event.state.url.includes("#");
+            },
+        }),
+        icon({
+            include: {
+                "fa6-brands": ["*"],
+                "fa6-regular": ["*"],
+                "fa6-solid": ["*"],
+                mdi: ["*"],
             },
         }),
         svelte({
