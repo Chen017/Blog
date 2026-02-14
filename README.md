@@ -18,6 +18,8 @@ which features **Gaussian blur**, **color picking**, **lyric scrolling vivid ani
 
 3. Change `Friend` to `Link`
 
+4. Optimize the Skill Cards
+
 ## 💻 Configuration
 
 1. **Clone the repository:**
