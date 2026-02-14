@@ -26,7 +26,7 @@ const tagsSchema = z.preprocess((arg) => {
 }, z.array(z.string()).optional().default([]));
 
 const postsCollection = defineCollection({
-    loader: glob({ pattern: '**/*.md', base: "./src/content/posts" }),
+    loader: glob({ pattern: '**/*.{md,mdx}', base: "./src/content/posts" }),
     schema: z.object({
         title: z.string(),
         published: dateSchema,
