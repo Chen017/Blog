@@ -1,0 +1,12 @@
+{
+    "name": "C++",
+    "description": "Systems programming with focus on memory management, pointers, and OOP.",
+    "icon": "logos:c-plusplus",
+    "category": "backend",
+    "level": "intermediate",
+    "experience": {
+        "years": 0,
+        "months": 3
+    },
+    "color": "#00599C"
+}

@@ -86,7 +86,7 @@ const getSizeClasses = (size: string) => {
                 icon: "w-8 h-8",
                 iconText: "text-lg",
                 title: "text-base",
-                description: "text-xs line-clamp-2",
+                description: "text-xs whitespace-normal",
                 badge: "text-xs",
                 progress: "h-1.5",
             };
@@ -96,7 +96,7 @@ const getSizeClasses = (size: string) => {
                 icon: "w-14 h-14",
                 iconText: "text-3xl",
                 title: "text-xl",
-                description: "text-sm line-clamp-3",
+                description: "text-sm whitespace-normal",
                 badge: "text-sm",
                 progress: "h-3",
             };
@@ -106,7 +106,7 @@ const getSizeClasses = (size: string) => {
                 icon: "w-10 h-10",
                 iconText: "text-xl",
                 title: "text-lg",
-                description: "text-sm line-clamp-2",
+                description: "text-sm whitespace-normal",
                 badge: "text-xs",
                 progress: "h-2",
             };
@@ -119,10 +119,10 @@ const skillColor = skill.color || "#3B82F6";
 // 经验展示文本
 const getExperienceText = (experience: Props["skill"]["experience"]) => {
     if (typeof experience === "string") return experience;
-    const yearsText = `${experience.years}${i18n(I18nKey.skillYears)}`;
+    const yearsText = `${experience.years}y`;
     const monthsText =
         experience.months > 0
-            ? ` ${experience.months}${i18n(I18nKey.skillMonths)}`
+            ? ` ${experience.months}m`
             : "";
     return `${yearsText}${monthsText}`;
 };

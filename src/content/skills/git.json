@@ -1,11 +1,11 @@
 {
     "name": "Git",
-    "description": "A distributed version control system.",
+    "description": "Version control with branching strategies and basic CI/CD workflows.",
     "icon": "logos:git-icon",
     "category": "tools",
-    "level": "advanced",
+    "level": "intermediate",
     "experience": {
-        "years": 3,
+        "years": 1,
         "months": 0
     },
     "color": "#F05032"

@@ -1,0 +1,12 @@
+{
+    "name": "Assembly (MIPS)",
+    "description": "Understanding of CPU architecture, registers, and instruction pipelining.",
+    "icon": "mdi:chip",
+    "category": "hardware",
+    "level": "beginner",
+    "experience": {
+        "years": 0,
+        "months": 6
+    },
+    "color": "#4D4D4D"
+}

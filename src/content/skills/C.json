@@ -1,0 +1,12 @@
+{
+    "name": "C",
+    "description": "Low-level programming, OS concepts, and hardware interaction.",
+    "icon": "logos:c",
+    "category": "system",
+    "level": "intermediate",
+    "experience": {
+        "years": 0,
+        "months": 7
+    },
+    "color": "#A8B9CC"
+}

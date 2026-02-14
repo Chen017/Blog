@@ -1,0 +1,12 @@
+{
+    "name": "Java",
+    "description": "Strong foundation in Data Structures, Algorithms, and Object-Oriented Design.",
+    "icon": "logos:java",
+    "category": "backend",
+    "level": "intermediate",
+    "experience": {
+        "years": 1,
+        "months": 0
+    },
+    "color": "#5382A1"
+}

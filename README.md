@@ -1,16 +1,18 @@
 # Blog
 
-A CMS integrated static blog template built with Astro framework.
+A CMS integrated static blog template built with Astro framework and based on [Upstream](https://github.com/Spr-Aachen/Twilight)
 
 [**🖥️ Live Demo**](https://www.etalib.space)
 [**📝 Documentation**](https://docs.twilight.spr-aachen.com/en)
 
-English | [**中文**](docs/README_ZH.md)
-
 ## ✨ Features
 
-Based on upstream, with several modifications for personal use:
-1. Introduce **music card**, which features Gaussian blur, color picking, lyric scrolling, song covers, customizable playback bars. See the specific effects on [demo](https://www.etalib.space/about/)
+Based on upstream, I have added some modifications and new features:
+
+### 1. **Music card**
+which features Gaussian blur, color picking, lyric scrolling vivid animation, song covers, customizable playback bars. See the specific effects on [demo](https://www.etalib.space/about/)
+
+![](image.png)
 2. Remove translation and theme
 3. Change `Friend` to `Link`
 
