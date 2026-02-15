@@ -113,14 +113,3 @@
 [04:24.55]
 ```
 :::
-
-
-:::song{title="在夜里跳舞" artist="唐汉霄" cover="https://st.depositphotos.com/1016929/4136/i/950/depositphotos_41364179-stock-photo-1-percentage-rate-icon-on.jpg" audio="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.mp3"}
-```lrc
-[00:00.00]作词 : 唐汉霄
-[00:01.00]作曲 : 唐汉霄
-[00:02.00]编曲 : 唐汉霄/罗恩妮Annie/Jax江存潇
-[00:03.86]
-[00:10.48]我已做好了所有准备
-```
-:::
