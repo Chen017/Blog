@@ -215,7 +215,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v6";
+  const SCRIPT_VERSION = "song-card-v4-colorpick-fix";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -364,98 +364,60 @@ export function SongCardComponent(properties, children) {
       audio.addEventListener('pause', updateToggle);
       audio.addEventListener('ended', updateToggle);
 
+      /* =========================================================
+         修复后的取色逻辑 (仅修改此处)
+         ========================================================= */
       const applyAccentFromCover = () => {
         if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = 30;
-          canvas.height = 30;
+          canvas.width = 24;
+          canvas.height = 24;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
-          ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
-          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-          
+          ctx.drawImage(coverImg, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
           let r = 0, g = 0, b = 0, count = 0;
-          let rTotal = 0, gTotal = 0, bTotal = 0, totalCount = 0;
-
           for (let i = 0; i < data.length; i += 4) {
-            const tr = data[i];
-            const tg = data[i + 1];
-            const tb = data[i + 2];
             const alpha = data[i + 3];
-
-            if (alpha < 128) continue; // Skip Transparent
-
-            // Track total average regardless of color
-            rTotal += tr;
-            gTotal += tg;
-            bTotal += tb;
-            totalCount++;
-
-            // Heuristic: ignore near-white and near-black for the "accent" color
-            // White: R,G,B all > 230. Black: R,G,B all < 20
-            const maxVal = Math.max(tr, tg, tb);
-            const minVal = Math.min(tr, tg, tb);
-            const isWhite = minVal > 230; 
-            const isBlack = maxVal < 20;
-
-            if (!isWhite && !isBlack) {
-                r += tr;
-                g += tg;
-                b += tb;
-                count++;
-            }
+            if (alpha < 140) continue;
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
           }
-
-          // Fallback: If image is monochrome/white (no colored pixels found), use total average
-          if (count === 0 && totalCount > 0) {
-              r = rTotal;
-              g = gTotal;
-              b = bTotal;
-              count = totalCount;
-          } else if (count === 0) {
-              return;
-          }
-
+          if (!count) return;
           r = Math.round(r / count);
           g = Math.round(g / count);
           b = Math.round(b / count);
 
-          // Convert to HSL (Standard Algorithm)
-          const rNorm = r / 255;
-          const gNorm = g / 255;
-          const bNorm = b / 255;
-          const max = Math.max(rNorm, gNorm, bNorm);
-          const min = Math.min(rNorm, gNorm, bNorm);
+          const max = Math.max(r, g, b), min = Math.min(r, g, b);
+          const l = (max + min) / 510;
           let h = 0, s = 0;
-          const l = (max + min) / 2;
-
           if (max !== min) {
             const d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            s = l > 0.5 ? d / (510 - max - min) : d / (max + min);
             switch (max) {
-              case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
-              case gNorm: h = (bNorm - rNorm) / d + 2; break;
-              case bNorm: h = (rNorm - gNorm) / d + 4; break;
+              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+              case g: h = (b - r) / d + 2; break;
+              default: h = (r - g) / d + 4;
             }
             h /= 6;
           }
-
           const hue = Math.round(h * 360);
+
+          // --- 核心修改 Start ---
+          // 1. 饱和度 (Saturation): 提升下限到 55%，确保颜色鲜艳，不发灰。
+          const sat = Math.max(55, Math.min(95, Math.round(s * 100)));
           
-          // Adaptive saturation
-          let sat = Math.round(s * 100);
-          if (s > 0.05) {
-             sat = Math.max(45, sat);
-          }
-          sat = Math.min(85, sat);
+          // 2. 亮度 (Lightness): 提升整体亮度范围到 [70%, 88%]。
+          // 这样无论原始封面是暗是亮，提取出的强调色在深色背景上都足够明亮清晰。
+          const light = Math.max(70, Math.min(88, Math.round(l * 100)));
+          // --- 核心修改 End ---
 
-          // Adaptive lightness
-          // Important: Clamp lightness to be readable (not too bright, not too dark)
-          const light = Math.max(30, Math.min(55, Math.round(l * 100)));
-
-          card.style.setProperty("--song-accent", "hsl(" + hue + ", " + sat + "%, " + light + "%)");
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + ", " + sat + "%, " + Math.min(light + 12, 70) + "%, 0.2)");
+          card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
+          // soft 颜色稍微降低一点饱和度和亮度，并增加透明度
+          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + (sat - 10) + "% " + (light - 10) + "% / 0.25)");
         } catch (_e) {
           // External images without CORS may block canvas reads. Keep fallback colors.
         }
