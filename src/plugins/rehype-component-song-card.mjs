@@ -215,7 +215,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v4";
+  const SCRIPT_VERSION = "song-card-v5";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -388,25 +388,40 @@ export function SongCardComponent(properties, children) {
           g = Math.round(g / count);
           b = Math.round(b / count);
 
-          const max = Math.max(r, g, b), min = Math.min(r, g, b);
-          const l = (max + min) / 510;
+          // Convert to HSL (Standard Algorithm)
+          const rNorm = r / 255;
+          const gNorm = g / 255;
+          const bNorm = b / 255;
+          const max = Math.max(rNorm, gNorm, bNorm);
+          const min = Math.min(rNorm, gNorm, bNorm);
           let h = 0, s = 0;
+          const l = (max + min) / 2;
+
           if (max !== min) {
             const d = max - min;
-            s = l > 0.5 ? d / (510 - max - min) : d / (max + min);
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
             switch (max) {
-              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-              case g: h = (b - r) / d + 2; break;
-              default: h = (r - g) / d + 4;
+              case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
+              case gNorm: h = (bNorm - rNorm) / d + 2; break;
+              case bNorm: h = (rNorm - gNorm) / d + 4; break;
             }
             h /= 6;
           }
+
           const hue = Math.round(h * 360);
-          const sat = Math.min(78, Math.max(45, Math.round(s * 100)));
-          // Keep accent mid-dark so white text remains readable under all covers.
-          const light = Math.min(54, Math.max(36, Math.round(l * 100)));
+          
+          // Adaptive saturation: only boost if there is actual color information
+          let sat = Math.round(s * 100);
+          if (s > 0.05) {
+             sat = Math.max(45, sat);
+          }
+          sat = Math.min(80, sat);
+
+          // Adaptive lightness: keep text readable
+          const light = Math.max(30, Math.min(55, Math.round(l * 100)));
+
           card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + Math.max(38, sat - 16) + "% " + Math.min(68, light + 16) + "% / 0.2)");
+          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + sat + "% " + Math.min(light + 12, 70) + "% / 0.2)");
         } catch (_e) {
           // External images without CORS may block canvas reads. Keep fallback colors.
         }
