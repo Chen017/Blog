@@ -215,7 +215,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v4-colorpick-fix";
+  const SCRIPT_VERSION = "song-card-v5-max-brightness";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -365,28 +365,37 @@ export function SongCardComponent(properties, children) {
       audio.addEventListener('ended', updateToggle);
 
       /* =========================================================
-         修复后的取色逻辑 (仅修改此处)
+         优化的取色逻辑：只取亮色像素，防止被黑色背景拉低
          ========================================================= */
       const applyAccentFromCover = () => {
         if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = 24;
-          canvas.height = 24;
+          canvas.width = 30; // 稍微提高一点采样精度
+          canvas.height = 30;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
-          ctx.drawImage(coverImg, 0, 0, 24, 24);
-          const data = ctx.getImageData(0, 0, 24, 24).data;
+          ctx.drawImage(coverImg, 0, 0, 30, 30);
+          const data = ctx.getImageData(0, 0, 30, 30).data;
+          
           let r = 0, g = 0, b = 0, count = 0;
           for (let i = 0; i < data.length; i += 4) {
             const alpha = data[i + 3];
-            if (alpha < 140) continue;
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
+            const pr = data[i], pg = data[i+1], pb = data[i+2];
+            
+            // 关键修改 1：只要像素太暗 (RGB均值 < 50)，直接扔掉不参与计算
+            // 这样黑色背景的专辑封面就不会导致取色变脏
+            if (alpha < 140 || (pr + pg + pb) < 150) continue;
+            
+            r += pr;
+            g += pg;
+            b += pb;
             count++;
           }
-          if (!count) return;
+          
+          // 如果整张图都是黑的，保底回退到白色，而不是黑色
+          if (count === 0) { r=255; g=255; b=255; count=1; }
+
           r = Math.round(r / count);
           g = Math.round(g / count);
           b = Math.round(b / count);
@@ -406,20 +415,18 @@ export function SongCardComponent(properties, children) {
           }
           const hue = Math.round(h * 360);
 
-          // --- 核心修改 Start ---
-          // 1. 饱和度 (Saturation): 提升下限到 55%，确保颜色鲜艳，不发灰。
-          const sat = Math.max(55, Math.min(95, Math.round(s * 100)));
+          // 关键修改 2：暴力提亮
+          // 饱和度：强制拉到 75% 以上，保证鲜艳
+          const sat = Math.max(75, Math.min(100, Math.round(s * 100)));
           
-          // 2. 亮度 (Lightness): 提升整体亮度范围到 [70%, 88%]。
-          // 这样无论原始封面是暗是亮，提取出的强调色在深色背景上都足够明亮清晰。
-          const light = Math.max(70, Math.min(88, Math.round(l * 100)));
-          // --- 核心修改 End ---
+          // 亮度：强制拉到 80% - 95% 之间
+          // 这样就算是深蓝、深红，也会变成天蓝、亮粉，在黑底上绝对显眼
+          const light = Math.max(80, Math.min(95, Math.round(l * 100)));
 
           card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
-          // soft 颜色稍微降低一点饱和度和亮度，并增加透明度
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + (sat - 10) + "% " + (light - 10) + "% / 0.25)");
+          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + sat + "% " + light + "% / 0.3)");
         } catch (_e) {
-          // External images without CORS may block canvas reads. Keep fallback colors.
+          // Fallback
         }
       };
 
