@@ -3,12 +3,7 @@ import { h } from "hastscript";
 
 /**
  * Render a song card from markdown directives.
- *
- * Usage:
- * :::song{title="Song" artist="Artist" cover="https://..." audio="https://..."}
- * [00:00.00] Lyric line 1
- * [00:12.30] Lyric line 2
- * :::
+ * * Refactored for "Standard" Blurred Cover Background.
  */
 export function SongCardComponent(properties, children) {
     const title = properties?.title || "Untitled";
@@ -18,66 +13,28 @@ export function SongCardComponent(properties, children) {
     const cardId = `song-${Math.random().toString(36).slice(2, 10)}`;
 
     if (!cover || !audio) {
-        return h(
-            "div",
-            { class: "hidden" },
-            'Invalid song directive. ("cover" and "audio" attributes are required)',
-        );
+        return h("div", { class: "hidden" }, 'Error: "cover" and "audio" attributes are required.');
     }
 
+    // Helper: Extract text from AST
     const extractNodeText = (node) => {
         if (!node) return "";
         if (typeof node.value === "string") return node.value;
-        if (Array.isArray(node.children)) {
-            return node.children.map(extractNodeText).join("");
-        }
+        if (Array.isArray(node.children)) return node.children.map(extractNodeText).join("");
         return "";
     };
 
-    const rawLyrics = (Array.isArray(children) ? children : [])
-        .map(extractNodeText)
-        .join("\n")
-        .trim();
-
-    const stripTimestampPrefix = (line) =>
-        line.replace(/^\s*\[[^\]]+\]\s*/g, "").trim();
-
+    // Helper: Parse Lyrics
+    const rawLyrics = (Array.isArray(children) ? children : []).map(extractNodeText).join("\n").trim();
+    const stripTimestampPrefix = (line) => line.replace(/^\s*\[[^\]]+\]\s*/g, "").trim();
+    
     const parseTimestamp = (token) => {
         if (!token) return null;
         const normalized = token.trim().replaceAll("：", ":");
-        if (!normalized) return null;
-
-        // mm:ss(.xxx)
         if (normalized.includes(":")) {
-            const [mRaw, secRaw] = normalized.split(":", 2);
-            const minute = Number(mRaw);
-            if (!Number.isFinite(minute)) return null;
-
-            let second = 0;
-            let fraction = 0;
-            if (secRaw.includes(".")) {
-                const [sRaw, fRaw] = secRaw.split(".", 2);
-                second = Number(sRaw);
-                if (!Number.isFinite(second)) return null;
-                const fracStr = (fRaw || "0").replace(/[^\d]/g, "");
-                fraction = fracStr ? Number(fracStr) / Math.pow(10, fracStr.length) : 0;
-            } else {
-                second = Number(secRaw);
-                if (!Number.isFinite(second)) return null;
-            }
-            return minute * 60 + second + fraction;
+            const [m, s] = normalized.split(":", 2);
+            return Number(m) * 60 + Number(s);
         }
-
-        // ss(.xxx)
-        if (normalized.includes(".")) {
-            const [sRaw, fRaw] = normalized.split(".", 2);
-            const second = Number(sRaw);
-            if (!Number.isFinite(second)) return null;
-            const fracStr = (fRaw || "0").replace(/[^\d]/g, "");
-            const fraction = fracStr ? Number(fracStr) / Math.pow(10, fracStr.length) : 0;
-            return second + fraction;
-        }
-
         return null;
     };
 
@@ -86,392 +43,426 @@ export function SongCardComponent(properties, children) {
         const output = [];
         const lines = input.split(/\r?\n/);
         for (const line of lines) {
-            const timestampMatches = [...line.matchAll(/\[([^\]]+)\]/g)];
-            const text = stripTimestampPrefix(line.replace(/\[([^\]]+)\]/g, "").trim());
-            if (timestampMatches.length === 0) continue;
-            for (const match of timestampMatches) {
-                const time = parseTimestamp(match[1]);
-                if (time === null || Number.isNaN(time)) continue;
-                output.push({ time, text: text || "..." });
+            const timeMatch = line.match(/\[(\d{2}):(\d{2}(?:\.\d+)?)\]/);
+            const text = line.replace(/\[[^\]]+\]/g, "").trim();
+            if (timeMatch && text) {
+                const time = Number(timeMatch[1]) * 60 + Number(timeMatch[2]);
+                output.push({ time, text });
             }
         }
         return output.sort((a, b) => a.time - b.time);
     };
 
     const lrcLines = parseLrc(rawLyrics);
-    const fallbackLines = rawLyrics
-        ? rawLyrics.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
-        : [];
     const safeCover = String(cover).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    const firstLine = lrcLines[0]?.text || (rawLyrics ? "Lyrics loaded" : "No lyrics provided");
 
-    const firstLine = lrcLines[0]?.text || stripTimestampPrefix(fallbackLines[0] || "") || "No lyrics provided.";
-
-    const lyricsSource =
-        lrcLines.length > 0
-            ? h(
-                "ul",
-                { class: "song-card__lyrics-source", hidden: true, "data-lrc-source": "true" },
-                lrcLines.map((line) =>
-                    h(
-                        "li",
-                        {
-                            "data-lrc-time": line.time.toFixed(3),
-                        },
-                        line.text,
-                    ),
-                ),
-            )
-            : null;
+    // Construct the Lyrics Source List (Hidden)
+    const lyricsSource = lrcLines.length > 0
+        ? h("ul", { class: "song-card__lyrics-source", hidden: true, "data-lrc-source": "true" },
+            lrcLines.map(line => h("li", { "data-lrc-time": line.time.toFixed(3) }, line.text))
+        ) : null;
 
     return h("section", {
         class: "song-card not-prose",
         "data-song-card": "true",
         "data-song-card-id": cardId,
-        "data-song-title": title,
-        "data-song-artist": artist,
-        style: `--song-cover: url("${safeCover}");`,
+        style: `--song-cover-url: url("${safeCover}");`, 
     }, [
-        h("div", { class: "song-card__bg", "aria-hidden": "true" }),
+        // 1. 背景层：高斯模糊封面
+        h("div", { 
+            class: "song-card__blur-bg", 
+            style: `background-image: url("${safeCover}");`,
+            "aria-hidden": "true" 
+        }),
+        
+        // 2. 遮罩层：确保文字对比度 (半透明黑)
         h("div", { class: "song-card__overlay", "aria-hidden": "true" }),
-        h("div", { class: "song-card__cover-wrap" }, [
-            h("img", {
-                class: "song-card__cover",
-                src: cover,
-                alt: `${title} cover`,
-                loading: "lazy",
-            }),
-        ]),
+
+        // 3. 内容主体
         h("div", { class: "song-card__body" }, [
-            h("div", { class: "song-card__meta-row" }, [
-                h("h4", { class: "song-card__titleline" }, `${title} - ${artist}`),
-            ]),
-            h("div", { class: "song-card__lyrics-live", "data-lyrics-live": "true" }, [
-                h("p", { class: "song-card__lyrics-exit", "data-lyrics-exit": "true", "aria-hidden": "true" }, ""),
-                h("p", { class: "song-card__lyrics-current", "data-lyrics-current": "true" }, firstLine),
-            ]),
-            h("audio", { class: "song-card__audio-el", preload: "none", "data-song-audio": "true" }, [
-                h("source", { "data-src": audio, type: "audio/mpeg" }),
-                "Your browser does not support the audio element.",
-            ]),
-            h("div", { class: "song-card__player", "data-player": "true" }, [
-                h(
-                    "button",
-                    {
-                        type: "button",
-                        class: "song-card__play-btn",
-                        "data-player-toggle": "true",
-                        "aria-label": "Play",
-                    },
-                    [
-                        h("span", { class: "song-card__play-icon song-card__play-icon--play", "aria-hidden": "true" }, [
-                            h(
-                                "svg",
-                                {
-                                    viewBox: "0 0 24 24",
-                                    width: "18",
-                                    height: "18",
-                                    fill: "currentColor",
-                                    "aria-hidden": "true",
-                                },
-                                [h("path", { d: "M9 6.75c0-.4.44-.64.77-.42l7.5 4.75a.5.5 0 0 1 0 .84l-7.5 4.75A.5.5 0 0 1 9 16.25z" })],
-                            ),
-                        ]),
-                        h("span", { class: "song-card__play-icon song-card__play-icon--pause", "aria-hidden": "true" }, [
-                            h(
-                                "svg",
-                                {
-                                    viewBox: "0 0 24 24",
-                                    width: "18",
-                                    height: "18",
-                                    fill: "currentColor",
-                                    "aria-hidden": "true",
-                                },
-                                [
-                                    h("rect", { x: "7.3", y: "6", width: "3.2", height: "12", rx: "0.9" }),
-                                    h("rect", { x: "13.5", y: "6", width: "3.2", height: "12", rx: "0.9" }),
-                                ],
-                            ),
-                        ]),
-                    ],
-                ),
-                h("span", { class: "song-card__time", "data-player-current": "true" }, "0:00"),
-                h("span", { class: "song-card__time-sep" }, "/"),
-                h("span", { class: "song-card__time", "data-player-duration": "true" }, "--:--"),
-                h("input", {
-                    type: "range",
-                    min: "0",
-                    max: "100",
-                    value: "0",
-                    step: "0.1",
-                    class: "song-card__progress",
-                    "data-player-progress": "true",
-                    "aria-label": "Playback progress",
+            h("div", { class: "song-card__cover-wrap" }, [
+                h("img", {
+                    class: "song-card__cover",
+                    src: cover,
+                    alt: title,
+                    loading: "lazy",
+                    crossorigin: "anonymous" // 尝试允许跨域读取用于取色
                 }),
             ]),
-            lyricsSource,
+            
+            h("div", { class: "song-card__info" }, [
+                h("div", { class: "song-card__meta" }, [
+                    h("h4", { class: "song-card__title" }, title),
+                    h("span", { class: "song-card__artist" }, artist),
+                ]),
+                
+                h("div", { class: "song-card__lyrics-container" }, [
+                    h("p", { class: "song-card__lyric-line", "data-lyrics-current": "true" }, firstLine)
+                ]),
+                
+                // Controls
+                h("div", { class: "song-card__controls" }, [
+                    h("button", { 
+                        type: "button", 
+                        class: "song-card__play-btn", 
+                        "data-player-toggle": "true",
+                        "aria-label": "Play"
+                    }, [
+                        // Play Icon
+                        h("svg", { class: "icon-play", viewBox: "0 0 24 24", fill: "currentColor", width: "24", height: "24" }, 
+                            [h("path", { d: "M8 5v14l11-7z" })]
+                        ),
+                        // Pause Icon
+                        h("svg", { class: "icon-pause", viewBox: "0 0 24 24", fill: "currentColor", width: "24", height: "24" }, 
+                            [h("path", { d: "M6 19h4V5H6v14zm8-14v14h4V5h-4z" })]
+                        ),
+                    ]),
+                    
+                    h("div", { class: "song-card__progress-wrap" }, [
+                        h("span", { class: "song-card__time", "data-player-current": "true" }, "0:00"),
+                        h("input", {
+                            type: "range",
+                            min: "0",
+                            max: "100",
+                            value: "0",
+                            step: "0.1",
+                            class: "song-card__slider",
+                            "data-player-progress": "true"
+                        }),
+                        h("span", { class: "song-card__time", "data-player-duration": "true" }, "--:--"),
+                    ])
+                ]),
+            ]),
+            
+            // Audio Element
+            h("audio", { class: "song-card__audio", preload: "none", "data-song-audio": "true" }, [
+                h("source", { "data-src": audio, type: "audio/mpeg" })
+            ]),
+            
+            lyricsSource
         ]),
-        h(
-            "script",
-            { type: "text/javascript" },
-            `
+
+        // 4. 脚本 & 样式
+        h("style", {}, `
+            .song-card {
+                position: relative;
+                width: 100%;
+                max-width: 600px;
+                margin: 2rem auto;
+                border-radius: 16px;
+                overflow: hidden;
+                color: #fff;
+                font-family: system-ui, -apple-system, sans-serif;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                background: #1c1c1e; /* Fallback color */
+                user-select: none;
+                --song-accent: #ffffff; /* 默认强调色为白 */
+            }
+            
+            /* Standard Blurred Background */
+            .song-card__blur-bg {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-size: cover;
+                background-position: center;
+                filter: blur(35px) brightness(0.6); /* 关键：强模糊 + 压暗 */
+                transform: scale(1.2); /* 关键：放大以移除模糊白边 */
+                z-index: 0;
+                transition: opacity 0.5s ease;
+            }
+
+            .song-card__overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.5));
+                z-index: 1;
+            }
+
+            .song-card__body {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                gap: 20px;
+                padding: 24px;
+                align-items: center;
+            }
+
+            .song-card__cover-wrap {
+                flex-shrink: 0;
+                width: 100px;
+                height: 100px;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            }
+
+            .song-card__cover {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .song-card__info {
+                flex-grow: 1;
+                min-width: 0; /* Flexbox text truncation fix */
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .song-card__meta {
+                line-height: 1.3;
+            }
+
+            .song-card__title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .song-card__artist {
+                font-size: 0.9rem;
+                opacity: 0.8;
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .song-card__lyrics-container {
+                height: 24px;
+                overflow: hidden;
+                margin-bottom: 8px;
+            }
+
+            .song-card__lyric-line {
+                font-size: 0.95rem;
+                color: rgba(255, 255, 255, 0.9);
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+
+            .song-card__controls {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .song-card__play-btn {
+                background: var(--song-accent);
+                color: #000; /* 图标永远黑色 */
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: transform 0.1s;
+                flex-shrink: 0;
+            }
+            
+            .song-card__play-btn:active { transform: scale(0.95); }
+            
+            .song-card__play-btn .icon-pause { display: none; }
+            .song-card__play-btn.is-playing .icon-play { display: none; }
+            .song-card__play-btn.is-playing .icon-pause { display: block; }
+
+            .song-card__progress-wrap {
+                flex-grow: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.75rem;
+                font-feature-settings: "tnum";
+            }
+
+            .song-card__slider {
+                flex-grow: 1;
+                -webkit-appearance: none;
+                background: transparent;
+                height: 4px;
+                border-radius: 2px;
+                cursor: pointer;
+                background: rgba(255,255,255,0.2);
+                position: relative;
+            }
+            
+            /* Webkit Slider Thumb */
+            .song-card__slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                height: 12px;
+                width: 12px;
+                border-radius: 50%;
+                background: var(--song-accent);
+                margin-top: -4px; /* Center thumb */
+                box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            }
+            
+            /* Firefox Slider Thumb */
+            .song-card__slider::-moz-range-thumb {
+                height: 12px;
+                width: 12px;
+                border: none;
+                border-radius: 50%;
+                background: var(--song-accent);
+            }
+            
+            /* Progress Fill Trick */
+            .song-card__slider::-webkit-slider-runnable-track {
+                background: linear-gradient(var(--song-accent), var(--song-accent)) 0/var(--progress, 0%) 100% no-repeat;
+                height: 4px;
+                border-radius: 2px;
+            }
+            
+            @media (max-width: 480px) {
+                .song-card__body { flex-direction: column; text-align: center; gap: 16px; }
+                .song-card__info { width: 100%; }
+                .song-card__controls { justify-content: center; }
+            }
+        `),
+
+        // 5. 核心逻辑脚本
+        h("script", { type: "text/javascript" }, `
 (() => {
-  const SCRIPT_VERSION = "song-card-v5-optimized";
+    const initCards = () => {
+        document.querySelectorAll('[data-song-card="true"]').forEach(card => {
+            if (card.dataset.loaded) return;
+            card.dataset.loaded = "true";
 
-  const initSongCards = () => {
-    const cards = document.querySelectorAll('[data-song-card="true"]');
-    cards.forEach((card) => {
-      if (card.dataset.songBoundVersion === SCRIPT_VERSION) return;
-      card.dataset.songBoundVersion = SCRIPT_VERSION;
+            const audio = card.querySelector('[data-song-audio="true"]');
+            const btn = card.querySelector('[data-player-toggle="true"]');
+            const slider = card.querySelector('[data-player-progress="true"]');
+            const currentEl = card.querySelector('[data-player-current="true"]');
+            const durationEl = card.querySelector('[data-player-duration="true"]');
+            const lyricEl = card.querySelector('[data-lyrics-current="true"]');
+            const lines = Array.from(card.querySelectorAll('[data-lrc-source="true"] li'));
+            const coverImg = card.querySelector('.song-card__cover');
 
-      const audio = card.querySelector('[data-song-audio="true"]');
-      const toggle = card.querySelector('[data-player-toggle="true"]');
-      const progress = card.querySelector('[data-player-progress="true"]');
-      const currentTimeEl = card.querySelector('[data-player-current="true"]');
-      const durationEl = card.querySelector('[data-player-duration="true"]');
-      const currentLyricEl = card.querySelector('[data-lyrics-current="true"]');
-      const exitLyricEl = card.querySelector('[data-lyrics-exit="true"]');
-      const lines = Array.from(card.querySelectorAll('[data-lrc-source="true"] [data-lrc-time]'));
-      const coverImg = card.querySelector('.song-card__cover');
-      
-      if (!audio || !toggle || !progress || !currentTimeEl || !durationEl) return;
-      
-      let audioLoaded = false;
+            // --- Color Extraction Logic (Only for Accent) ---
+            const extractColor = () => {
+                if (!coverImg || !coverImg.complete) return;
+                try {
+                    const cvs = document.createElement('canvas');
+                    cvs.width = 50; cvs.height = 50;
+                    const ctx = cvs.getContext('2d');
+                    ctx.drawImage(coverImg, 0, 0, 50, 50);
+                    const data = ctx.getImageData(0, 0, 50, 50).data;
+                    
+                    let r=0, g=0, b=0, count=0;
+                    for(let i=0; i<data.length; i+=4) {
+                        r += data[i]; g += data[i+1]; b += data[i+2]; count++;
+                    }
+                    r = Math.floor(r/count); g = Math.floor(g/count); b = Math.floor(b/count);
 
-      const ensureAudioLoaded = () => {
-        if (audioLoaded) return;
-        const sourceEl = audio.querySelector("source[data-src]");
-        if (sourceEl && !sourceEl.getAttribute("src")) {
-          const src = sourceEl.getAttribute("data-src");
-          if (src) sourceEl.setAttribute("src", src);
-        }
-        audio.preload = "metadata";
-        audio.load();
-        audioLoaded = true;
-      };
+                    // Convert to HSL to boost visibility
+                    let max = Math.max(r,g,b), min = Math.min(r,g,b);
+                    let h, s, l = (max+min)/2 / 255;
+                    
+                    if(max == min) { h=s=0; }
+                    else {
+                        const d = max-min;
+                        s = l > 0.5 ? d/(510-max-min) : d/(max+min);
+                        switch(max) {
+                            case r: h = (g-b)/d + (g<b?6:0); break;
+                            case g: h = (b-r)/d + 2; break;
+                            case b: h = (r-g)/d + 4; break;
+                        }
+                        h /= 6;
+                    }
 
-      const titlelineEl = card.querySelector('.song-card__titleline');
-      const rawTitle = (card.dataset.songTitle || "").trim();
-      const rawArtist = (card.dataset.songArtist || "").trim();
-      if (titlelineEl && rawTitle && rawArtist) {
-        titlelineEl.textContent = rawTitle + " - " + rawArtist;
-      }
+                    // Force High Saturation & High Lightness for UI controls
+                    const finalH = Math.round(h * 360);
+                    const finalS = Math.max(60, s * 100); // At least 60% saturation
+                    const finalL = Math.max(70, Math.min(90, l * 100)); // Clamp lightness between 70-90%
 
-      const formatTime = (value) => {
-        if (!Number.isFinite(value) || value < 0) return "0:00";
-        const minute = Math.floor(value / 60);
-        const second = Math.floor(value % 60);
-        return minute + ":" + String(second).padStart(2, "0");
-      };
+                    card.style.setProperty('--song-accent', \`hsl(\${finalH}, \${finalS}%, \${finalL}%)\`);
+                } catch(e) {
+                    console.log('CORS blocked canvas access, using default white accent.');
+                }
+            };
 
-      const findLineIndex = (time) => {
-        for (let i = lines.length - 1; i >= 0; i--) {
-          const t = Number(lines[i].dataset.lrcTime || 0);
-          if (time >= t) return i;
-        }
-        return -1;
-      };
+            if (coverImg.complete) extractColor();
+            else coverImg.onload = extractColor;
 
-      const renderLyric = (index) => {
-        if (!currentLyricEl) return;
-        if (lines.length === 0) return;
-        const current = index >= 0 ? lines[index] : lines[0];
-        const nextText = current ? (current.textContent || "...") : "...";
-        if (currentLyricEl.textContent !== nextText) {
-          const prevText = currentLyricEl.textContent || "";
-          if (exitLyricEl && prevText) {
-            exitLyricEl.textContent = prevText;
-            if (typeof exitLyricEl.animate === "function") {
-              exitLyricEl.getAnimations().forEach((a) => a.cancel());
-              exitLyricEl.animate([
-                { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0px)" },
-                { opacity: 0, transform: "translateY(-12px) scale(0.992)", filter: "blur(2px)" },
-              ], {
-                duration: 460,
-                easing: "cubic-bezier(0.22,1,0.36,1)",
-                fill: "both",
-              });
-            } else {
-              exitLyricEl.classList.remove("is-leaving");
-              void exitLyricEl.offsetWidth;
-              exitLyricEl.classList.add("is-leaving");
-            }
-          }
-          currentLyricEl.textContent = nextText;
-          if (typeof currentLyricEl.animate === "function") {
-            currentLyricEl.getAnimations().forEach((a) => a.cancel());
-            currentLyricEl.animate([
-              { opacity: 0, transform: "translateY(12px) scale(0.992)", filter: "blur(2px)" },
-              { opacity: 0.92, transform: "translateY(-1px) scale(1.001)", filter: "blur(0.35px)" },
-              { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0px)" },
-            ], {
-              duration: 460,
-              easing: "cubic-bezier(0.64,0,0.78,0)",
-              fill: "both",
+            // --- Audio Logic ---
+            const formatTime = (s) => {
+                const m = Math.floor(s / 60);
+                const ss = Math.floor(s % 60);
+                return \`\${m}:\${String(ss).padStart(2,'0')}\`;
+            };
+
+            const updateState = () => {
+                const cur = audio.currentTime || 0;
+                const dur = audio.duration || 0;
+                const progress = dur ? (cur / dur) * 100 : 0;
+                
+                slider.value = progress;
+                slider.style.setProperty('--progress', \`\${progress}%\`);
+                currentEl.textContent = formatTime(cur);
+                durationEl.textContent = dur ? formatTime(dur) : "--:--";
+                
+                // Sync Lyrics
+                if(lines.length) {
+                    const idx = lines.findIndex(l => Number(l.dataset.lrcTime) > cur) - 1;
+                    const activeLine = idx >= 0 ? lines[idx] : lines[0];
+                    if (activeLine && lyricEl.textContent !== activeLine.textContent) {
+                        lyricEl.style.opacity = 0;
+                        lyricEl.style.transform = "translateY(5px)";
+                        setTimeout(() => {
+                            lyricEl.textContent = activeLine.textContent;
+                            lyricEl.style.opacity = 1;
+                            lyricEl.style.transform = "translateY(0)";
+                        }, 150);
+                    }
+                }
+            };
+
+            btn.addEventListener('click', () => {
+                if (audio.paused) {
+                    // Lazy load src if needed
+                    const src = audio.querySelector('source').dataset.src;
+                    if (!audio.src && src) audio.src = src;
+                    audio.play();
+                    btn.classList.add('is-playing');
+                } else {
+                    audio.pause();
+                    btn.classList.remove('is-playing');
+                }
             });
-          } else {
-            currentLyricEl.classList.remove("is-entering");
-            void currentLyricEl.offsetWidth;
-            currentLyricEl.classList.add("is-entering");
-          }
-        }
-      };
 
-      const updateProgress = () => {
-        const duration = audio.duration || 0;
-        const current = audio.currentTime || 0;
-        const percent = duration > 0 ? (current / duration) * 100 : 0;
-        progress.value = String(percent);
-        progress.style.setProperty("--song-progress", percent.toFixed(3) + "%");
-        currentTimeEl.textContent = formatTime(current);
-        durationEl.textContent = duration > 0 ? formatTime(duration) : "--:--";
-      };
+            slider.addEventListener('input', (e) => {
+                const v = e.target.value;
+                slider.style.setProperty('--progress', \`\${v}%\`);
+                if (audio.duration) {
+                    audio.currentTime = (v / 100) * audio.duration;
+                }
+            });
 
-      const updateToggle = () => {
-        const playing = !audio.paused;
-        toggle.classList.toggle("is-playing", playing);
-        toggle.setAttribute("aria-label", playing ? "Pause" : "Play");
-      };
+            audio.addEventListener('timeupdate', updateState);
+            audio.addEventListener('loadedmetadata', updateState);
+            audio.addEventListener('ended', () => {
+                btn.classList.remove('is-playing');
+                audio.currentTime = 0;
+            });
+        });
+    };
 
-      const syncByTime = () => {
-        const idx = findLineIndex(audio.currentTime || 0);
-        renderLyric(idx);
-        updateProgress();
-      };
-
-      toggle.addEventListener("click", () => {
-        if (audio.paused) {
-          ensureAudioLoaded();
-          audio.play().catch(() => {});
-        } else {
-          audio.pause();
-        }
-      });
-
-      progress.addEventListener("input", () => {
-        const duration = audio.duration || 0;
-        if (!duration) return;
-        const percent = Number(progress.value || 0) / 100;
-        audio.currentTime = duration * percent;
-        syncByTime();
-      });
-
-      audio.addEventListener("loadedmetadata", () => {
-        updateProgress();
-        syncByTime();
-      });
-      audio.addEventListener('timeupdate', syncByTime);
-      audio.addEventListener('seeked', syncByTime);
-      audio.addEventListener('play', syncByTime);
-      audio.addEventListener('play', updateToggle);
-      audio.addEventListener('pause', updateToggle);
-      audio.addEventListener('ended', updateToggle);
-
-      /* =========================================================
-         OPTIMIZED COLOR EXTRACTION LOGIC
-         ========================================================= */
-      const applyAccentFromCover = () => {
-        if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
-        try {
-          const canvas = document.createElement("canvas");
-          // Reduced size for performance, but big enough for decent average
-          canvas.width = 40; 
-          canvas.height = 40;
-          const ctx = canvas.getContext("2d", { willReadFrequently: true });
-          if (!ctx) return;
-          
-          ctx.drawImage(coverImg, 0, 0, 40, 40);
-          const data = ctx.getImageData(0, 0, 40, 40).data;
-          
-          let r = 0, g = 0, b = 0, count = 0;
-          const length = data.length;
-          
-          // Step 1: Calculate Average RGB
-          for (let i = 0; i < length; i += 4) {
-            const alpha = data[i + 3];
-            // Skip transparent or very transparent pixels
-            if (alpha < 200) continue; 
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count++;
-          }
-          
-          if (!count) return;
-          r = Math.round(r / count);
-          g = Math.round(g / count);
-          b = Math.round(b / count);
-
-          // Step 2: Convert to HSL
-          const max = Math.max(r, g, b), min = Math.min(r, g, b);
-          let h = 0, s = 0;
-          const l = (max + min) / 510; // Lightness 0-1
-
-          if (max !== min) {
-            const d = max - min;
-            s = l > 0.5 ? d / (510 - max - min) : d / (max + min);
-            switch (max) {
-              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-              case g: h = (b - r) / d + 2; break;
-              default: h = (r - g) / d + 4;
-            }
-            h /= 6;
-          }
-
-          // Step 3: Adaptive Tuning (The Key Fix)
-          const hue = Math.round(h * 360);
-          
-          // SATURATION:
-          // Boost saturation to make it pop. Never let it be too grey (min 60%).
-          const rawSat = s * 100;
-          const sat = Math.max(60, Math.min(95, rawSat + 10)); 
-
-          // LIGHTNESS (ACCENT): 
-          // Crucial for Dark Mode cards. We need the play button/progress to be bright.
-          // Force lightness between 65% (readable) and 85% (not too pastel).
-          const accentLight = Math.max(65, Math.min(85, l * 100));
-
-          // LIGHTNESS (BACKGROUND):
-          // Create a deep, rich version of the color for the background tint.
-          // Keeps it from being pure black, but dark enough for white text.
-          const bgLight = Math.max(8, Math.min(18, l * 100 * 0.4));
-
-          // Step 4: Set CSS Variables
-          // --song-accent: Bright color for UI elements
-          card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + accentLight + "%)");
-          
-          // --song-accent-soft: Semi-transparent glow
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + sat + "% " + accentLight + "% / 0.25)");
-
-          // --song-bg-1: Dark tinted background (optional, use in CSS if needed)
-          // You can add .song-card__bg { background: var(--song-bg-1); } in your CSS
-          card.style.setProperty("--song-bg-1", "hsl(" + hue + " " + (sat * 0.6) + "% " + bgLight + "%)");
-
-        } catch (_e) {
-          console.warn("Song card color extraction failed:", _e);
-        }
-      };
-
-      if (coverImg && coverImg.complete) {
-        applyAccentFromCover();
-      } else if (coverImg) {
-        coverImg.addEventListener("load", applyAccentFromCover, { once: true });
-      }
-
-      updateToggle();
-      updateProgress();
-      renderLyric(-1);
-    });
-  };
-
-  window.__songCardInit = initSongCards;
-  initSongCards();
-  if (!window.__songCardListenersBound) {
-    document.addEventListener('astro:page-load', () => window.__songCardInit?.());
-    document.addEventListener('swup:contentReplaced', () => window.__songCardInit?.());
-    window.__songCardListenersBound = true;
-  }
+    // Initialize (Support standard, Astro, Swup)
+    initCards();
+    document.addEventListener('astro:page-load', initCards);
+    document.addEventListener('swup:contentReplaced', initCards);
 })();
-            `,
-        ),
+        `),
     ]);
 }
