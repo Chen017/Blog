@@ -215,7 +215,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v5-max-brightness";
+  const SCRIPT_VERSION = "song-card-v4";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -364,38 +364,26 @@ export function SongCardComponent(properties, children) {
       audio.addEventListener('pause', updateToggle);
       audio.addEventListener('ended', updateToggle);
 
-      /* =========================================================
-         优化的取色逻辑：只取亮色像素，防止被黑色背景拉低
-         ========================================================= */
       const applyAccentFromCover = () => {
         if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = 30; // 稍微提高一点采样精度
-          canvas.height = 30;
+          canvas.width = 24;
+          canvas.height = 24;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
-          ctx.drawImage(coverImg, 0, 0, 30, 30);
-          const data = ctx.getImageData(0, 0, 30, 30).data;
-          
+          ctx.drawImage(coverImg, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
           let r = 0, g = 0, b = 0, count = 0;
           for (let i = 0; i < data.length; i += 4) {
             const alpha = data[i + 3];
-            const pr = data[i], pg = data[i+1], pb = data[i+2];
-            
-            // 关键修改 1：只要像素太暗 (RGB均值 < 50)，直接扔掉不参与计算
-            // 这样黑色背景的专辑封面就不会导致取色变脏
-            if (alpha < 140 || (pr + pg + pb) < 150) continue;
-            
-            r += pr;
-            g += pg;
-            b += pb;
+            if (alpha < 140) continue;
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
             count++;
           }
-          
-          // 如果整张图都是黑的，保底回退到白色，而不是黑色
-          if (count === 0) { r=255; g=255; b=255; count=1; }
-
+          if (!count) return;
           r = Math.round(r / count);
           g = Math.round(g / count);
           b = Math.round(b / count);
@@ -414,19 +402,13 @@ export function SongCardComponent(properties, children) {
             h /= 6;
           }
           const hue = Math.round(h * 360);
-
-          // 关键修改 2：暴力提亮
-          // 饱和度：强制拉到 75% 以上，保证鲜艳
-          const sat = Math.max(75, Math.min(100, Math.round(s * 100)));
-          
-          // 亮度：强制拉到 80% - 95% 之间
-          // 这样就算是深蓝、深红，也会变成天蓝、亮粉，在黑底上绝对显眼
-          const light = Math.max(80, Math.min(95, Math.round(l * 100)));
-
+          const sat = Math.min(78, Math.max(45, Math.round(s * 100)));
+          // Keep accent mid-dark so white text remains readable under all covers.
+          const light = Math.min(54, Math.max(36, Math.round(l * 100)));
           card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + sat + "% " + light + "% / 0.3)");
+          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + Math.max(38, sat - 16) + "% " + Math.min(68, light + 16) + "% / 0.2)");
         } catch (_e) {
-          // Fallback
+          // External images without CORS may block canvas reads. Keep fallback colors.
         }
       };
 
