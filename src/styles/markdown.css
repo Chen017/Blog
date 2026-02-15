@@ -24,7 +24,7 @@
         background-image: var(--song-cover);
         background-size: cover;
         background-position: center;
-        filter: blur(22px) saturate(1.1) brightness(0.5);
+        filter: blur(25px) saturate(1.25) brightness(0.75);
         transform: scale(1.18);
     }
 
@@ -34,9 +34,9 @@
         z-index: -1;
         background: linear-gradient(
             130deg,
-            rgba(8, 10, 17, 0.82) 0%,
-            rgba(10, 12, 20, 0.78) 48%,
-            rgba(10, 12, 20, 0.88) 100%
+            rgba(8, 10, 17, 0.4) 0%,
+            rgba(10, 12, 20, 0.25) 48%,
+            rgba(10, 12, 20, 0.5) 100%
         );
     }
 
