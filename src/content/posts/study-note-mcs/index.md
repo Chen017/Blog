@@ -11,11 +11,11 @@ cover: "image-cerp.png"
 
 ### Note
 
-The url is https://note.etalib.space. [Click here to open link](https://note.etalib.space)
+The url is https://note.etalib.space
     
 ### Courses copies on moodle
 
-The url is https://alist.etalib.space. [Click here to open link](https://alist.etalib.space)
+The url is https://alist.etalib.space
 
 I believe you can figure out the password if you are a student of GTIIT
 
