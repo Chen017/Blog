@@ -215,7 +215,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v5";
+  const SCRIPT_VERSION = "song-card-v6";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -368,22 +368,55 @@ export function SongCardComponent(properties, children) {
         if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = 24;
-          canvas.height = 24;
+          canvas.width = 30;
+          canvas.height = 30;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
-          ctx.drawImage(coverImg, 0, 0, 24, 24);
-          const data = ctx.getImageData(0, 0, 24, 24).data;
+          ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          
           let r = 0, g = 0, b = 0, count = 0;
+          let rTotal = 0, gTotal = 0, bTotal = 0, totalCount = 0;
+
           for (let i = 0; i < data.length; i += 4) {
+            const tr = data[i];
+            const tg = data[i + 1];
+            const tb = data[i + 2];
             const alpha = data[i + 3];
-            if (alpha < 140) continue;
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count++;
+
+            if (alpha < 128) continue; // Skip Transparent
+
+            // Track total average regardless of color
+            rTotal += tr;
+            gTotal += tg;
+            bTotal += tb;
+            totalCount++;
+
+            // Heuristic: ignore near-white and near-black for the "accent" color
+            // White: R,G,B all > 230. Black: R,G,B all < 20
+            const maxVal = Math.max(tr, tg, tb);
+            const minVal = Math.min(tr, tg, tb);
+            const isWhite = minVal > 230; 
+            const isBlack = maxVal < 20;
+
+            if (!isWhite && !isBlack) {
+                r += tr;
+                g += tg;
+                b += tb;
+                count++;
+            }
           }
-          if (!count) return;
+
+          // Fallback: If image is monochrome/white (no colored pixels found), use total average
+          if (count === 0 && totalCount > 0) {
+              r = rTotal;
+              g = gTotal;
+              b = bTotal;
+              count = totalCount;
+          } else if (count === 0) {
+              return;
+          }
+
           r = Math.round(r / count);
           g = Math.round(g / count);
           b = Math.round(b / count);
@@ -410,18 +443,19 @@ export function SongCardComponent(properties, children) {
 
           const hue = Math.round(h * 360);
           
-          // Adaptive saturation: only boost if there is actual color information
+          // Adaptive saturation
           let sat = Math.round(s * 100);
           if (s > 0.05) {
              sat = Math.max(45, sat);
           }
-          sat = Math.min(80, sat);
+          sat = Math.min(85, sat);
 
-          // Adaptive lightness: keep text readable
+          // Adaptive lightness
+          // Important: Clamp lightness to be readable (not too bright, not too dark)
           const light = Math.max(30, Math.min(55, Math.round(l * 100)));
 
-          card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + sat + "% " + Math.min(light + 12, 70) + "% / 0.2)");
+          card.style.setProperty("--song-accent", "hsl(" + hue + ", " + sat + "%, " + light + "%)");
+          card.style.setProperty("--song-accent-soft", "hsl(" + hue + ", " + sat + "%, " + Math.min(light + 12, 70) + "%, 0.2)");
         } catch (_e) {
           // External images without CORS may block canvas reads. Keep fallback colors.
         }
