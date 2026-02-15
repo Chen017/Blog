@@ -121,6 +121,7 @@
         if (existingChart) {
             heatmapChart = existingChart;
         } else {
+            // 这里只有在没有实例时才会运行，所以 dispose 很重要
             heatmapChart = echarts.init(heatmapContainer, isDark ? 'dark' : null, { renderer: 'svg' });
         }
 
@@ -330,7 +331,7 @@
 
             // 检查是否处于初始加载动画阶段
             const hasInitialAnimation = document.documentElement.classList.contains('show-initial-animation') ||
-                                       document.documentElement.classList.contains('is-loading');
+                                        document.documentElement.classList.contains('is-loading');
 
             if (hasInitialAnimation) {
                 // 查找带有动画类的侧边栏容器
@@ -406,7 +407,33 @@
             const newIsDark = document.documentElement.classList.contains('dark');
             if (newIsDark !== isDark) {
                 isDark = newIsDark;
-                if (isInitialized) {
+                if (isInitialized && echarts) {
+                    // [修复] 切换主题时，必须先销毁旧实例，否则 init 不会使用新主题
+                    
+                    // 1. 销毁热力图
+                    const activityInstance = echarts.getInstanceByDom(heatmapContainer);
+                    if (activityInstance) {
+                        activityInstance.dispose();
+                        heatmapChart = undefined;
+                    }
+
+                    // 2. 销毁雷达图 (如果存在)
+                    if (categoriesContainer) {
+                        const catInstance = echarts.getInstanceByDom(categoriesContainer);
+                        if (catInstance) {
+                            catInstance.dispose();
+                            categoriesChart = undefined;
+                        }
+                    }
+                    if (tagsContainer) {
+                        const tagInstance = echarts.getInstanceByDom(tagsContainer);
+                        if (tagInstance) {
+                            tagInstance.dispose();
+                            tagsChart = undefined;
+                        }
+                    }
+                    
+                    // 3. 重新初始化 (init 函数内部会根据新的 isDark 创建新实例)
                     initActivityChart(true);
                     if (isDesktop) initRadarCharts();
                 }
