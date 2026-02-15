@@ -139,7 +139,6 @@ export function SongCardComponent(properties, children) {
                 src: cover,
                 alt: `${title} cover`,
                 loading: "lazy",
-                crossOrigin: "anonymous", // Helpful for CORS if server supports it
             }),
         ]),
         h("div", { class: "song-card__body" }, [
@@ -216,7 +215,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v7-final";
+  const SCRIPT_VERSION = "song-card-v5-optimized";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -233,7 +232,9 @@ export function SongCardComponent(properties, children) {
       const exitLyricEl = card.querySelector('[data-lyrics-exit="true"]');
       const lines = Array.from(card.querySelectorAll('[data-lrc-source="true"] [data-lrc-time]'));
       const coverImg = card.querySelector('.song-card__cover');
+      
       if (!audio || !toggle || !progress || !currentTimeEl || !durationEl) return;
+      
       let audioLoaded = false;
 
       const ensureAudioLoaded = () => {
@@ -365,74 +366,88 @@ export function SongCardComponent(properties, children) {
       audio.addEventListener('pause', updateToggle);
       audio.addEventListener('ended', updateToggle);
 
+      /* =========================================================
+         OPTIMIZED COLOR EXTRACTION LOGIC
+         ========================================================= */
       const applyAccentFromCover = () => {
         if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = 40; // Increased sampling
+          // Reduced size for performance, but big enough for decent average
+          canvas.width = 40; 
           canvas.height = 40;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
-          ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
-          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          
+          ctx.drawImage(coverImg, 0, 0, 40, 40);
+          const data = ctx.getImageData(0, 0, 40, 40).data;
           
           let r = 0, g = 0, b = 0, count = 0;
-
-          // Simple average of ALL pixels (No white/black filtering)
-          // Filtering logic was causing light covers to appear black.
-          for (let i = 0; i < data.length; i += 4) {
+          const length = data.length;
+          
+          // Step 1: Calculate Average RGB
+          for (let i = 0; i < length; i += 4) {
             const alpha = data[i + 3];
-            if (alpha < 128) continue; // Only skip transparent
+            // Skip transparent or very transparent pixels
+            if (alpha < 200) continue; 
             r += data[i];
             g += data[i + 1];
             b += data[i + 2];
             count++;
           }
-
-          if (count === 0) return;
+          
+          if (!count) return;
           r = Math.round(r / count);
           g = Math.round(g / count);
           b = Math.round(b / count);
 
-          // Convert to HSL
-          const rNorm = r / 255;
-          const gNorm = g / 255;
-          const bNorm = b / 255;
-          const max = Math.max(rNorm, gNorm, bNorm);
-          const min = Math.min(rNorm, gNorm, bNorm);
+          // Step 2: Convert to HSL
+          const max = Math.max(r, g, b), min = Math.min(r, g, b);
           let h = 0, s = 0;
-          const l = (max + min) / 2;
+          const l = (max + min) / 510; // Lightness 0-1
 
           if (max !== min) {
             const d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            s = l > 0.5 ? d / (510 - max - min) : d / (max + min);
             switch (max) {
-              case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
-              case gNorm: h = (bNorm - rNorm) / d + 2; break;
-              case bNorm: h = (rNorm - gNorm) / d + 4; break;
+              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+              case g: h = (b - r) / d + 2; break;
+              default: h = (r - g) / d + 4;
             }
             h /= 6;
           }
 
+          // Step 3: Adaptive Tuning (The Key Fix)
           const hue = Math.round(h * 360);
           
-          // Saturation Boost:
-          // Averaging pixels (white bg + black photo) washes out saturation.
-          // We artificially boost saturation to restore the "feeling" of color.
-          let sat = s * 100;
-          sat = sat * 1.6 + 10; // Boost curve
-          sat = Math.max(35, Math.min(85, Math.round(sat))); // Clamp 35-85%
+          // SATURATION:
+          // Boost saturation to make it pop. Never let it be too grey (min 60%).
+          const rawSat = s * 100;
+          const sat = Math.max(60, Math.min(95, rawSat + 10)); 
 
-          // Lightness Clamp:
-          // CRITICAL: Force the lightness down.
-          // Even if the cover is 95% white, we want a dark background (e.g. 25% lightness)
-          // so it looks colorful but readable in dark mode.
-          const light = Math.max(18, Math.min(38, Math.round(l * 100)));
+          // LIGHTNESS (ACCENT): 
+          // Crucial for Dark Mode cards. We need the play button/progress to be bright.
+          // Force lightness between 65% (readable) and 85% (not too pastel).
+          const accentLight = Math.max(65, Math.min(85, l * 100));
 
-          card.style.setProperty("--song-accent", "hsl(" + hue + ", " + sat + "%, " + light + "%)");
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + ", " + sat + "%, " + Math.min(light + 10, 60) + "%, 0.25)");
+          // LIGHTNESS (BACKGROUND):
+          // Create a deep, rich version of the color for the background tint.
+          // Keeps it from being pure black, but dark enough for white text.
+          const bgLight = Math.max(8, Math.min(18, l * 100 * 0.4));
+
+          // Step 4: Set CSS Variables
+          // --song-accent: Bright color for UI elements
+          card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + accentLight + "%)");
+          
+          // --song-accent-soft: Semi-transparent glow
+          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + sat + "% " + accentLight + "% / 0.25)");
+
+          // --song-bg-1: Dark tinted background (optional, use in CSS if needed)
+          // You can add .song-card__bg { background: var(--song-bg-1); } in your CSS
+          card.style.setProperty("--song-bg-1", "hsl(" + hue + " " + (sat * 0.6) + "% " + bgLight + "%)");
+
         } catch (_e) {
-          console.warn("SongCard: Canvas read failed (CORS?)", _e);
+          console.warn("Song card color extraction failed:", _e);
         }
       };
 
