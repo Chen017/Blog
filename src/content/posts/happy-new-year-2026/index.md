@@ -72,4 +72,4 @@ cover: "Gemini_Generated_Image_b4j8k2b4j8k2b4j8.png"
 
 :spoiler[开头的文案为什么用‘昔’和‘甚’这两个字？因为想押韵哈哈]
 
-:spoiler[是不是有点做作，别管，平时也没地方作]
+:spoiler[做作吧！别管，平时也没地儿作]
