@@ -2,7 +2,7 @@
 
 ![](IMG_20260308_093323.jpg)
 
-:::song{title="在夜里跳舞" artist="唐汉霄" cover="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.jpg" audio="https://s3.etalib.space/alist/website%20resource/在夜里跳舞 - 唐汉霄.mp3"}
+:::song{title="在夜里跳舞" artist="唐汉霄" cover="https://resource.etalib.space/%E5%9C%A8%E5%A4%9C%E9%87%8C%E8%B7%B3%E8%88%9E%20-%20%E5%94%90%E6%B1%89%E9%9C%84.jpg" audio="https://resource.etalib.space/%E5%9C%A8%E5%A4%9C%E9%87%8C%E8%B7%B3%E8%88%9E%20-%20%E5%94%90%E6%B1%89%E9%9C%84.mp3"}
 ```lrc
 [00:00.00]作词 : 唐汉霄
 [00:01.00]作曲 : 唐汉霄
