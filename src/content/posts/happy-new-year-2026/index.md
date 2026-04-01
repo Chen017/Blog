@@ -26,7 +26,7 @@ cover: "Gemini_Generated_Image_b4j8k2b4j8k2b4j8.png"
 
 一首很安静的歌：
 
-:::song{title="My Love Mine All Mine" artist="Mitski" cover="https://s3.etalib.space/alist/website%20resource/My Love Mine All Mine - Mitski.jpg" audio="https://s3.etalib.space/alist/website%20resource/Mitski - My Love Mine All Mine.mp3"}
+:::song{title="My Love Mine All Mine" artist="Mitski" cover="https://resource.etalib.space/My%20Love%20Mine%20All%20Mine%20-%20Mitski.jpg" audio="https://resource.etalib.space/Mitski%20-%20My%20Love%20Mine%20All%20Mine.mp3"}
 ```lrc
 [00:00.00]作词 : Mitski Miyawaki
 [00:01.00]作曲 : Mitski Miyawaki
