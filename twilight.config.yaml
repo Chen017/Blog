@@ -251,9 +251,9 @@ profile:
     # 头像配置 (相对于 /public 目录)
     avatar: "/assets/images/avatar.jpg"
     # 信息配置
-    name: "AI"
+    name: "Eta Lib."
     # 简介配置
-    bio: "我是你缔造又不要的AI"
+    bio: "你制造我 毁灭我 背对所有灯火"
     # 链接配置
     links:
         - # 链接示例
