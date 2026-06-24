@@ -18,155 +18,157 @@ Add the following code to the custom code in the settings
 (function () {
   'use strict';
 
-  // ===== 配置 =====
-  const EXTRA_PERIODS = [
-    { value: '1h', label: '1 小时' },
-    { value: '3h', label: '3 小时' },
-    { value: '6h', label: '6 小时' },
+  var EXTRA_PERIODS = [
+    { value: '5m',  label: '5 分钟' },
+    { value: '15m', label: '15 分钟' },
+    { value: '30m', label: '30 分钟' },
+    { value: '1h',  label: '1 小时' },
+    { value: '3h',  label: '3 小时' },
+    { value: '6h',  label: '6 小时' },
     { value: '12h', label: '12 小时' },
   ];
+  var ATTR = 'data-extra-period';
+  var activePeriod = null;
+  var lastRendered = Symbol();
+  var containerRef = null;
+  var setPeriodFn = null;
 
-  // ===== 1. 拦截 fetch：将小时级请求转为 1d 并按时间过滤 =====
-  const _fetch = window.fetch;
-  const hourRe = /period=(\d+)h/;
-
-  window.fetch = async function (...args) {
-    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
-    if (!url || !url.includes('/metrics?') || !hourRe.test(url)) {
-      return _fetch.apply(this, args);
-    }
-
-    const hours = parseInt(url.match(hourRe)[1]);
-    const newUrl = url.replace(hourRe, 'period=1d');
-
-    const res = await _fetch.call(this, newUrl, ...Array.from(arguments).slice(1));
-    const json = await res.json();
-
-    if (json?.data?.data_points?.length) {
-      const now = Date.now() / 1000;
-      const limit = hours * 3600;
-      json.data.data_points = json.data.data_points.filter(function (p) {
-        const ts = p.ts > 1e12 ? p.ts / 1000 : p.ts;
-        return now - ts <= limit;
-      });
-    }
-
-    return new Response(JSON.stringify(json), {
-      status: res.status,
-      statusText: res.statusText,
-      headers: new Headers(res.headers),
+  // cookie 劫持
+  var cd = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie') ||
+           Object.getOwnPropertyDescriptor(HTMLDocument.prototype, 'cookie');
+  if (cd) {
+    Object.defineProperty(document, 'cookie', {
+      get: function(){ return cd.get.call(this) || '_nz=1' },
+      set: function(v){ cd.set.call(this, v) },
+      configurable: true,
     });
-  };
+  }
 
-  // ===== 2. 注入时间选择按钮 =====
-  const ATTR = 'data-extra-period';
-  let activePeriod = null;
-  let lastRendered = Symbol();
-  let containerRef = null;
-  let setPeriodFn = null;
+  // fetch 劫持
+  var _fetch = window.fetch;
+  var FAKE_PROFILE = JSON.stringify({
+    success:true, data:{id:1,username:'guest',password:'',created_at:'',updated_at:''}
+  });
 
-  const getFiber = (el) => {
-    if (!el) return null;
-    const key = Object.keys(el).find(k => k.startsWith('__reactFiber$'));
-    return key ? el[key] : null;
-  };
+  window.fetch = async function() {
+    var url = typeof arguments[0] === 'string' ? arguments[0] : (arguments[0] && arguments[0].url);
 
-  const findCallback = (fiber) => {
-    let n = fiber;
-    while (n) {
-      if (n.memoizedProps?.onPeriodChange) return n.memoizedProps.onPeriodChange;
-      n = n.return;
+    // profile 请求：无论后端返回什么，都读取 body 检查是否有 error
+    if (url && url.indexOf('/api/v1/profile') !== -1) {
+      var r = await _fetch.apply(this, arguments);
+      // 不管 status 如何，先读 body 检查
+      var body;
+      try { body = await r.clone().json(); } catch(e) { body = {}; }
+      // 如果请求失败(非200)或者返回了 error 字段 → 伪造成功响应
+      if (!r.ok || body.error) {
+        return new Response(FAKE_PROFILE, {
+          status:200, headers:{'Content-Type':'application/json'}
+        });
+      }
+      return r;
     }
-    return null;
-  };
 
-  const findContainer = () => {
-    const dots = document.querySelectorAll('span.bg-emerald-500, span.bg-emerald-400');
-    for (const dot of dots) {
-      let el = dot.parentElement;
-      while (el) {
-        if (el.className?.includes?.('bg-muted') && el.className.includes('rounded-full')) return el;
-        el = el.parentElement;
+    // metrics 请求
+    if (url && url.indexOf('/metrics?') !== -1) {
+      var pm = url.match(/period=(\d+)(m|h)/);
+      if (pm) {
+        var secs = pm[2]==='h' ? +pm[1]*3600 : +pm[1]*60;
+        var nu = url.replace(/period=\d+(m|h)/, 'period=1d');
+        var a = Array.prototype.slice.call(arguments); a[0] = nu;
+        var res = await _fetch.apply(this, a);
+        var json = await res.json();
+        if (json && json.data && json.data.data_points && json.data.data_points.length) {
+          var now = Date.now()/1000;
+          json.data.data_points = json.data.data_points.filter(function(p){
+            return now - (p.ts>1e12?p.ts/1000:p.ts) <= secs;
+          });
+        }
+        return new Response(JSON.stringify(json), {
+          status:res.status, statusText:res.statusText, headers:new Headers(res.headers),
+        });
       }
     }
+
+    return _fetch.apply(this, arguments);
+  };
+
+  // DOM 工具
+  var getFiber = function(el) {
+    if (!el) return null;
+    var keys = Object.keys(el);
+    for (var i=0;i<keys.length;i++) if (keys[i].indexOf('__reactFiber$')===0) return el[keys[i]];
+    return null;
+  };
+  var findCallback = function(f) {
+    while(f){if(f.memoizedProps&&typeof f.memoizedProps.onPeriodChange==='function')return f.memoizedProps.onPeriodChange;f=f.return;}
+    return null;
+  };
+  var findContainer = function() {
+    var dots=document.querySelectorAll('span.bg-emerald-500, span.bg-emerald-400');
+    for(var i=0;i<dots.length;i++){var el=dots[i].parentElement;while(el){if(el.className&&el.className.indexOf&&el.className.indexOf('bg-muted')!==-1&&el.className.indexOf('rounded-full')!==-1)return el;el=el.parentElement;}}
     return null;
   };
 
-  const observer = new MutationObserver(() => requestAnimationFrame(inject));
+  // 注入按钮
+  var observer = new MutationObserver(function(){ requestAnimationFrame(inject) });
 
   function inject() {
-    const container = findContainer();
-    if (!container) return;
-
-    // 检测 React 内置按钮是否有激活态（framer-motion 的 active 指示器）
-    // 如果有，说明当前选中的是内置周期，清除自定义激活态
-    if (activePeriod !== null) {
-      const reactHasActive = [...container.children].some(
-        child => !child.hasAttribute(ATTR) && child.querySelector('.absolute.inset-0.z-10')
-      );
-      if (reactHasActive) activePeriod = null;
-    }
-
-    if (container.querySelector(`[${ATTR}]`) && lastRendered === activePeriod) return;
-
+    var container=findContainer();
+    if(!container)return;
     observer.disconnect();
-    container.querySelectorAll(`[${ATTR}]`).forEach(el => el.remove());
 
-    if (container !== containerRef) { setPeriodFn = null; containerRef = container; }
-    if (!setPeriodFn) {
-      for (const child of container.children) {
-        const fiber = getFiber(child.firstElementChild || child);
-        if (fiber) { setPeriodFn = findCallback(fiber); if (setPeriodFn) break; }
-      }
-    }
-    if (!setPeriodFn) { resume(); return; }
+    if(container!==containerRef){setPeriodFn=null;activePeriod=null;containerRef=container;}
 
-    let ref = container.children[0];
-    if (!ref) { resume(); return; }
-
-    for (const p of EXTRA_PERIODS) {
-      const wrapper = document.createElement('div');
-      wrapper.setAttribute(ATTR, p.value);
-
-      const btn = document.createElement('div');
-      const isActive = activePeriod === p.value;
-      btn.className = `relative cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-300 ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`;
-
-      if (isActive) {
-        const bg = document.createElement('div');
-        bg.className = 'absolute inset-0 z-10 h-full w-full bg-white dark:bg-background rounded-full ring-1 ring-border/60 dark:ring-border/40';
-        btn.appendChild(bg);
-      }
-
-      const label = document.createElement('div');
-      label.className = 'relative z-20 flex items-center gap-1.5';
-      label.textContent = p.label;
-      btn.appendChild(label);
-
-      wrapper.addEventListener('click', () => { activePeriod = p.value; setPeriodFn(p.value); });
-      wrapper.appendChild(btn);
-      ref.insertAdjacentElement('afterend', wrapper);
-      ref = wrapper;
-    }
-
-    for (const child of container.children) {
-      if (!child.hasAttribute(ATTR) && !child.hasAttribute('data-bound')) {
-        child.setAttribute('data-bound', '');
-        child.addEventListener('click', () => { activePeriod = null; }, true);
+    if(activePeriod!==null){
+      for(var c=0;c<container.children.length;c++){
+        var ch=container.children[c];
+        if(!ch.hasAttribute(ATTR)&&ch.querySelector('.absolute.inset-0.z-10')){activePeriod=null;break;}
       }
     }
 
-    lastRendered = activePeriod;
+    if(container.querySelector('['+ATTR+']')&&lastRendered===activePeriod){resume();return;}
+    var old=container.querySelectorAll('['+ATTR+']');for(var x=0;x<old.length;x++)old[x].remove();
+
+    if(!setPeriodFn){
+      for(var j=0;j<container.children.length;j++){
+        var fiber=getFiber(container.children[j].firstElementChild||container.children[j]);
+        if(fiber){setPeriodFn=findCallback(fiber);if(setPeriodFn)break;}
+      }
+    }
+    if(!setPeriodFn){resume();return;}
+
+    var ref=container.children[0];
+    if(!ref){resume();return;}
+
+    for(var k=0;k<EXTRA_PERIODS.length;k++){
+      var p=EXTRA_PERIODS[k];
+      var w=document.createElement('div');w.setAttribute(ATTR,p.value);
+      var b=document.createElement('div');
+      var act=activePeriod===p.value;
+      b.className='relative cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-300 '+(act?'text-foreground':'text-muted-foreground hover:text-foreground');
+      if(act){var bg=document.createElement('div');bg.className='absolute inset-0 z-10 h-full w-full bg-white dark:bg-background rounded-full ring-1 ring-border/60 dark:ring-border/40';b.appendChild(bg);}
+      var lb=document.createElement('div');lb.className='relative z-20 flex items-center gap-1.5';lb.textContent=p.label;b.appendChild(lb);
+      (function(v){w.addEventListener('click',function(){
+        activePeriod=v;
+        setPeriodFn(v);
+      })})(p.value);
+      w.appendChild(b);ref.insertAdjacentElement('afterend',w);ref=w;
+    }
+
+    for(var n=0;n<container.children.length;n++){
+      var child=container.children[n];
+      if(!child.hasAttribute(ATTR)&&!child.hasAttribute('data-bound')){
+        child.setAttribute('data-bound','');
+        child.addEventListener('click',function(){activePeriod=null},true);
+      }
+    }
+    lastRendered=activePeriod;
     resume();
   }
 
-  function resume() {
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  if (document.body) { resume(); inject(); }
-  else document.addEventListener('DOMContentLoaded', () => { resume(); inject(); });
+  function resume(){observer.observe(document.body,{childList:true,subtree:true})}
+  if(document.body){resume();inject()}
+  else document.addEventListener('DOMContentLoaded',function(){resume();inject()});
 })();
 </script>
-
 ```
