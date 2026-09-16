@@ -63,7 +63,16 @@
 6. **`statistics.svelte` ECharts Instance Disposal**
    - The user fixed a theme-switch memory leak and chart render issue by explicitly calling `instance.dispose()` before re-initializing charts. Do not overwrite with upstream's un-disposed version.
 
-7. **Tags Feature Disabled Across the Entire Site**
+7. **`.github/workflows/deploy.yml` VPS Deployment & BuildKit Cache Prune**
+   - The user deploys to a self-hosted VPS via SSH:
+     ```yaml
+     docker compose up -d --build
+     docker image prune -f
+     docker builder prune -af
+     ```
+   - Docker BuildKit intermediate cache (`/var/lib/docker/buildkit`) can grow by ~1.5GB per build. The `docker builder prune -af` command is mandatory to keep the VPS disk clean. Do not overwrite this workflow with upstream's Vercel/GitHub Pages workflows.
+
+8. **Tags Feature Disabled Across the Entire Site**
    - Post tags are completely disabled (the tag count exceeds post count and clutters the interface).
    - **Sidebar widget**: `tags` is removed from `twilight.config.yaml` (`sidebar.components.left`).
    - **Post cards & post detail header**: Tags display block is removed from `src/components/post/postMeta.astro`.
