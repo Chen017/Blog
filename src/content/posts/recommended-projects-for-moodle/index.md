@@ -1,8 +1,10 @@
 ---
 title: "Recommended Projects for Moodle"
+directoryTitle: "Moodle Tools"
 published: 2026-02-15
 description: "Share some useful and efficient tools for moodle"
 category: "Recommended Projects"
+tags: ["Moodle", "ChromeExtension", "Tools", "Productivity"]
 draft: false
 ---
 
@@ -10,7 +12,9 @@ draft: false
 
 A Chrome extension for downloading the contents of courses on Moodle all at once instead of doing it manually.
 
-Thus we can archive the resources on Moodle in case that after graduating, we can no longer access it and lose those resources.
+:::tip
+Archiving your course materials locally prevents losing access to important lecture slides and notes after graduation when university accounts expire.
+:::
 
 https://chromewebstore.google.com/detail/moodle-downloader/ohhocacnnfaiphiahofcnfakdcfldbnh?hl=en
 

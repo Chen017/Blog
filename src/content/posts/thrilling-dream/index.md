@@ -1,8 +1,10 @@
 ---
 title: "惊险梦境"
+directoryTitle: "惊险梦境"
 published: 2026-06-24
 description: "Thrilling dream during the final exam period."
 category: "Life"
+tags: ["Life", "Diary", "Dream"]
 cover: "image-thrilling-dream.png"
 ---
 

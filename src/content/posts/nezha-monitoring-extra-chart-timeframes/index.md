@@ -1,8 +1,10 @@
 ---
 title: "Nezha Monitoring: Extra Chart Timeframes"
+directoryTitle: "Nezha Timeframes"
 published: 2026-04-12
 description: "Sharing code injection snippets to add more time-range charts for Nezha Monitoring"
 category: "Development"
+tags: ["Nezha", "Monitoring", "JavaScript", "Frontend", "Charts"]
 cover: "3ePpUK9uhvBHLX6tkp6tXRq5M9aYXbPc.webp"
 ---
 ### Introduction
@@ -12,7 +14,10 @@ Added 1/3/6/12 hour chart displays to the official Nezha monitoring theme. Previ
 ![](3ePpUK9uhvBHLX6tkp6tXRq5M9aYXbPc.webp)
 
 ### Usage
-Add the following code to the custom code in the settings
+
+:::tip
+Paste the following script directly into the **Custom Code** (自定义代码) input box in your Nezha Dashboard settings to enable extra timeframe buttons.
+:::
 ```javascript
 <script>
 (function () {

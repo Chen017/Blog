@@ -1,14 +1,19 @@
 ---
 title: "OPPOWATCH应用开发浅指引"
+directoryTitle: "OPPO Watch 开发指引"
 published: 2025-02-06
 description: "Quick setup guide for integrating OPPO Watch UI control packages in Android Studio."
 category: "Development"
+tags: ["OPPOWatch", "Android", "AndroidStudio", "Wearable"]
 cover: "oppowatch-2025-02-06-220429.png"
 ---
 
 # Step 1
 
-微信公众号 OPPO开发者私信客服获取控件包及说明书 这样就可以调用官方控件 实现UI统一 这是2025年初的控件包: [202501210915113412.zip](202501210915113412.zip) 可以直接下载
+:::tip
+关注微信公众号 **OPPO开发者** 并私信客服即可获取最新控件包及开发说明书，调用官方控件可快速实现穿戴设备 UI 规范统一。
+附 2025 年初控件包本地备份下载：[202501210915113412.zip](202501210915113412.zip)
+:::
 
 # Step 2
 

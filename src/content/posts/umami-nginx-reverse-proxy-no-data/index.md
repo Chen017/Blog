@@ -1,8 +1,10 @@
 ---
 title: "Solve Umami No Data with NGINX Reverse Proxy"
+directoryTitle: "Umami NGINX CORS"
 published: 2025-02-24
 description: "Fix Umami analytics not receiving data after NGINX reverse proxy by handling CORS correctly."
 category: "Development"
+tags: ["Umami", "NGINX", "CORS", "Analytics", "1Panel"]
 cover: "umami-2025-02-24-194029.png"
 ---
 
@@ -16,7 +18,9 @@ My Halo URL: [https://www.etalib.space](https://www.etalib.space)
 
 # Solution
 
-This is about CORS(Cross-Origin Resource Sharing) issue. You may need to modify the naginx configuration.
+:::warning
+This issue is caused by Cross-Origin Resource Sharing (CORS) restrictions. You must adjust your NGINX reverse proxy configuration to properly set origin headers and hide conflicting upstream headers.
+:::
 
 This is my configuration:
 
