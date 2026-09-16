@@ -20,8 +20,8 @@ Based on upstream, I have added some modifications and new features:
 
 4. Optimize the Skill Cards
 
-5. Directory tree & media lazy loading
-   Integrated collapsible sidebar directory tree navigation and automated media lazy loading.
+5. Media lazy loading
+   Integrated automated lazy loading for images, videos, and iframes across markdown and MDX.
 
 ## 💻 Configuration
 

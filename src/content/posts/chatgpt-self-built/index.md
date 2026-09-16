@@ -1,19 +1,21 @@
 ---
 title: "ChatGPT (Self-built)"
+directoryTitle: "Self-built ChatGPT"
 published: 2024-12-15
 description: "Built a personal AI chatbot site with Open WebUI to access multiple LLM APIs."
 category: "Development"
+tags: ["AI", "OpenWebUI", "LLM", "Docker", "Claude"]
 draft: false
 cover: "image-nfez.png"
 ---
 
 **Congratulation!!!**
 
-I build a AI-chatbot website by Open WebUI. Then I can use many LLM through this website, such as Claude, by calling APIs. This approach is very cost-effective.
+I built an AI chatbot website powered by **Open WebUI**. It lets me access multiple LLM APIs (such as Claude) seamlessly from a single unified interface, which is extremely cost-effective.
 
-However, the website is currently for myself only since there's no external demand.
-
-Also, my cloud server only has 2GB RAM, and it has already reached its capacity. Thereofore I think I need to upgrade its later.
+:::note
+The service is currently deployed on a 2GB RAM cloud VPS for personal use. Memory usage is near peak capacity, so scaling or container memory tuning may be planned later.
+:::
 
 Overall, the experience has been great!
   

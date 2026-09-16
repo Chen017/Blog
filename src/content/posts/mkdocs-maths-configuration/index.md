@@ -1,8 +1,10 @@
 ---
 title: "Recommending Configuration of MkDocs for Maths"
+directoryTitle: "MkDocs Maths Setup"
 published: 2025-02-27
 description: "Recommended MkDocs setup for math rendering, file ordering, and list formatting fixes."
 category: "Development"
+tags: ["MkDocs", "Math", "KaTeX", "Python", "Documentation"]
 cover: "mkdocs-2025-02-27-213409.png"
 ---
 
@@ -75,7 +77,9 @@ document$.subscribe(({ body }) => {
 
 I use python to generate a manual navigation tree and add it into `mkdocs.yml` , then i just need to set up a cron job.
 
-!!!Please ensure the .md file including YAML metadata. You can add this when exporting .md file in your own markdown editor (if have).
+:::important
+Please ensure the `.md` file includes YAML metadata. You can add this when exporting `.md` file in your own markdown editor (if supported).
+:::
 
 Example of YAML metadata in markdown:  
 ![](mkdocs-2025-02-27-203615.png)
@@ -224,7 +228,9 @@ Example:
 
 ## Issue of breaking into new lines in list
 
-If you don't have this issue, you can omit this.
+:::tip
+If you don't encounter this line-break issue with list items in MkDocs, you can skip this section.
+:::
 
 Some of my source code of .md files is like
 
