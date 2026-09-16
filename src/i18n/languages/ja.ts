@@ -12,7 +12,8 @@ export const ja: Translation = {
     [Key.about]: "について",
     [Key.search]: "検索",
 
-    // 投稿
+    // 記事
+    [Key.directory]: "目次",
     [Key.tags]: "タグ",
     [Key.categories]: "カテゴリ",
     [Key.series]: "シリーズ",

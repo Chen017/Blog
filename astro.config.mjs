@@ -26,7 +26,9 @@ import { pluginCopyButton } from "./src/plugins/expressive-code/copy-button.js";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
+import { MusicCardComponent } from "./src/plugins/rehype-component-music-card.mjs";
 import { SongCardComponent } from "./src/plugins/rehype-component-song-card.mjs";
+import { rehypeLazyLoadMedia } from "./src/plugins/rehype-lazy-load-media.mjs";
 import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
 import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
@@ -120,6 +122,7 @@ export default defineConfig({
                         components: {
                             github: GithubCardComponent,
                             song: SongCardComponent,
+                            music: MusicCardComponent,
                             note: (x, y) => AdmonitionComponent(x, y, "note"),
                             tip: (x, y) => AdmonitionComponent(x, y, "tip"),
                             important: (x, y) => AdmonitionComponent(x, y, "important"),
@@ -151,6 +154,7 @@ export default defineConfig({
                         },
                     },
                 ],
+                rehypeLazyLoadMedia,
             ],
         }),
         decapCmsOauth({
@@ -214,6 +218,7 @@ export default defineConfig({
                     components: {
                         github: GithubCardComponent,
                         song: SongCardComponent,
+                        music: MusicCardComponent,
                         note: (x, y) => AdmonitionComponent(x, y, "note"),
                         tip: (x, y) => AdmonitionComponent(x, y, "tip"),
                         important: (x, y) => AdmonitionComponent(x, y, "important"),
@@ -245,11 +250,18 @@ export default defineConfig({
                     },
                 },
             ],
+            rehypeLazyLoadMedia,
         ],
     },
     vite: {
         plugins: [tailwindcss()],
         build: {
+            cssCodeSplit: true,
+            cssMinify: "esbuild",
+            minify: "esbuild",
+            esbuildOptions: {
+                drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
+            },
             rollupOptions: {
                 onwarn(warning, warn) {
                     // temporarily suppress this warning

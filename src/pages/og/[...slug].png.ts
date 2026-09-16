@@ -6,6 +6,7 @@ import satori from "satori";
 import sharp from "sharp";
 
 import { profileConfig, siteConfig } from "@/config";
+import { getSortedPosts } from "@utils/post";
 import { defaultFavicons } from "@constants/icon";
 
 
@@ -25,7 +26,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
         return [];
     }
 
-    const allPosts = await getCollection("posts");
+    const allPosts = await getSortedPosts();
     const publishedPosts = allPosts.filter((post) => !post.data.draft);
 
     return publishedPosts.map((post) => ({
@@ -121,7 +122,7 @@ export async function GET({
     const subtleTextColor = `hsl(${hue}, 10%, 75%)`;
     const backgroundColor = `hsl(${hue}, 15%, 12%)`;
 
-    const pubDate = post.data.published.toLocaleDateString("en-US", {
+    const pubDate = post.data.published!.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",

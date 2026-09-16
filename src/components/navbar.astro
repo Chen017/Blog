@@ -48,10 +48,10 @@ let links: NavbarLink[] = navbarConfig.links.map(
             })}
         </div>
         <div class="flex items-center navbar-buttons" id="navbar-buttons">
-            <Search client:load></Search>
-            <DisplaySettings client:load></DisplaySettings>
-            <WallpaperSwitch client:load></WallpaperSwitch>
-            <NavMenu client:load links={links}></NavMenu>
+            <Search client:idle></Search>
+            <DisplaySettings client:idle></DisplaySettings>
+            <WallpaperSwitch client:idle></WallpaperSwitch>
+            <NavMenu client:idle links={links}></NavMenu>
         </div>
     </div>
 </div>
@@ -65,22 +65,10 @@ function initSemifullScrollDetection() {
     const transparentMode = navbar.getAttribute('data-transparent-mode');
     if (transparentMode !== 'semifull') return;
 
-    const isHomePage = navbar.getAttribute('data-is-home') === 'true';
-
-    // 如果不是首页，移除滚动事件监听器并设置为半透明状态
-    if (!isHomePage) {
-        // 移除之前的滚动事件监听器（如果存在）
-        if (window.semifullScrollHandler) {
-            window.removeEventListener('scroll', window.semifullScrollHandler);
-            window.semifullScrollHandler = null;
-        }
-        // 设置为半透明状态
-        navbar.classList.add('scrolled');
-        return;
+    // 移除之前的滚动事件监听器（如果存在）
+    if (window.semifullScrollHandler) {
+        window.removeEventListener('scroll', window.semifullScrollHandler);
     }
-
-    // 移除现有的scrolled类，重置状态
-    navbar.classList.remove('scrolled');
 
     let ticking = false;
 
