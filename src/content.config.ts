@@ -26,10 +26,11 @@ const tagsSchema = z.preprocess((arg) => {
 }, z.array(z.string()).optional().default([]));
 
 const postsCollection = defineCollection({
-    loader: glob({ pattern: '**/*.{md,mdx}', base: "./src/content/posts" }),
+    loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/content/posts" }),
     schema: z.object({
-        title: z.string(),
-        published: dateSchema,
+        title: z.coerce.string(),
+        directoryTitle: z.coerce.string().optional().default("").transform(s => s.trim()),
+        published: optionalDateSchema,
         updated: optionalDateSchema,
         description: z.string().optional().default(""),
         cover: z.string().optional().default(""),
@@ -49,6 +50,19 @@ const postsCollection = defineCollection({
         encrypted: z.boolean().optional().default(false),
         password: z.string().optional().default(""),
 
+        /* Copy protection fields */
+        copyProtection: z.object({
+            blockSelection: z.boolean().optional().default(false),
+            blockClipboard: z.boolean().optional().default(false),
+            blockContextMenu: z.boolean().optional().default(false),
+            blockDevTools: z.boolean().optional().default(false),
+        }).optional().default({
+            blockSelection: false,
+            blockClipboard: false,
+            blockContextMenu: false,
+            blockDevTools: false,
+        }),
+
         /* Custom routeName */
         routeName: z.string().optional(),
 
@@ -61,8 +75,11 @@ const postsCollection = defineCollection({
 });
 
 const specCollection = defineCollection({
-    loader: glob({ pattern: '*.md', base: "./src/content" }),
-    schema: z.object({}),
+    loader: glob({ pattern: '[^_]*.{md,mdx}', base: "./src/content" }),
+    schema: z.object({
+        title: z.coerce.string().optional(),
+        description: z.string().optional(),
+    }),
 });
 
 export const collections = {
