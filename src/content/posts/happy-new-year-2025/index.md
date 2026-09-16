@@ -4,7 +4,6 @@ directoryTitle: "2025 新年"
 published: 2025-01-01
 description: "A short New Year note and wishes for 2025."
 category: "Life"
-tags: ["Life", "NewYear", "Memories"]
 cover: "1000032936.png"
 ---
 

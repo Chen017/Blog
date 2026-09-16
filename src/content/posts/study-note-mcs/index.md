@@ -4,7 +4,6 @@ directoryTitle: "MCS Study Notes"
 published: 2024-12-15
 description: "Share a math and CS note site and how to export note pages as PDF."
 category: "Development"
-tags: ["Math", "ComputerScience", "Notes", "GTIIT"]
 pinned: true
 cover: "image-cerp.png"
 ---

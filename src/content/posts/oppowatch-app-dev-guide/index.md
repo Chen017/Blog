@@ -4,7 +4,6 @@ directoryTitle: "OPPO Watch 开发指引"
 published: 2025-02-06
 description: "Quick setup guide for integrating OPPO Watch UI control packages in Android Studio."
 category: "Development"
-tags: ["OPPOWatch", "Android", "AndroidStudio", "Wearable"]
 cover: "oppowatch-2025-02-06-220429.png"
 ---
 

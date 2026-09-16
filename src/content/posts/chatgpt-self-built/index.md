@@ -4,7 +4,6 @@ directoryTitle: "Self-built ChatGPT"
 published: 2024-12-15
 description: "Built a personal AI chatbot site with Open WebUI to access multiple LLM APIs."
 category: "Development"
-tags: ["AI", "OpenWebUI", "LLM", "Docker", "Claude"]
 draft: false
 cover: "image-nfez.png"
 ---

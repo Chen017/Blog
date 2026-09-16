@@ -4,7 +4,6 @@ directoryTitle: "Umami NGINX CORS"
 published: 2025-02-24
 description: "Fix Umami analytics not receiving data after NGINX reverse proxy by handling CORS correctly."
 category: "Development"
-tags: ["Umami", "NGINX", "CORS", "Analytics", "1Panel"]
 cover: "umami-2025-02-24-194029.png"
 ---
 
