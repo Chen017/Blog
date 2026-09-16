@@ -4,7 +4,6 @@ directoryTitle: "Moodle Tools"
 published: 2026-02-15
 description: "Share some useful and efficient tools for moodle"
 category: "Recommended Projects"
-tags: ["Moodle", "ChromeExtension", "Tools", "Productivity"]
 draft: false
 ---
 

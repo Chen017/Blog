@@ -4,7 +4,6 @@ directoryTitle: "2026 新年"
 published: 2026-02-16
 description: "A short New Year note for 2026."
 category: "Life"
-tags: ["Life", "NewYear", "Memories"]
 cover: "Gemini_Generated_Image_b4j8k2b4j8k2b4j8.png"
 ---
 

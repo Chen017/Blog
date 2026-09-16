@@ -4,7 +4,6 @@ directoryTitle: "Markdown to Memos"
 published: 2026-02-14
 description: "Using API of memos and python scripts to immigrate to memos"
 category: "Development"
-tags: ["Memos", "Markdown", "Python", "Migration", "API"]
 draft: false
 cover: "2026-02-14-151558.png"
 ---

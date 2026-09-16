@@ -4,7 +4,6 @@ directoryTitle: "Nezha Timeframes"
 published: 2026-04-12
 description: "Sharing code injection snippets to add more time-range charts for Nezha Monitoring"
 category: "Development"
-tags: ["Nezha", "Monitoring", "JavaScript", "Frontend", "Charts"]
 cover: "3ePpUK9uhvBHLX6tkp6tXRq5M9aYXbPc.webp"
 ---
 ### Introduction

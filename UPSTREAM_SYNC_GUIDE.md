@@ -16,7 +16,8 @@
 | **Friends vs Links** | Displays "Friends" / "友链", pointing to `/friends/` | Front-end display text is **"Links"** with subtitle **"My other websites"**, while URL routing remains `/friends/`. | **PRESERVE** "Links" text in `link-presets.ts`, `en.ts`, and `twilight.config.yaml`. |
 | **Analytics** | Configurable via `twilight.config.yaml` / `.env` | Directly injected Umami script in `base.astro` (`https://cloud.umami.is/script.js`). | **PRESERVE** direct script tag in `base.astro`. |
 | **Typography** | External web fonts | Local self-hosted **MiSans** font (`public/MiSans/`). | **PRESERVE** local font files and config. |
-| **Sidebar Directory Tree** | Upstream added `directoryTree.svelte` / `directory.astro` | Not wanted / redundant with Categories & Tags. Kept in codebase but **disabled** from sidebar. | **DO NOT ENABLE** in `twilight.config.yaml` (`sidebar.components.left`). |
+| **Sidebar Directory Tree** | Upstream added `directoryTree.svelte` / `directory.astro` | Not wanted / redundant with Categories. Kept in codebase but **disabled** from sidebar. | **DO NOT ENABLE** in `twilight.config.yaml` (`sidebar.components.left`). |
+| **Tags Feature** | Upstream displays tags in sidebar widget, post metadata, and archive page | **Permanently disabled**. Tags clutter the UI (more tags than posts). Removed from sidebar widget, `postMeta.astro`, `archivePanel.svelte`, and `statistics.svelte`. | **DO NOT RESTORE** tags widget in `twilight.config.yaml` or tags markup in templates. |
 | **Statistics Charts (ECharts)** | Official upstream layout | Upstream bugfix applied: ECharts instance disposal on theme lifecycle in `statistics.svelte`. | **PRESERVE** user's `dispose()` lifecycle code in `statistics.svelte`. |
 
 ---
@@ -61,6 +62,14 @@
 
 6. **`statistics.svelte` ECharts Instance Disposal**
    - The user fixed a theme-switch memory leak and chart render issue by explicitly calling `instance.dispose()` before re-initializing charts. Do not overwrite with upstream's un-disposed version.
+
+7. **Tags Feature Disabled Across the Entire Site**
+   - Post tags are completely disabled (the tag count exceeds post count and clutters the interface).
+   - **Sidebar widget**: `tags` is removed from `twilight.config.yaml` (`sidebar.components.left`).
+   - **Post cards & post detail header**: Tags display block is removed from `src/components/post/postMeta.astro`.
+   - **Archive timeline**: Tags column is removed from `src/components/archivePanel.svelte`.
+   - **Statistics charts**: Tags radar chart container is removed from `src/components/sidebar/statistics.svelte`.
+   - **Rule**: Do NOT restore tags widgets or tags rendering in these templates on future upstream updates.
 
 ---
 

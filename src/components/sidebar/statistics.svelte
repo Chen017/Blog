@@ -488,10 +488,6 @@
                 <div class="chart-section radar-section">
                     <div bind:this={categoriesContainer} class="radar-container"></div>
                 </div>
-
-                <div class="chart-section radar-section">
-                    <div bind:this={tagsContainer} class="radar-container"></div>
-                </div>
             {/if}
         </div>
     </div>

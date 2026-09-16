@@ -217,15 +217,6 @@ sidebar:
                 responsive:
                     # 折叠阈值
                     collapseThreshold: 5
-            - # 组件 - 文章标签 (预设)
-                # 类型
-                type: "tags"
-                # 位置策略 ("top" 顶部固定 | "sticky" 粘性)
-                position: "sticky"
-                # 响应式配置
-                responsive:
-                    # 折叠阈值
-                    collapseThreshold: 20
         # 右侧侧边栏
         right:
             - # 组件 - 文章目录 (预设)
