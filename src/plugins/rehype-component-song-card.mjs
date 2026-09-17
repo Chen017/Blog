@@ -504,7 +504,8 @@ export function SongCardComponent(properties, children) {
 
       const setVolumeFromPointer = (e) => {
         if (!volumeTrack) return;
-        const rect = volumeTrack.getBoundingClientRect();
+        const rail = volumeTrack.querySelector('.song-card__volume-rail') || volumeTrack;
+        const rect = rail.getBoundingClientRect();
         if (rect.width <= 0) return;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
@@ -533,6 +534,7 @@ export function SongCardComponent(properties, children) {
         volumeTrack.addEventListener("pointerdown", (e) => {
           ensureAudioLoaded();
           isVolumeDragging = true;
+          volumeWrap.classList.add("is-dragging-volume");
           volumeTrack.setPointerCapture(e.pointerId);
           setVolumeFromPointer(e);
         });
@@ -544,6 +546,7 @@ export function SongCardComponent(properties, children) {
         volumeTrack.addEventListener("pointerup", (e) => {
           if (!isVolumeDragging) return;
           isVolumeDragging = false;
+          volumeWrap.classList.remove("is-dragging-volume");
           try { volumeTrack.releasePointerCapture(e.pointerId); } catch (_) {}
           setVolumeFromPointer(e);
         });
@@ -551,6 +554,7 @@ export function SongCardComponent(properties, children) {
         volumeTrack.addEventListener("pointercancel", (e) => {
           if (!isVolumeDragging) return;
           isVolumeDragging = false;
+          volumeWrap.classList.remove("is-dragging-volume");
           try { volumeTrack.releasePointerCapture(e.pointerId); } catch (_) {}
         });
 
