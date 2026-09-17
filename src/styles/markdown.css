@@ -1,5 +1,14 @@
 @reference "tailwindcss";
 
+@keyframes song-cover-breathe {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.035);
+    }
+}
+
 .custom-md {
     .song-card {
         position: relative;
@@ -25,15 +34,6 @@
 
     .song-card.is-playing .song-card__cover {
         animation: song-cover-breathe 4.5s ease-in-out infinite alternate;
-    }
-
-    @keyframes song-cover-breathe {
-        0% {
-            transform: scale(1);
-        }
-        100% {
-            transform: scale(1.035);
-        }
     }
 
     .song-card__bg {
