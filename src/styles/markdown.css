@@ -411,18 +411,22 @@
     }
 
     .song-card__volume-wrap:hover .song-card__volume-slider-wrap,
-    .song-card__volume-wrap:focus-within .song-card__volume-slider-wrap {
-        width: 58px;
+    .song-card__volume-wrap:focus-within .song-card__volume-slider-wrap,
+    .song-card__volume-wrap.is-dragging-volume .song-card__volume-slider-wrap {
+        width: 66px;
         opacity: 1;
         margin-left: 6px;
+        overflow: visible;
     }
 
     .song-card__volume-track {
         position: relative;
-        width: 54px;
+        width: 60px;
         height: 1.5rem;
         display: flex;
         align-items: center;
+        padding-inline: 5px;
+        box-sizing: border-box;
         cursor: pointer;
         touch-action: none;
         user-select: none;
@@ -459,20 +463,20 @@
         position: absolute;
         left: var(--volume-percent, 100%);
         top: 50%;
-        width: 10px;
-        height: 10px;
+        width: 9px;
+        height: 9px;
         box-sizing: border-box;
         border-radius: 50%;
         background: #ffffff;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
-        transform: translate(-50%, -50%) scale(0.9);
+        transform: translate(-50%, -50%);
         pointer-events: none;
-        transition: transform 160ms ease;
+        transition: transform 140ms ease;
     }
 
     .song-card__volume-track:hover .song-card__volume-thumb,
     .song-card__volume-track:focus-visible .song-card__volume-thumb {
-        transform: translate(-50%, -50%) scale(1.15);
+        transform: translate(-50%, -50%) scale(1.2);
     }
 
     .song-card__lyrics-line--current {
