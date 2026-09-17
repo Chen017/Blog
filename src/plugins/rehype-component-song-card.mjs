@@ -5,7 +5,7 @@ import { h } from "hastscript";
  * Render a song card from markdown directives.
  *
  * Usage:
- * :::song{title="Song" artist="Artist" cover="https://..." audio="https://..."}
+ * :::song{title="Song" artist="Artist" cover="https://..." audio="https://..." lyricOffset="0.35"}
  * [00:00.00] Lyric line 1
  * [00:12.30] Lyric line 2
  * :::
@@ -15,6 +15,8 @@ export function SongCardComponent(properties, children) {
     const artist = properties?.artist || "Unknown Artist";
     const cover = properties?.cover;
     const audio = properties?.audio;
+    const lyricOffsetRaw = properties?.lyricOffset ?? properties?.["lyric-offset"];
+    const lyricOffset = lyricOffsetRaw !== undefined && !Number.isNaN(Number(lyricOffsetRaw)) ? Number(lyricOffsetRaw) : 0.35;
     const cardId = `song-${Math.random().toString(36).slice(2, 10)}`;
 
     if (!cover || !audio) {
@@ -129,6 +131,7 @@ export function SongCardComponent(properties, children) {
         "data-song-card-id": cardId,
         "data-song-title": title,
         "data-song-artist": artist,
+        "data-lyric-offset": String(lyricOffset),
         style: `--song-cover: url("${safeCover}");`,
     }, [
         h("div", { class: "song-card__bg", "aria-hidden": "true" }),
@@ -145,9 +148,9 @@ export function SongCardComponent(properties, children) {
             h("div", { class: "song-card__meta-row" }, [
                 h("h4", { class: "song-card__titleline" }, `${title} - ${artist}`),
             ]),
-            h("div", { class: "song-card__lyrics-live", "data-lyrics-live": "true" }, [
-                h("p", { class: "song-card__lyrics-exit", "data-lyrics-exit": "true", "aria-hidden": "true" }, ""),
-                h("p", { class: "song-card__lyrics-current", "data-lyrics-current": "true" }, firstLine),
+            h("div", { class: "song-card__lyrics-stage", "data-lyrics-stage": "true" }, [
+                h("div", { class: "song-card__lyrics-line song-card__lyrics-line--current", "data-lyrics-current": "true" }, firstLine),
+                h("div", { class: "song-card__lyrics-line song-card__lyrics-line--exit", "data-lyrics-exit": "true", "aria-hidden": "true" }, ""),
             ]),
             h("audio", { class: "song-card__audio-el", preload: "none", "data-song-audio": "true" }, [
                 h("source", { "data-src": audio, type: "audio/mpeg" }),
@@ -197,16 +200,61 @@ export function SongCardComponent(properties, children) {
                 h("span", { class: "song-card__time", "data-player-current": "true" }, "0:00"),
                 h("span", { class: "song-card__time-sep" }, "/"),
                 h("span", { class: "song-card__time", "data-player-duration": "true" }, "--:--"),
-                h("input", {
-                    type: "range",
-                    min: "0",
-                    max: "100",
-                    value: "0",
-                    step: "0.1",
-                    class: "song-card__progress",
-                    "data-player-progress": "true",
+                h("div", {
+                    class: "song-card__progress-wrap",
+                    "data-player-progress-wrap": "true",
+                    role: "slider",
+                    tabindex: "0",
                     "aria-label": "Playback progress",
-                }),
+                    "aria-valuemin": "0",
+                    "aria-valuemax": "100",
+                    "aria-valuenow": "0",
+                }, [
+                    h("div", { class: "song-card__progress-rail" }, [
+                        h("div", { class: "song-card__progress-fill", "data-player-fill": "true" }),
+                        h("div", { class: "song-card__progress-thumb", "data-player-thumb": "true" }),
+                    ]),
+                    h("div", { class: "song-card__progress-tooltip", "data-player-tooltip": "true" }, "0:00"),
+                ]),
+                h("div", { class: "song-card__volume-wrap", "data-volume-wrap": "true" }, [
+                    h("button", {
+                        type: "button",
+                        class: "song-card__volume-btn",
+                        "data-volume-toggle": "true",
+                        "aria-label": "Mute or Unmute",
+                    }, [
+                        h("span", { class: "song-card__volume-icon song-card__volume-icon--up", "aria-hidden": "true" }, [
+                            h("svg", { viewBox: "0 0 24 24", width: "16", height: "16", fill: "currentColor" }, [
+                                h("path", { d: "M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H3.75A1.75 1.75 0 0 0 2 9.25v5.5c0 .966.784 1.75 1.75 1.75h2.69l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06zM17.78 7.22a.75.75 0 0 0-1.06 1.06 6 6 0 0 1 0 8.48.75.75 0 1 0 1.06 1.06 7.5 7.5 0 0 0 0-10.6z" }),
+                                h("path", { d: "M20.96 4.04a.75.75 0 0 0-1.06 1.06 10.5 10.5 0 0 1 0 14.85.75.75 0 0 0 1.06 1.06 12 12 0 0 0 0-16.97z" }),
+                            ]),
+                        ]),
+                        h("span", { class: "song-card__volume-icon song-card__volume-icon--mute", "aria-hidden": "true" }, [
+                            h("svg", { viewBox: "0 0 24 24", width: "16", height: "16", fill: "currentColor" }, [
+                                h("path", { d: "M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H3.75A1.75 1.75 0 0 0 2 9.25v5.5c0 .966.784 1.75 1.75 1.75h2.69l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06z" }),
+                                h("path", { d: "m16.28 9.22 4.5 4.5a.75.75 0 0 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 1.06-1.06z" }),
+                                h("path", { d: "m20.78 9.22-4.5 4.5a.75.75 0 0 0 1.06 1.06l4.5-4.5a.75.75 0 0 0-1.06-1.06z" }),
+                            ]),
+                        ]),
+                    ]),
+                    h("div", { class: "song-card__volume-slider-wrap" }, [
+                        h("div", {
+                            class: "song-card__volume-track",
+                            "data-volume-track": "true",
+                            role: "slider",
+                            tabindex: "0",
+                            "aria-label": "Volume",
+                            "aria-valuemin": "0",
+                            "aria-valuemax": "100",
+                            "aria-valuenow": "100",
+                        }, [
+                            h("div", { class: "song-card__volume-rail" }, [
+                                h("div", { class: "song-card__volume-fill", "data-volume-fill": "true" }),
+                                h("div", { class: "song-card__volume-thumb", "data-volume-thumb": "true" }),
+                            ]),
+                        ]),
+                    ]),
+                ]),
             ]),
             lyricsSource,
         ]),
@@ -215,7 +263,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v4";
+  const SCRIPT_VERSION = "song-card-v5";
 
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
@@ -225,15 +273,26 @@ export function SongCardComponent(properties, children) {
 
       const audio = card.querySelector('[data-song-audio="true"]');
       const toggle = card.querySelector('[data-player-toggle="true"]');
-      const progress = card.querySelector('[data-player-progress="true"]');
+      const progressWrap = card.querySelector('[data-player-progress-wrap="true"]');
+      const progressTooltip = card.querySelector('[data-player-tooltip="true"]');
       const currentTimeEl = card.querySelector('[data-player-current="true"]');
       const durationEl = card.querySelector('[data-player-duration="true"]');
       const currentLyricEl = card.querySelector('[data-lyrics-current="true"]');
       const exitLyricEl = card.querySelector('[data-lyrics-exit="true"]');
       const lines = Array.from(card.querySelectorAll('[data-lrc-source="true"] [data-lrc-time]'));
       const coverImg = card.querySelector('.song-card__cover');
-      if (!audio || !toggle || !progress || !currentTimeEl || !durationEl) return;
+      const volumeWrap = card.querySelector('[data-volume-wrap="true"]');
+      const volumeToggle = card.querySelector('[data-volume-toggle="true"]');
+      const volumeTrack = card.querySelector('[data-volume-track="true"]');
+
+      if (!audio || !toggle || !progressWrap || !currentTimeEl || !durationEl) return;
       let audioLoaded = false;
+      let isDragging = false;
+      let rafId = null;
+      let currentLineIndex = -1;
+      let lastVolume = 1;
+
+      const lyricOffset = parseFloat(card.dataset.lyricOffset || "0.35");
 
       const ensureAudioLoaded = () => {
         if (audioLoaded) return;
@@ -262,18 +321,21 @@ export function SongCardComponent(properties, children) {
       };
 
       const findLineIndex = (time) => {
+        const adjustedTime = time + (Number.isFinite(lyricOffset) ? lyricOffset : 0.35);
         for (let i = lines.length - 1; i >= 0; i--) {
           const t = Number(lines[i].dataset.lrcTime || 0);
-          if (time >= t) return i;
+          if (adjustedTime >= t) return i;
         }
         return -1;
       };
 
       const renderLyric = (index) => {
-        if (!currentLyricEl) return;
-        if (lines.length === 0) return;
+        if (!currentLyricEl || lines.length === 0) return;
+        if (index === currentLineIndex) return;
+        currentLineIndex = index;
         const current = index >= 0 ? lines[index] : lines[0];
         const nextText = current ? (current.textContent || "...") : "...";
+
         if (currentLyricEl.textContent !== nextText) {
           const prevText = currentLyricEl.textContent || "";
           if (exitLyricEl && prevText) {
@@ -281,59 +343,75 @@ export function SongCardComponent(properties, children) {
             if (typeof exitLyricEl.animate === "function") {
               exitLyricEl.getAnimations().forEach((a) => a.cancel());
               exitLyricEl.animate([
-                { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0px)" },
-                { opacity: 0, transform: "translateY(-12px) scale(0.992)", filter: "blur(2px)" },
+                { opacity: 1, transform: "translateY(0)" },
+                { opacity: 0, transform: "translateY(-100%)" },
               ], {
-                duration: 460,
-                easing: "cubic-bezier(0.22,1,0.36,1)",
+                duration: 380,
+                easing: "cubic-bezier(0.25, 1, 0.5, 1)",
                 fill: "both",
               });
-            } else {
-              exitLyricEl.classList.remove("is-leaving");
-              void exitLyricEl.offsetWidth;
-              exitLyricEl.classList.add("is-leaving");
             }
           }
           currentLyricEl.textContent = nextText;
           if (typeof currentLyricEl.animate === "function") {
             currentLyricEl.getAnimations().forEach((a) => a.cancel());
             currentLyricEl.animate([
-              { opacity: 0, transform: "translateY(12px) scale(0.992)", filter: "blur(2px)" },
-              { opacity: 0.92, transform: "translateY(-1px) scale(1.001)", filter: "blur(0.35px)" },
-              { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0px)" },
+              { opacity: 0, transform: "translateY(100%)" },
+              { opacity: 1, transform: "translateY(0)" },
             ], {
-              duration: 460,
-              easing: "cubic-bezier(0.64,0,0.78,0)",
+              duration: 380,
+              easing: "cubic-bezier(0.25, 1, 0.5, 1)",
               fill: "both",
             });
-          } else {
-            currentLyricEl.classList.remove("is-entering");
-            void currentLyricEl.offsetWidth;
-            currentLyricEl.classList.add("is-entering");
           }
         }
       };
 
-      const updateProgress = () => {
-        const duration = audio.duration || 0;
-        const current = audio.currentTime || 0;
+      const updateProgressDisplay = (current, duration) => {
         const percent = duration > 0 ? (current / duration) * 100 : 0;
-        progress.value = String(percent);
-        progress.style.setProperty("--song-progress", percent.toFixed(3) + "%");
+        const clampedPercent = Math.max(0, Math.min(100, percent));
+        card.style.setProperty("--song-progress", clampedPercent.toFixed(3) + "%");
+        progressWrap.setAttribute("aria-valuenow", clampedPercent.toFixed(1));
         currentTimeEl.textContent = formatTime(current);
         durationEl.textContent = duration > 0 ? formatTime(duration) : "--:--";
+      };
+
+      const syncByTime = () => {
+        const duration = audio.duration || 0;
+        const current = audio.currentTime || 0;
+        if (!isDragging) {
+          updateProgressDisplay(current, duration);
+        }
+        const idx = findLineIndex(current);
+        renderLyric(idx);
+      };
+
+      const tick = () => {
+        if (audio.paused || audio.ended) {
+          stopLoop();
+          return;
+        }
+        syncByTime();
+        rafId = requestAnimationFrame(tick);
+      };
+
+      const startLoop = () => {
+        if (!rafId) {
+          rafId = requestAnimationFrame(tick);
+        }
+      };
+
+      const stopLoop = () => {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
       };
 
       const updateToggle = () => {
         const playing = !audio.paused;
         toggle.classList.toggle("is-playing", playing);
         toggle.setAttribute("aria-label", playing ? "Pause" : "Play");
-      };
-
-      const syncByTime = () => {
-        const idx = findLineIndex(audio.currentTime || 0);
-        renderLyric(idx);
-        updateProgress();
       };
 
       toggle.addEventListener("click", () => {
@@ -345,81 +423,190 @@ export function SongCardComponent(properties, children) {
         }
       });
 
-      progress.addEventListener("input", () => {
+      const getPercentFromPointer = (e) => {
+        const rect = progressWrap.getBoundingClientRect();
+        if (rect.width <= 0) return 0;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const x = clientX - rect.left;
+        return Math.max(0, Math.min(1, x / rect.width));
+      };
+
+      const seekToPercent = (ratio) => {
         const duration = audio.duration || 0;
-        if (!duration) return;
-        const percent = Number(progress.value || 0) / 100;
-        audio.currentTime = duration * percent;
-        syncByTime();
-      });
-
-      audio.addEventListener("loadedmetadata", () => {
-        updateProgress();
-        syncByTime();
-      });
-      audio.addEventListener('timeupdate', syncByTime);
-      audio.addEventListener('seeked', syncByTime);
-      audio.addEventListener('play', syncByTime);
-      audio.addEventListener('play', updateToggle);
-      audio.addEventListener('pause', updateToggle);
-      audio.addEventListener('ended', updateToggle);
-
-      const applyAccentFromCover = () => {
-        if (!coverImg || !coverImg.complete || coverImg.naturalWidth <= 0) return;
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = 24;
-          canvas.height = 24;
-          const ctx = canvas.getContext("2d", { willReadFrequently: true });
-          if (!ctx) return;
-          ctx.drawImage(coverImg, 0, 0, 24, 24);
-          const data = ctx.getImageData(0, 0, 24, 24).data;
-          let r = 0, g = 0, b = 0, count = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            const alpha = data[i + 3];
-            if (alpha < 140) continue;
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count++;
-          }
-          if (!count) return;
-          r = Math.round(r / count);
-          g = Math.round(g / count);
-          b = Math.round(b / count);
-
-          const max = Math.max(r, g, b), min = Math.min(r, g, b);
-          const l = (max + min) / 510;
-          let h = 0, s = 0;
-          if (max !== min) {
-            const d = max - min;
-            s = l > 0.5 ? d / (510 - max - min) : d / (max + min);
-            switch (max) {
-              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-              case g: h = (b - r) / d + 2; break;
-              default: h = (r - g) / d + 4;
-            }
-            h /= 6;
-          }
-          const hue = Math.round(h * 360);
-          const sat = Math.min(78, Math.max(45, Math.round(s * 100)));
-          // Keep accent mid-dark so white text remains readable under all covers.
-          const light = Math.min(54, Math.max(36, Math.round(l * 100)));
-          card.style.setProperty("--song-accent", "hsl(" + hue + " " + sat + "% " + light + "%)");
-          card.style.setProperty("--song-accent-soft", "hsl(" + hue + " " + Math.max(38, sat - 16) + "% " + Math.min(68, light + 16) + "% / 0.2)");
-        } catch (_e) {
-          // External images without CORS may block canvas reads. Keep fallback colors.
+        if (duration > 0) {
+          audio.currentTime = duration * ratio;
+          syncByTime();
         }
       };
 
-      if (coverImg && coverImg.complete) {
-        applyAccentFromCover();
-      } else if (coverImg) {
-        coverImg.addEventListener("load", applyAccentFromCover, { once: true });
+      progressWrap.addEventListener("pointerdown", (e) => {
+        ensureAudioLoaded();
+        isDragging = true;
+        progressWrap.classList.add("is-dragging");
+        progressWrap.setPointerCapture(e.pointerId);
+        const ratio = getPercentFromPointer(e);
+        updateProgressDisplay(ratio * (audio.duration || 0), audio.duration || 0);
+      });
+
+      progressWrap.addEventListener("pointermove", (e) => {
+        const ratio = getPercentFromPointer(e);
+        const duration = audio.duration || 0;
+        if (progressTooltip) {
+          progressTooltip.textContent = formatTime(duration * ratio);
+          progressTooltip.style.setProperty("--tooltip-x", (ratio * 100).toFixed(2) + "%");
+        }
+        if (isDragging) {
+          updateProgressDisplay(ratio * duration, duration);
+        }
+      });
+
+      progressWrap.addEventListener("pointerup", (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        progressWrap.classList.remove("is-dragging");
+        try { progressWrap.releasePointerCapture(e.pointerId); } catch (_) {}
+        const ratio = getPercentFromPointer(e);
+        seekToPercent(ratio);
+      });
+
+      progressWrap.addEventListener("pointercancel", (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        progressWrap.classList.remove("is-dragging");
+        try { progressWrap.releasePointerCapture(e.pointerId); } catch (_) {}
+        syncByTime();
+      });
+
+      progressWrap.addEventListener("keydown", (e) => {
+        const duration = audio.duration || 0;
+        if (!duration) return;
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+          e.preventDefault();
+          audio.currentTime = Math.max(0, audio.currentTime - 5);
+          syncByTime();
+        } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+          e.preventDefault();
+          audio.currentTime = Math.min(duration, audio.currentTime + 5);
+          syncByTime();
+        }
+      });
+
+      let isVolumeDragging = false;
+      const updateVolumeDisplay = (vol, muted) => {
+        const effectiveVol = muted ? 0 : vol;
+        const percent = Math.max(0, Math.min(100, effectiveVol * 100));
+        volumeWrap.style.setProperty("--volume-percent", percent.toFixed(1) + "%");
+        if (volumeTrack) {
+          volumeTrack.setAttribute("aria-valuenow", percent.toFixed(0));
+        }
+        volumeWrap.classList.toggle("is-muted", effectiveVol === 0);
+      };
+
+      const setVolumeFromPointer = (e) => {
+        if (!volumeTrack) return;
+        const rect = volumeTrack.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        ensureAudioLoaded();
+        audio.volume = ratio;
+        audio.muted = ratio === 0;
+        if (ratio > 0) lastVolume = ratio;
+        updateVolumeDisplay(ratio, audio.muted);
+      };
+
+      if (volumeToggle && volumeWrap && volumeTrack) {
+        volumeToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          ensureAudioLoaded();
+          if (audio.muted || audio.volume === 0) {
+            audio.muted = false;
+            audio.volume = lastVolume || 1;
+            updateVolumeDisplay(audio.volume, false);
+          } else {
+            lastVolume = audio.volume || 1;
+            audio.muted = true;
+            updateVolumeDisplay(audio.volume, true);
+          }
+        });
+
+        volumeTrack.addEventListener("pointerdown", (e) => {
+          ensureAudioLoaded();
+          isVolumeDragging = true;
+          volumeTrack.setPointerCapture(e.pointerId);
+          setVolumeFromPointer(e);
+        });
+
+        volumeTrack.addEventListener("pointermove", (e) => {
+          if (isVolumeDragging) setVolumeFromPointer(e);
+        });
+
+        volumeTrack.addEventListener("pointerup", (e) => {
+          if (!isVolumeDragging) return;
+          isVolumeDragging = false;
+          try { volumeTrack.releasePointerCapture(e.pointerId); } catch (_) {}
+          setVolumeFromPointer(e);
+        });
+
+        volumeTrack.addEventListener("pointercancel", (e) => {
+          if (!isVolumeDragging) return;
+          isVolumeDragging = false;
+          try { volumeTrack.releasePointerCapture(e.pointerId); } catch (_) {}
+        });
+
+        volumeTrack.addEventListener("keydown", (e) => {
+          ensureAudioLoaded();
+          if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+            e.preventDefault();
+            audio.volume = Math.max(0, audio.volume - 0.05);
+            audio.muted = audio.volume === 0;
+            if (audio.volume > 0) lastVolume = audio.volume;
+            updateVolumeDisplay(audio.volume, audio.muted);
+          } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+            e.preventDefault();
+            audio.volume = Math.min(1, audio.volume + 0.05);
+            audio.muted = false;
+            lastVolume = audio.volume;
+            updateVolumeDisplay(audio.volume, false);
+          }
+        });
+
+        updateVolumeDisplay(1, false);
       }
 
+      audio.addEventListener("loadedmetadata", () => {
+        updateProgressDisplay(audio.currentTime || 0, audio.duration || 0);
+        syncByTime();
+      });
+
+      audio.addEventListener("play", () => {
+        document.querySelectorAll('[data-song-audio="true"]').forEach((otherAudio) => {
+          if (otherAudio !== audio && !otherAudio.paused) {
+            otherAudio.pause();
+          }
+        });
+        card.classList.add("is-playing");
+        updateToggle();
+        startLoop();
+      });
+
+      audio.addEventListener("pause", () => {
+        card.classList.remove("is-playing");
+        updateToggle();
+        stopLoop();
+      });
+
+      audio.addEventListener("ended", () => {
+        card.classList.remove("is-playing");
+        updateToggle();
+        stopLoop();
+      });
+
+      audio.addEventListener("timeupdate", syncByTime);
+      audio.addEventListener("seeked", syncByTime);
+
       updateToggle();
-      updateProgress();
+      updateProgressDisplay(0, 0);
       renderLyric(-1);
     });
   };
