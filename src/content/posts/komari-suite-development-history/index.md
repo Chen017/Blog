@@ -4,18 +4,9 @@ directoryTitle: "Komari Suite Journey"
 published: 2026-09-22
 description: "A retrospective on evolving Komari from a humble IP quality logging script into a coordinated 4-project monitoring and observability ecosystem."
 category: "Development"
-tags:
-  - "Komari"
-  - "Open Source"
-  - "Architecture"
-  - "DevLog"
 cover: "https://raw.githubusercontent.com/Chen017/komari-emerald-suite/main/docs/ecosystem.png"
 coverInContent: true
 ---
-
-# From a Single Tool to Four Projects: The Development Chronicle of Komari Theme & Plugins — A Wrap-Up Gift to Myself
-
-![Komari Emerald Ecosystem](https://raw.githubusercontent.com/Chen017/komari-emerald-suite/main/docs/ecosystem.png)
 
 ## September 12 — Morning
 It all started with **IP-Quality-Archive**. Initially, it was just a simple script to persist IPQuality inspection results. Soon enough, I added dual-stack (IPv4/IPv6) history tracking, risk assessment, streaming unlock verification, and automated cron jobs. By afternoon, I realized that fixed-interval sampling would inadvertently skip records where actual changes occurred, so I pivoted the strategy to prioritize recording change points.
