@@ -10,7 +10,9 @@ cover: "cover.png"
 放过自己吧，其实都是一样的。
 
 To feel, not fight.
+
 To experience, not suffer.
+
 To live, not survive.
 
 To love, even the pain.
