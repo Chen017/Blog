@@ -17,6 +17,6 @@ To live, not survive.
 
 ---
 
-![](cover.png)
+![](./cover.png)
 
-![](image.png)
+![](./image.png)
