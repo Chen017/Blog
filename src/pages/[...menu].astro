@@ -1,4 +1,7 @@
 ---
+export const prerender = true;
+
+
 import { Icon } from "astro-icon/components";
 
 import { type NavbarLink } from "@/types/config";
@@ -29,6 +32,10 @@ interface Props {
 }
 
 const { link } = Astro.props;
+
+if (!link) {
+    return Astro.redirect("/404/");
+}
 
 // 获取子链接，并将 LinkPreset 转换为完整的 NavbarLink 对象
 const childrenLinks = link.children || [];

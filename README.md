@@ -23,6 +23,9 @@ Based on upstream, I have added some modifications and new features:
 5. Media lazy loading
    Integrated automated lazy loading for images, videos, and iframes across markdown and MDX.
 
+6. Disable Exhibition
+   Disabled the exhibition module, closed the navigation entry point, and prevented its page and associated resources from loading.
+
 ## 💻 Configuration
 
 1. **Clone the repository:**
