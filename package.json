@@ -4,6 +4,8 @@
 	"version": "1.0.0",
 	"description": "A blog template",
 	"scripts": {
+		"test:unit": "node --test tests/*.test.mjs",
+		"verify:build": "node scripts/verify-build.mjs",
 		"type-check": "tsc --noEmit --isolatedDeclarations",
 		"check-stylus": "node scripts/compile-inline-stylus.cjs",
 		"lint": "biome check --write ./src",

@@ -2,6 +2,7 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { toPublicPostListItem } from "./public-post";
 
 import { CATEGORY_SEPARATOR, type CategoryPath, getCategoryPathParts } from "@utils/category";
 import { parseTags, type Tag } from "@utils/tag";
@@ -86,18 +87,11 @@ export async function getSortedPosts() {
 
     return sorted;
 }
-export type PostForList = {
-    id: string;
-    data: ResolvedPost["data"];
-};
+export type PostForList = ReturnType<typeof toPublicPostListItem>;
 export async function getSortedPostsList(): Promise<PostForList[]> {
     const sortedFullPosts = await getRawSortedPosts();
 
-    // delete post.body
-    const sortedPostsList = sortedFullPosts.map((post) => ({
-        id: post.id,
-        data: post.data,
-    }));
+    const sortedPostsList = sortedFullPosts.map(toPublicPostListItem);
 
     return sortedPostsList;
 }
