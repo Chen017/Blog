@@ -1,4 +1,5 @@
 import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import svelte, { vitePreprocess } from "@astrojs/svelte";
@@ -41,6 +42,8 @@ export default defineConfig({
     site: siteConfig.siteURL,
     base: "/",
     trailingSlash: "always",
+    // Preserve Astro 5/6 inline whitespace while upgrading the compiler.
+    compressHTML: true,
     devToolbar: {
         enabled: false,
     },
@@ -96,63 +99,7 @@ export default defineConfig({
                 showCopyToClipboardButton: false,
             },
         }),
-        mdx({
-            extendMarkdownConfig: true,
-            remarkPlugins: [
-                remarkMath,
-                remarkReadingTime,
-                remarkExcerpt,
-                remarkGithubAdmonitionsToDirectives,
-                remarkDirective,
-                remarkSectionize,
-                parseDirectiveNode,
-                remarkMermaid,
-            ],
-            rehypePlugins: [
-                rehypeKatex,
-                rehypeSlug,
-                rehypeMermaid,
-                [
-                    rehypeComponents,
-                    {
-                        components: {
-                            github: GithubCardComponent,
-                            song: SongCardComponent,
-                            music: MusicCardComponent,
-                            note: (x, y) => AdmonitionComponent(x, y, "note"),
-                            tip: (x, y) => AdmonitionComponent(x, y, "tip"),
-                            important: (x, y) => AdmonitionComponent(x, y, "important"),
-                            caution: (x, y) => AdmonitionComponent(x, y, "caution"),
-                            warning: (x, y) => AdmonitionComponent(x, y, "warning"),
-                        },
-                    },
-                ],
-                [
-                    rehypeAutolinkHeadings,
-                    {
-                        behavior: "append",
-                        properties: {
-                            className: ["anchor"],
-                        },
-                        content: {
-                            type: "element",
-                            tagName: "span",
-                            properties: {
-                                className: ["anchor-icon"],
-                                "data-pagefind-ignore": true,
-                            },
-                            children: [
-                                {
-                                    type: "text",
-                                    value: "#",
-                                },
-                            ],
-                        },
-                    },
-                ],
-                rehypeLazyLoadMedia,
-            ],
-        }),
+        mdx(),
         decapCmsOauth({
             decapCMSVersion: "3.9.0",
             oauthDisabled: true, // Disable it to use oauth, requires .env configuration
@@ -194,6 +141,7 @@ export default defineConfig({
         sitemap(),
     ],
     markdown: {
+        processor: unified({
         remarkPlugins: [
             remarkMath,
             remarkReadingTime,
@@ -248,17 +196,14 @@ export default defineConfig({
             ],
             rehypeLazyLoadMedia,
         ],
+        }),
     },
     vite: {
         plugins: [tailwindcss()],
         build: {
             cssCodeSplit: true,
-            cssMinify: "esbuild",
-            minify: "esbuild",
-            esbuildOptions: {
-                drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
-            },
-            rollupOptions: {
+            rolldownOptions: {
+                output: { minify: { compress: { dropConsole: true, dropDebugger: true } } },
                 onwarn(warning, warn) {
                     // temporarily suppress this warning
                     if (
