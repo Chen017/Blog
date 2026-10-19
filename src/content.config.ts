@@ -7,10 +7,6 @@ import { parseTags } from "@utils/tag";
 
 
 // Helper for handling dates that might be empty strings from JSON
-const dateSchema = z.preprocess((arg) => {
-    if (typeof arg === "string" && arg.trim() === "") return undefined;
-    return arg;
-}, z.coerce.date());
 const optionalDateSchema = z.preprocess((arg) => {
     if (typeof arg === "string" && arg.trim() === "") return undefined;
     return arg;
