@@ -39,7 +39,7 @@ let links: NavbarLink[] = navbarConfig.links.map(
         <a href={url('/')} class="btn-plain scale-animation rounded-lg h-13 px-5 font-bold active:scale-95">
             <div class="flex flex-row text-(--primary) items-center text-md">
                 <Icon name="material-symbols:home-pin-outline" class="text-[1.75rem] mb-1 mr-2" />
-                {siteConfig.title}
+                <span class="navbar-brand-text">{siteConfig.title}</span>
             </div>
         </a>
         <div class="hidden md:flex items-center navbar-nav-links">
@@ -132,12 +132,14 @@ async function loadPagefind() {
             excerptLength: 20
         });
 
+        window.__pagefindError = false;
         window.pagefind = pagefind;
 
         document.dispatchEvent(new CustomEvent('pagefindready'));
         console.log('Pagefind loaded and initialized successfully, event dispatched.');
     } catch (error) {
         console.error('Failed to load Pagefind:', error);
+        window.__pagefindError = true;
         window.pagefind = {
             search: () => Promise.resolve({ results: [] }),
             options: () => Promise.resolve(),

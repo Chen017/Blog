@@ -338,6 +338,11 @@ export function MusicCardComponent(properties, children) {
             isPlaying = !isPlaying;
             updatePlayState();
         });
+        audio.addEventListener('pause', () => {
+            isPlaying = false;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        });
 
         audio.addEventListener('timeupdate', () => {
             const current = audio.currentTime;

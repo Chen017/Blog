@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse } from 'node-html-parser';
 
@@ -11,7 +11,16 @@ const home = parse(await readFile(resolve(output, 'index.html'), 'utf8'));
 assert.ok(!home.querySelector('html').classList.contains('is-loading'), 'Static HTML must remain readable without JavaScript');
 assert.ok(home.querySelector('script[src="https://cloud.umami.is/script.js"]'), 'Keep the custom Umami script');
 assert.ok(home.querySelectorAll('script').some(script => script.textContent.includes('github-dark')), 'Keep dark mode initialization');
-assert.ok(home.querySelector('link[rel="preload"][as="font"][href="/MiSans/woff2/MiSans-Normal.woff2"]'), 'Keep self-hosted MiSans');
+const preloadedFonts = home.querySelectorAll('link[rel="preload"][as="font"]');
+assert.ok(preloadedFonts.length > 0, 'Preload the essential Latin face');
+for (const font of preloadedFonts) {
+  const href = font.getAttribute('href');
+  assert.ok(href.startsWith('/_astro/'), 'Font files must be hosted locally');
+  assert.ok((await stat(resolve(output, href.slice(1)))).size < 100000, 'Do not eagerly preload the complete Chinese font');
+}
+assert.ok(!home.querySelector('#loading-overlay'), 'Content must not wait for a loading screen');
+assert.equal(home.querySelectorAll('astro-island[component-url*="statistics"]').length, 1, 'Only one statistics island per page');
+assert.ok(home.querySelector('#banner picture source[media]'), 'Use one responsive banner image');
 await access(resolve(output, 'MiSans/woff2/MiSans-Normal.woff2'));
 const links = await readFile(resolve(output, 'friends/index.html'), 'utf8');
 assert.match(links, /My other websites/);

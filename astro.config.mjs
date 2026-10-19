@@ -1,10 +1,9 @@
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import { unified } from "@astrojs/markdown-remark";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import svelte, { vitePreprocess } from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
-import swup from "@swup/astro";
 import sitemap from "@astrojs/sitemap";
 import decapCmsOauth from "astro-decap-cms-oauth";
 import expressiveCode from "astro-expressive-code";
@@ -47,6 +46,16 @@ export default defineConfig({
     devToolbar: {
         enabled: false,
     },
+    fonts: [
+        { name: "MiSans Latin", cssVariable: "--font-misans-latin", provider: fontProviders.local(), fallbacks: [], optimizedFallbacks: false,
+          options: { variants: [
+            { src: ["./src/assets/fonts/MiSansLatin-Regular.woff2"], weight: 400, style: "normal" },
+            { src: ["./src/assets/fonts/MiSansLatin-Semibold.woff2"], weight: 600, style: "normal" },
+          ] } },
+        { name: "MiSans", cssVariable: "--font-misans-cn", provider: fontProviders.local(),
+          options: { variants: [{ src: ["./public/MiSans/woff2/MiSans-Normal.woff2"], weight: 400, style: "normal",
+            unicodeRange: ["U+2E80-9FFF", "U+F900-FAFF", "U+FE10-FE1F", "U+FE30-FE4F", "U+FF00-FFEF", "U+20000-323AF"] }] } },
+    ],
     integrations: [
         expressiveCode({
             themes: ["github-light", "github-dark"],
@@ -103,26 +112,6 @@ export default defineConfig({
         decapCmsOauth({
             decapCMSVersion: "3.9.0",
             oauthDisabled: true, // Disable it to use oauth, requires .env configuration
-        }),
-        swup({
-            theme: false,
-            animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
-            containers: [
-                "#swup-container",
-                "#left-sidebar",
-                "#right-sidebar",
-                "#middle-sidebar",
-            ],
-            cache: true,
-            preload: true,
-            accessibility: true,
-            updateHead: true,
-            updateBodyClass: false,
-            globalInstance: true,
-            // Scroll related configuration optimization
-            smoothScrolling: false, // Disable smooth scrolling to improve performance and avoid conflicts with anchor navigation
-            resolveUrl: (url) => url,
-            animateHistoryBrowsing: false,
         }),
         icon({
             include: {
@@ -215,6 +204,6 @@ export default defineConfig({
         },
     },
     build: {
-        inlineStylesheets: "always",
+        inlineStylesheets: "auto",
     },
 });

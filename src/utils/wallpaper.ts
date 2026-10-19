@@ -65,7 +65,7 @@ const getElements = () => {
 };
 
 // Helper to safely execute after a delay if mode hasn't changed
-function runIfMode(mode: WALLPAPER_MODE, callback: () => void, delay = 600) {
+function runIfMode(mode: WALLPAPER_MODE, callback: () => void, delay = 200) {
     setTimeout(() => {
         if (typeof document !== 'undefined' && document.documentElement.getAttribute('data-wallpaper-mode') === mode) {
             callback();
@@ -163,7 +163,7 @@ function showBannerMode() {
         document.documentElement.classList.add('show-banner-animation');
         setTimeout(() => {
             document.documentElement.classList.remove('show-banner-animation');
-        }, 1200);
+        }, 200);
     }
     // 确保banner可见
     bannerWrapper.classList.remove('opacity-0');
@@ -248,7 +248,7 @@ export function applyWallpaperModeToDocument(mode: WALLPAPER_MODE, force = false
         setTimeout(() => {
             document.documentElement.classList.remove('banner-hiding');
             executeApply();
-        }, 600);
+        }, 200);
         return;
     }
 
@@ -311,7 +311,7 @@ export function applyWallpaperModeToDocument(mode: WALLPAPER_MODE, force = false
         // 等待过渡动画完成后移除过渡保护类
         setTimeout(() => {
             document.documentElement.classList.remove('is-wallpaper-transitioning');
-        }, 600);
+        }, 200);
     }
     // 使用 requestAnimationFrame 确保在下一帧执行，避免闪屏
     requestAnimationFrame(apply);

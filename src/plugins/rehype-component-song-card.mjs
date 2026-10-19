@@ -626,9 +626,9 @@ export function SongCardComponent(properties, children) {
   if (!window.__songCardListenersBound) {
     document.addEventListener('astro:page-load', () => window.__songCardInit?.());
     document.addEventListener('twilight:page:loaded', () => window.__songCardInit?.());
-    document.addEventListener('twilight:page:before-replace', () => {
+    document.addEventListener('twilight:page:before-replace', (event) => {
       cleanups.forEach(cleanup => cleanup());
-      cleanups.clear();
+      if (!event.detail?.persisted) cleanups.clear();
     });
     window.__songCardListenersBound = true;
   }

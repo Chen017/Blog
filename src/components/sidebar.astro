@@ -20,6 +20,7 @@ interface Props {
 
 const { id, class: className, headings, side } = Astro.props;
 const currentPath = Astro.url.pathname;
+const statisticsOwner = widgetManager.getConfig().components.right?.some(component => component.type === 'statistics') ? 'right' : 'left';
 
 // 获取所有组件（包括不可见的，用于计算动画状态）
 const allTopComponents = widgetManager.getComponentsBySideAndPosition(side, "top");
@@ -95,7 +96,9 @@ function renderComponent(component: any, index: number) {
         if (!renderData) return null;
 
         const { Component, props } = renderData;
-        return <Component {...props} side={side} />;
+        return component.type === 'statistics'
+            ? <div data-statistics-host={side} class={props.class} style={props.style}>{side === statisticsOwner && <Statistics side={statisticsOwner} />}</div>
+            : <Component {...props} side={side} />;
     })}
 
     <!-- 粘性组件区域 -->
@@ -106,7 +109,9 @@ function renderComponent(component: any, index: number) {
                 if (!renderData) return null;
 
                 const { Component, props } = renderData;
-                return <Component {...props} side={side} />;
+                return component.type === 'statistics'
+            ? <div data-statistics-host={side} class={props.class} style={props.style}>{side === statisticsOwner && <Statistics side={statisticsOwner} />}</div>
+            : <Component {...props} side={side} />;
             })}
         </div>
     )}

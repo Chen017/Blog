@@ -36,7 +36,6 @@
 		"@iconify-json/fa6-solid": "^1.2.4",
 		"@iconify-json/material-symbols": "^1.2.95",
 		"@iconify/svelte": "^5.2.2",
-		"@swup/astro": "1.8.0",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/js-yaml": "^4.0.9",
@@ -47,7 +46,6 @@
 		"bcryptjs": "^3.0.3",
 		"crypto-js": "^4.2.0",
 		"dayjs": "^1.11.23",
-		"echarts": "^6.1.0",
 		"hastscript": "^9.0.1",
 		"js-yaml": "^4.3.2",
 		"katex": "^0.16.47",
@@ -93,9 +91,7 @@
 		"node": ">=22.22.0"
 	},
 	"pnpm": {
-		"ignoredBuiltDependencies": [
-			"swup"
-		],
+		"ignoredBuiltDependencies": [],
 		"onlyBuiltDependencies": [
 			"esbuild",
 			"sharp"

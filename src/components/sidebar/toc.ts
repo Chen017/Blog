@@ -147,7 +147,7 @@ export class TableOfContents extends HTMLElement {
             const id = decodeURIComponent(anchor.hash?.substring(1));
             const targetElement = document.getElementById(id);
             if (targetElement) {
-                targetElement.style.scrollMarginTop = `${this.dataset.navbarHeight || NAVBAR_HEIGHT}px`;
+                targetElement.style.scrollMarginTop = `${Number(this.dataset.navbarHeight || NAVBAR_HEIGHT) + 16}px`;
             }
             const idx = this.headingIdxMap.get(id);
             if (idx !== undefined) {
@@ -157,7 +157,8 @@ export class TableOfContents extends HTMLElement {
             }
             // If floating, close the panel after click
             if (this.dataset.isFloating === "true") {
-                this.toggleFloatingPanel(false);
+                // Let the native fragment navigation run before making its link inert.
+                this.schedule(() => this.toggleFloatingPanel(false), 0);
             }
         }
     };

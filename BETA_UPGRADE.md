@@ -1,3 +1,7 @@
+# 前三阶段升级基线记录
+
+第四阶段已经用户批准并完成，最新视觉变更、资源数据与验收边界见 [VISUAL_UPGRADE.md](VISUAL_UPGRADE.md)。下面的清单记录前三阶段结束时的状态。
+
 # Beta 升级记录
 
 分支：`codex/beta-astro7`。基线：`main@2848ba7`。
@@ -68,5 +72,4 @@ Actions 部署工作流 `.github/workflows/deploy.yml`，没有增加其他 work
 - reduced motion 规则和无 JS 默认可读性有代码／产物检查，未模拟系统偏好或禁用浏览器 JS 做真机测试。
 - 未进行 Safari／Firefox、屏幕阅读器、长期内存、Lighthouse 或线上 Core Web Vitals 测量。
 
-第四阶段留待用户审美偏好审核：首屏等待及动效设计、字体分包、响应式图片、CSS 输出策略、
-统计组件数量与展示、排版调整、搜索状态 UI，以及是否更换为 Astro／浏览器原生转场机制。
+第四阶段现已完成，详见 [VISUAL_UPGRADE.md](VISUAL_UPGRADE.md)。

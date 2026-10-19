@@ -2,7 +2,6 @@
 import Icon from "@iconify/svelte";
 import { onMount } from "svelte";
 
-import { BREAKPOINT_LG } from "@constants/breakpoints";
 import { getDefaultHue, getHue, setHue } from "@utils/hue";
 import { onClickOutside } from "@utils/widget";
 import { bindPanelLifecycle } from "@utils/panel-lifecycle";
@@ -18,9 +17,6 @@ function resetHue() {
     hue = getDefaultHue();
 }
 
-function togglePanel() {
-    isOpen = !isOpen;
-}
 
 function openPanel() {
     isOpen = true;
@@ -60,7 +56,7 @@ $effect(() => {
         id="display-settings-switch"
         aria-expanded={isOpen}
         aria-controls="display-setting-wrapper"
-        onclick={() => { if (window.innerWidth < BREAKPOINT_LG) { openPanel(); } else { togglePanel(); } }}
+        onclick={openPanel}
         onmouseenter={openPanel}
     >
         <Icon icon="material-symbols:palette-outline" class="text-[1.25rem]"></Icon>

@@ -387,7 +387,7 @@ export function setupParticleEffects(): void {
         if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         if (!particleConfig || !particleConfig.enable) return;
         if ((window as any).particleInitialized) return;
-        initParticle(particleConfig);
+        initParticle({ ...particleConfig, particleNum: Math.min(particleConfig.particleNum, 6) });
         (window as any).particleInitialized = true;
     };
     // 处理页面加载状态
