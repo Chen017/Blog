@@ -5,6 +5,7 @@ import { onMount } from "svelte";
 import type { NavbarLink } from "@/types/config";
 import { url } from "@utils/url";
 import { onClickOutside } from "@utils/widget";
+import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 
 
 interface Props {
@@ -27,8 +28,10 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 onMount(() => {
+    const unbind = bindPanelLifecycle({ isOpen: () => isOpen, close: () => { isOpen = false; }, triggerId: "nav-menu-switch" });
     document.addEventListener("click", handleClickOutside);
     return () => {
+        unbind();
         document.removeEventListener("click", handleClickOutside);
     };
 });
@@ -37,17 +40,22 @@ onMount(() => {
 <div class="relative md:hidden">
     <button aria-label="Menu" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90" 
         id="nav-menu-switch"
+        aria-expanded={isOpen}
+        aria-controls="nav-menu-panel"
         onclick={togglePanel}
     >
         <Icon icon="material-symbols:menu-rounded" class="text-[1.25rem]"></Icon>
     </button>
     <div id="nav-menu-panel" 
+        inert={!isOpen}
+        aria-hidden={!isOpen}
         class="float-panel fixed transition-all right-4 px-2 py-2 max-h-[80vh] overflow-y-auto"
         class:float-panel-closed={!isOpen}
     >
         {#each links as link}
             <div class="mobile-menu-item">
                 <a href={link.external ? link.url : url(link.url)} 
+                    onclick={() => { isOpen = false; }}
                     class="group flex justify-between items-center py-2 pl-3 pr-1 rounded-lg gap-8 hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active) transition"
                     target={link.external ? "_blank" : null}
                 >

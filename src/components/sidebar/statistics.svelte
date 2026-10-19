@@ -323,11 +323,16 @@
 
     onMount(() => {
         updateIsDesktop();
+        let disposed = false;
+        let loadingObserver: MutationObserver | undefined;
+        let initTimer: ReturnType<typeof setTimeout> | undefined;
+        const controller = new AbortController();
 
         let visibilityObserver: IntersectionObserver;
 
         const runInit = async () => {
             await loadECharts();
+            if (disposed) return;
 
             // 检查是否处于初始加载动画阶段
             const hasInitialAnimation = document.documentElement.classList.contains('show-initial-animation') ||
@@ -338,7 +343,7 @@
                 const sidebar = container?.closest('.onload-animation-up');
 
                 const startInit = () => {
-                    if (!isInitialized) initCharts();
+                    if (!disposed && !isInitialized) initCharts();
                 };
 
                 if (sidebar) {
@@ -347,7 +352,7 @@
                         if ((e as AnimationEvent).animationName === 'fade-in-up') {
                             startInit();
                         }
-                    }, { once: true });
+                    }, { once: true, signal: controller.signal });
                 }
 
                 // 使用 MutationObserver 监听 html 的 class 变化，作为更可靠的保底机制
@@ -360,10 +365,11 @@
                         htmlObserver.disconnect();
                     }
                 });
+                loadingObserver = htmlObserver;
                 htmlObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
                 // 较长的保底时间（3秒），防止所有监听机制意外失效
-                setTimeout(() => {
+                initTimer = setTimeout(() => {
                     startInit();
                     htmlObserver.disconnect();
                 }, 3000);
@@ -443,6 +449,11 @@
 
         window.addEventListener('resize', handleResize);
         return () => {
+            disposed = true;
+            controller.abort();
+            clearTimeout(initTimer);
+            loadingObserver?.disconnect();
+            for (const chart of [heatmapChart, categoriesChart, tagsChart]) chart?.dispose();
             window.removeEventListener('resize', handleResize);
             observer.disconnect();
             if (visibilityObserver) visibilityObserver.disconnect();

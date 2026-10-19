@@ -265,6 +265,7 @@ export function SongCardComponent(properties, children) {
 (() => {
   const SCRIPT_VERSION = "song-card-v5";
 
+  const cleanups = window.__songCardCleanups || (window.__songCardCleanups = new Set());
   const initSongCards = () => {
     const cards = document.querySelectorAll('[data-song-card="true"]');
     cards.forEach((card) => {
@@ -346,7 +347,7 @@ export function SongCardComponent(properties, children) {
                 { opacity: 1, transform: "translateY(0)" },
                 { opacity: 0, transform: "translateY(-100%)" },
               ], {
-                duration: 380,
+                duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 380,
                 easing: "cubic-bezier(0.25, 1, 0.5, 1)",
                 fill: "both",
               });
@@ -609,6 +610,11 @@ export function SongCardComponent(properties, children) {
       audio.addEventListener("timeupdate", syncByTime);
       audio.addEventListener("seeked", syncByTime);
 
+      cleanups.add(() => {
+        audio.pause();
+        stopLoop();
+        card.querySelectorAll('*').forEach(el => el.getAnimations().forEach(animation => animation.cancel()));
+      });
       updateToggle();
       updateProgressDisplay(0, 0);
       renderLyric(-1);
@@ -619,7 +625,11 @@ export function SongCardComponent(properties, children) {
   initSongCards();
   if (!window.__songCardListenersBound) {
     document.addEventListener('astro:page-load', () => window.__songCardInit?.());
-    document.addEventListener('swup:contentReplaced', () => window.__songCardInit?.());
+    document.addEventListener('twilight:page:loaded', () => window.__songCardInit?.());
+    document.addEventListener('twilight:page:before-replace', () => {
+      cleanups.forEach(cleanup => cleanup());
+      cleanups.clear();
+    });
     window.__songCardListenersBound = true;
   }
 })();

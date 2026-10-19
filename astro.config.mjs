@@ -111,6 +111,7 @@ export default defineConfig({
                 "#swup-container",
                 "#left-sidebar",
                 "#right-sidebar",
+                "#middle-sidebar",
             ],
             cache: true,
             preload: true,
@@ -122,10 +123,6 @@ export default defineConfig({
             smoothScrolling: false, // Disable smooth scrolling to improve performance and avoid conflicts with anchor navigation
             resolveUrl: (url) => url,
             animateHistoryBrowsing: false,
-            skipPopStateHandling: (event) => {
-                // Skip anchor link handling, let the browser handle it natively
-                return event.state && event.state.url && event.state.url.includes("#");
-            },
         }),
         icon({
             include: {

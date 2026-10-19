@@ -1,5 +1,6 @@
 <script lang="ts">
-import { onMount, onDestroy } from "svelte";
+import { onMount, onDestroy, tick } from "svelte";
+import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 import Icon from "@iconify/svelte";
 
 import type { SearchResult } from "@/global";
@@ -18,6 +19,9 @@ let isSearching = $state(false);
 let pagefindLoaded = false;
 let initialized = $state(false);
 let isDesktopSearchExpanded = $state(false);
+let panelOpen = $state(false);
+let requestVersion = 0;
+let disposed = false;
 let debounceTimer: NodeJS.Timeout;
 
 const fakeResult: SearchResult[] = [
@@ -39,17 +43,17 @@ const fakeResult: SearchResult[] = [
 ];
 
 const togglePanel = () => {
-    const panel = document.getElementById("search-panel");
-    panel?.classList.toggle("float-panel-closed");
+    panelOpen = !panelOpen;
+    if (panelOpen) tick().then(() => document.getElementById("search-input-mobile")?.focus());
 };
 
 const toggleDesktopSearch = () => {
     isDesktopSearchExpanded = !isDesktopSearchExpanded;
     if (isDesktopSearchExpanded) {
-        setTimeout(() => {
+        tick().then(() => {
             const input = document.getElementById("search-input-desktop") as HTMLInputElement;
             input?.focus();
-        }, 0);
+        });
     }
 };
 
@@ -59,30 +63,23 @@ const collapseDesktopSearch = () => {
     }
 };
 
-const handleBlur = () => {
-    // 延迟处理以允许搜索结果的点击事件先于折叠逻辑执行
-    setTimeout(() => {
-        isDesktopSearchExpanded = false;
-        // 仅隐藏面板并折叠，保留搜索关键词和结果以便下次展开时查看
-        setPanelVisibility(false, true);
-    }, 200);
+const handleBlur = (event: FocusEvent) => {
+    const next = event.relatedTarget;
+    if (next instanceof Node && document.getElementById("search-panel")?.contains(next)) return;
+    requestVersion++;
+    clearTimeout(debounceTimer);
+    isDesktopSearchExpanded = false;
+    setPanelVisibility(false, true);
 };
 
 const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
-    const panel = document.getElementById("search-panel");
-    if (!panel || !isDesktop) return;
-    if (show) {
-        panel.classList.remove("float-panel-closed");
-    } else {
-        panel.classList.add("float-panel-closed");
-    }
+    if (isDesktop) panelOpen = show;
 };
 
 const closeSearchPanel = (): void => {
-    const panel = document.getElementById("search-panel");
-    if (panel) {
-        panel.classList.add("float-panel-closed");
-    }
+    panelOpen = false;
+    isDesktopSearchExpanded = false;
+    requestVersion++;
     // 清空搜索关键词和结果
     keywordDesktop = "";
     keywordMobile = "";
@@ -96,6 +93,7 @@ const handleResultClick = (event: Event, url: string): void => {
 };
 
 const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
+    const version = ++requestVersion;
     if (!keyword) {
         setPanelVisibility(false, isDesktop);
         result = [];
@@ -118,30 +116,37 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
             searchResults = [];
             console.error("Pagefind is not available in production environment.");
         }
+        if (disposed || version !== requestVersion) return;
         result = searchResults;
         setPanelVisibility(result.length > 0, isDesktop);
     } catch (error) {
+        if (disposed || version !== requestVersion) return;
         console.error("Search error:", error);
         result = [];
         setPanelVisibility(false, isDesktop);
     } finally {
-        isSearching = false;
+        if (!disposed && version === requestVersion) isSearching = false;
     }
 };
 
 const handleClickOutside = (event: MouseEvent) => {
-    const panel = document.getElementById("search-panel");
-    if (!panel || panel.classList.contains("float-panel-closed")) {
+    if (!panelOpen) {
         return;
     }
     onClickOutside(event, "search-panel", ["search-switch", "search-bar"], () => {
-        const panel = document.getElementById("search-panel");
-        panel?.classList.add("float-panel-closed");
+        requestVersion++;
+        clearTimeout(debounceTimer);
+        panelOpen = false;
         isDesktopSearchExpanded = false;
     });
 };
 
 onMount(() => {
+    const unbind = bindPanelLifecycle({
+        isOpen: () => panelOpen || isDesktopSearchExpanded,
+        close: closeSearchPanel,
+        triggerId: () => window.innerWidth >= 1280 ? "search-bar" : "search-switch",
+    });
     document.addEventListener("click", handleClickOutside);
     const initializeSearch = () => {
         initialized = true;
@@ -151,30 +156,31 @@ onMount(() => {
             typeof window.pagefind.search === "function";
         console.log("Pagefind status on init:", pagefindLoaded);
     };
+    const onReady = () => initializeSearch();
+    const onError = () => initializeSearch();
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
     if (import.meta.env.DEV) {
         console.log(
             "Pagefind is not available in development mode. Using mock data.",
         );
         initializeSearch();
     } else {
-        document.addEventListener("pagefindready", () => {
-            console.log("Pagefind ready event received.");
-            initializeSearch();
-        });
-        document.addEventListener("pagefindloaderror", () => {
-            console.warn(
-                "Pagefind load error event received. Search functionality will be limited.",
-            );
-            initializeSearch(); // Initialize with pagefindLoaded as false
-        });
+        document.addEventListener("pagefindready", onReady);
+        document.addEventListener("pagefindloaderror", onError);
         // Fallback in case events are not caught or pagefind is already loaded by the time this script runs
-        setTimeout(() => {
+        fallbackTimer = setTimeout(() => {
             if (!initialized) {
                 console.log("Fallback: Initializing search after timeout.");
                 initializeSearch();
             }
         }, 2000); // Adjust timeout as needed
     }
+    return () => {
+        unbind();
+        clearTimeout(fallbackTimer);
+        document.removeEventListener("pagefindready", onReady);
+        document.removeEventListener("pagefindloaderror", onError);
+    };
 });
 
 $effect(() => {
@@ -182,12 +188,14 @@ $effect(() => {
         const keyword = keywordDesktop || keywordMobile;
         const isDesktop = !!keywordDesktop || isDesktopSearchExpanded;
         
+        requestVersion++;
         clearTimeout(debounceTimer);
         if (keyword) {
             debounceTimer = setTimeout(() => {
                 search(keyword, isDesktop);
             }, 300);
         } else {
+            requestVersion++;
             result = [];
             setPanelVisibility(false, isDesktop);
         }
@@ -206,6 +214,8 @@ $effect(() => {
 });
 
 onDestroy(() => {
+    disposed = true;
+    requestVersion++;
     if (typeof document !== 'undefined') {
         document.removeEventListener("click", handleClickOutside);
         const navbar = document.getElementById('navbar');
@@ -224,11 +234,15 @@ onDestroy(() => {
     role="button"
     tabindex="0"
     aria-label="Search"
+    aria-expanded={panelOpen || isDesktopSearchExpanded}
+    aria-controls="search-panel"
+    onkeydown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); if (!isDesktopSearchExpanded) toggleDesktopSearch(); } }}
     onmouseenter={() => {if (!isDesktopSearchExpanded) toggleDesktopSearch()}}
     onmouseleave={collapseDesktopSearch}
 >
     <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none {isDesktopSearchExpanded ? 'ml-3' : 'left-1/2 -translate-x-1/2'} transition my-auto {isDesktopSearchExpanded ? 'text-black/30 dark:text-white/30' : ''}"></Icon>
     <input id="search-input-desktop" placeholder="{i18n(I18nKey.search)}" bind:value={keywordDesktop}
+        tabindex={isDesktopSearchExpanded ? 0 : -1}
         onfocus={() => {if (!isDesktopSearchExpanded) toggleDesktopSearch(); search(keywordDesktop, true)}}
         onblur={handleBlur}
         class="transition-all pl-10 text-sm bg-transparent outline-0
@@ -238,6 +252,7 @@ onDestroy(() => {
 
 <!-- toggle btn for phone/tablet view -->
 <button onclick={togglePanel} aria-label="Search Panel" id="search-switch"
+        aria-expanded={panelOpen} aria-controls="search-panel"
         class="btn-plain scale-animation lg:hidden! rounded-lg w-11 h-11 active:scale-90">
     <Icon icon="material-symbols:search" class="text-[1.25rem]"></Icon>
 </button>
@@ -245,7 +260,9 @@ onDestroy(() => {
 <!-- search panel -->
 <DropdownPanel
         id="search-panel"
-        class="float-panel-closed absolute md:w-120 top-20 left-4 md:left-[unset] right-4 z-50 search-panel"
+        inert={!panelOpen}
+        aria-hidden={!panelOpen}
+        class="{panelOpen ? '' : 'float-panel-closed'} absolute md:w-120 top-20 left-4 md:left-[unset] right-4 z-50 search-panel"
 >
     <!-- search bar inside panel for phone/tablet -->
     <div id="search-bar-inside" class="flex relative lg:hidden transition-all items-center h-11 rounded-xl
@@ -253,7 +270,7 @@ onDestroy(() => {
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
   ">
         <Icon icon="material-symbols:search" class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder="Search" bind:value={keywordMobile}
+        <input id="search-input-mobile" aria-label="Search" placeholder="Search" bind:value={keywordMobile}
                class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
                focus:w-60 text-black/50 dark:text-white/50"
         >

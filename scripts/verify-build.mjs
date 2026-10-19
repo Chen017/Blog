@@ -8,8 +8,11 @@ for (const file of ['index.html', 'archive/index.html', 'friends/index.html', 'a
   await access(resolve(output, file));
 }
 const home = parse(await readFile(resolve(output, 'index.html'), 'utf8'));
+assert.ok(!home.querySelector('html').classList.contains('is-loading'), 'Static HTML must remain readable without JavaScript');
 assert.ok(home.querySelector('script[src="https://cloud.umami.is/script.js"]'), 'Keep the custom Umami script');
 assert.ok(home.querySelectorAll('script').some(script => script.textContent.includes('github-dark')), 'Keep dark mode initialization');
+assert.ok(home.querySelector('link[rel="preload"][as="font"][href="/MiSans/woff2/MiSans-Normal.woff2"]'), 'Keep self-hosted MiSans');
+await access(resolve(output, 'MiSans/woff2/MiSans-Normal.woff2'));
 const links = await readFile(resolve(output, 'friends/index.html'), 'utf8');
 assert.match(links, /My other websites/);
 assert.match(links, /Links/);

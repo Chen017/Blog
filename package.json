@@ -5,6 +5,7 @@
 	"description": "A blog template",
 	"scripts": {
 		"test:unit": "node --test tests/*.test.mjs",
+		"test:markdown": "node scripts/test-markdown.mjs",
 		"verify:build": "node scripts/verify-build.mjs",
 		"type-check": "tsc --noEmit --isolatedDeclarations",
 		"check-stylus": "node scripts/compile-inline-stylus.cjs",

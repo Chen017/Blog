@@ -6,6 +6,7 @@ import { navbarConfig } from "@/config";
 import { LinkPresets } from "@constants/link-presets";
 import { type NavbarLink } from "@/types/config";
 import { pathsEqual } from "./url";
+import { getScrollBehavior } from "./page-lifecycle";
 
 
 /**
@@ -88,7 +89,7 @@ export function navigateToPage(
         if (typeof document !== "undefined") {
             const element = document.getElementById(url.slice(1));
             if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
+                element.scrollIntoView({ behavior: getScrollBehavior() });
             }
         }
         return;

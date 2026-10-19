@@ -5,6 +5,7 @@ import { onMount } from "svelte";
 import { BREAKPOINT_LG } from "@constants/breakpoints";
 import { getDefaultHue, getHue, setHue } from "@utils/hue";
 import { onClickOutside } from "@utils/widget";
+import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 import { i18n } from "@i18n/translation";
 import I18nKey from "@i18n/i18nKey";
 
@@ -38,9 +39,11 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 onMount(() => {
+    const unbind = bindPanelLifecycle({ isOpen: () => isOpen, close: closePanel, triggerId: "display-settings-switch" });
     hue = getHue();
     document.addEventListener("click", handleClickOutside);
     return () => {
+        unbind();
         document.removeEventListener("click", handleClickOutside);
     };
 });
@@ -52,15 +55,17 @@ $effect(() => {
 });
 </script>
 
-<div class="relative z-50" onmouseleave={closePanel}>
+<div class="relative z-50" role="group" aria-label="Display settings" onmouseleave={closePanel}>
     <button aria-label="Display Settings" class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90 flex items-center justify-center" 
         id="display-settings-switch"
+        aria-expanded={isOpen}
+        aria-controls="display-setting-wrapper"
         onclick={() => { if (window.innerWidth < BREAKPOINT_LG) { openPanel(); } else { togglePanel(); } }}
         onmouseenter={openPanel}
     >
         <Icon icon="material-symbols:palette-outline" class="text-[1.25rem]"></Icon>
     </button>
-    <div id="display-setting-wrapper" class="fixed top-14.5 pt-5 right-4 w-[calc(100vw-2rem)] max-w-80 md:absolute md:top-11 md:right-0 md:w-80 md:pt-5 transition-all z-50" class:float-panel-closed={!isOpen}>
+    <div id="display-setting-wrapper" inert={!isOpen} aria-hidden={!isOpen} class="fixed top-14.5 pt-5 right-4 w-[calc(100vw-2rem)] max-w-80 md:absolute md:top-11 md:right-0 md:w-80 md:pt-5 transition-all z-50" class:float-panel-closed={!isOpen}>
         <div id="display-setting" class="card-base float-panel px-4 py-4 w-full">
             <div class="flex flex-row gap-2 mb-3 items-center justify-between">
                 <div class="flex gap-2 font-bold text-lg text-neutral-900 dark:text-neutral-100 transition relative ml-3
@@ -68,7 +73,7 @@ $effect(() => {
                     before:absolute before:-left-3 before:top-[0.33rem]"
                 >
                     {i18n(I18nKey.themeColor)}
-                    <button aria-label="Reset to Default" class="btn-regular w-7 h-7 rounded-md  active:scale-90"
+                    <button aria-label="Reset to Default" disabled={hue === defaultHue} class="btn-regular w-7 h-7 rounded-md  active:scale-90"
                             class:opacity-0={hue === defaultHue} class:pointer-events-none={hue === defaultHue} onclick={resetHue}>
                         <div class="text-(--btn-content)">
                             <Icon icon="fa6-solid:arrow-rotate-left" class="text-[0.875rem]"></Icon>
