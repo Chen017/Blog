@@ -119,8 +119,8 @@ site:
                 transparentMode: "semi"
     # 加载页配置
     loadingOverlay:
-        # 是否启用加载页
-        enable: true
+        # 内容立即可读，不等待全屏加载动画
+        enable: false
         # 是否等待所有资源 (如图片、样式表) 加载完成 (设为 false 在 DOM 解析完成即淡出，极大提升体验)
         waitForAllResources: false
         # 加载标题配置

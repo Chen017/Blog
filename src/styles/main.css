@@ -171,17 +171,17 @@
 }
 
 @utility wallpaper-transparent {
-    .is-theme-transitioning &body #navbar > div {
+    .is-theme-transitioning &:is(body) #navbar > div {
     transition: none !important;
     backdrop-filter: none !important;
     }
 
-    .is-theme-transitioning &body #navbar[data-transparent-mode] > div {
+    .is-theme-transitioning &:is(body) #navbar[data-transparent-mode] > div {
     transition: none !important;
     backdrop-filter: none !important;
     }
 
-    .is-theme-transitioning &body #navbar[data-transparent-mode].scrolled > div {
+    .is-theme-transitioning &:is(body) #navbar[data-transparent-mode].scrolled > div {
     transition: none !important;
     backdrop-filter: none !important;
     }

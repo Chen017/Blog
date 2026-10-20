@@ -2,7 +2,7 @@
 import type { SiteConfig } from "@/types/config";
 import { BANNER_HEIGHT_EXTEND } from "@constants/constants";
 import TypewriterText from "@components/common/typewriterText.astro";
-import ImageWrapper from "@components/common/imageWrapper.astro";
+import ResponsiveBannerImage from "@components/common/responsiveBannerImage.astro";
 
 
 interface Props {
@@ -51,60 +51,19 @@ const isPerformanceMode = config.banner?.waves?.performanceMode;
     {isCarouselEnabled ? (
         <div id="banner-carousel" class="relative h-full w-full" data-carousel-config={JSON.stringify(carouselConfig)}>
             <ul class="carousel-list h-full w-full">
-                {imageSources.desktop.map((src, index) => (
-                    <li class:list={[
-                        "carousel-item desktop-item hidden md:block absolute inset-0 transition-opacity duration-1200",
-                        index === 0 ? 'opacity-100' : 'opacity-0',
-                        carouselConfig?.kenBurns !== false ? 'ken-burns-enabled' : ''
-                    ]}>
-                        <ImageWrapper
-                            alt={`Desktop banner ${index + 1}`}
-                            class:list={["object-cover h-full w-full"]}
-                            src={src}
-                            position={config.position}
-                            loading={index === 0 ? "eager" : "lazy"}
-                        />
-                    </li>
-                ))}
-                {imageSources.mobile.map((src, index) => (
-                    <li class:list={[
-                        "carousel-item mobile-item block md:hidden absolute inset-0 transition-opacity duration-1200",
-                        index === 0 ? 'opacity-100' : 'opacity-0',
-                        carouselConfig?.kenBurns !== false ? 'ken-burns-enabled' : ''
-                    ]}>
-                        <ImageWrapper
-                            alt={`Mobile banner ${index + 1}`}
-                            class:list={["object-cover h-full w-full"]}
-                            src={src}
-                            position={config.position}
-                            loading={index === 0 ? "eager" : "lazy"}
-                        />
+                {Array.from({ length: Math.max(imageSources.desktop.length, imageSources.mobile.length) }, (_, index) => (
+                    <li class:list={["carousel-item banner-item absolute inset-0 transition-opacity duration-1200", index === 0 ? 'opacity-100' : 'opacity-0', carouselConfig?.kenBurns !== false ? 'ken-burns-enabled' : '']}>
+                        <ResponsiveBannerImage desktop={imageSources.desktop[index % imageSources.desktop.length]} mobile={imageSources.mobile[index % imageSources.mobile.length]} alt={`Banner ${index + 1}`} class="h-full w-full" position={config.position} loading={index === 0 ? 'eager' : 'lazy'} />
                     </li>
                 ))}
             </ul>
         </div>
     ) : (
-        <div class="relative h-full w-full">
-            <ImageWrapper
-                alt="Mobile banner"
-                class:list={["block md:hidden object-cover h-full w-full transition duration-600 opacity-100"]}
-                src={imageSources.mobile[0] || imageSources.desktop[0] || ''}
-                position={config.position}
-                loading="eager"
-            />
-            <ImageWrapper
-                id="banner"
-                alt="Desktop banner"
-                class:list={["hidden md:block object-cover h-full w-full transition duration-600 opacity-100"]}
-                src={imageSources.desktop[0] || imageSources.mobile[0] || ''}
-                position={config.position}
-                loading="eager"
-            />
-        </div>
+        <ResponsiveBannerImage id="banner" desktop={imageSources.desktop[0] || ''} mobile={imageSources.mobile[0] || ''} alt="Starry sky banner" class="h-full w-full" position={config.position} />
     )}
 
     <!-- Home page text overlay -->
-    {config.banner?.homeText?.enable && (
+    {showHomeText && (
         <div class={`banner-text-overlay absolute inset-0 z-20 flex items-center justify-center ${!showHomeText ? 'hidden' : ''}`}>
             <div class="w-4/5 lg:w-3/4 text-center mb-0">
                 <div class="flex flex-col">
@@ -231,7 +190,7 @@ const isPerformanceMode = config.banner?.waves?.performanceMode;
         const carouselConfigData = carousel.getAttribute('data-carousel-config');
         const carouselConfig = carouselConfigData ? JSON.parse(carouselConfigData) : {};
 
-        const desktopItems = carousel.querySelectorAll('.carousel-item.desktop-item');
+        const desktopItems = carousel.querySelectorAll('.carousel-item.banner-item');
         const mobileItems = carousel.querySelectorAll('.carousel-item.mobile-item');
 
         function setupCarousel(items, isEnabled) {

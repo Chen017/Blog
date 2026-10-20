@@ -8,6 +8,9 @@
 
     // 记录当前主题状态，避免不必要的重新渲染
     let currentTheme = null;
+    let renderQueued = false;
+    const zoomCleanups = new Map();
+    let libraryPromise;
     let isRendering = false; // 防止并发渲染
     let retryCount = 0;
     const MAX_RETRIES = 3;
@@ -82,6 +85,16 @@
         if (element.__zoomAttached) return;
         element.__zoomAttached = true;
 
+        const controller = new AbortController();
+        const listen = (target, type, handler, options = {}) =>
+            target.addEventListener(type, handler, { ...options, signal: controller.signal });
+        let resizeTimer;
+        zoomCleanups.set(element, () => {
+            controller.abort();
+            clearTimeout(resizeTimer);
+            element.__zoomAttached = false;
+        });
+
         const wrapper = document.createElement("div");
         wrapper.className = "mermaid-zoom-wrapper";
 
@@ -106,7 +119,7 @@
             <button class="btn-regular rounded-lg h-10 w-10 active:scale-90" data-action="reset" title="Reset">⤾</button>
         `;
 
-        controls.addEventListener("click", (ev) => {
+        listen(controls, "click", (ev) => {
             const action =
                 ev.target.getAttribute && ev.target.getAttribute("data-action");
             if (!action) return;
@@ -131,7 +144,7 @@
         element.appendChild(controls);
 
         // 鼠标滚轮缩放
-        element.addEventListener(
+        listen(element,
             "wheel",
             (ev) => {
                 ev.preventDefault();
@@ -162,7 +175,7 @@
 
         wrapper.style.touchAction = "none";
 
-        wrapper.addEventListener("pointerdown", (ev) => {
+        listen(wrapper, "pointerdown", (ev) => {
             if (ev.button !== 0) return; // 仅左键
             isPanning = true;
             wrapper.setPointerCapture(ev.pointerId);
@@ -171,7 +184,7 @@
             startTx = tx;
             startTy = ty;
         });
-        wrapper.addEventListener("pointermove", (ev) => {
+        listen(wrapper, "pointermove", (ev) => {
             if (!isPanning) return;
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
@@ -179,26 +192,25 @@
             ty = startTy + dy / scale;
             applyTransform();
         });
-        wrapper.addEventListener("pointerup", (ev) => {
+        listen(wrapper, "pointerup", (ev) => {
             isPanning = false;
             try {
                 wrapper.releasePointerCapture(ev.pointerId);
             } catch (e) { }
         });
-        wrapper.addEventListener("pointercancel", () => {
+        listen(wrapper, "pointercancel", () => {
             isPanning = false;
         });
 
         // 双击重置
-        wrapper.addEventListener("dblclick", () => {
+        listen(wrapper, "dblclick", () => {
             scale = 1;
             tx = 0;
             ty = 0;
             applyTransform();
         });
         applyTransform();
-        let resizeTimer = null;
-        window.addEventListener("resize", () => {
+        listen(window, "resize", () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
                 applyTransform();
@@ -209,13 +221,17 @@
     // 设置其他事件监听器
     function setupEventListeners() {
         // 监听页面切换
-        document.addEventListener("astro:page-load", () => {
+        document.addEventListener("twilight:page:loaded", () => {
             // 重新初始化主题状态
             currentTheme = null;
             retryCount = 0; // 重置重试计数
-            if (hasThemeChanged()) {
-                setTimeout(() => renderMermaidDiagrams(), 100);
-            }
+            hasThemeChanged();
+            initialize();
+        });
+
+        document.addEventListener("twilight:page:before-replace", () => {
+            for (const cleanup of zoomCleanups.values()) cleanup();
+            zoomCleanups.clear();
         });
 
         // 监听页面可见性变化，页面重新可见时重新渲染
@@ -259,6 +275,7 @@
     async function renderMermaidDiagrams() {
         // 防止并发渲染
         if (isRendering) {
+            renderQueued = true;
             return;
         }
 
@@ -313,7 +330,7 @@
                     let attempts = 0;
                     const maxAttempts = 3;
 
-                    while (attempts < maxAttempts) {
+                    while (attempts < maxAttempts && element.isConnected) {
                         try {
                             const code = element.getAttribute("data-mermaid-code");
                             if (!code) {
@@ -324,6 +341,9 @@
                                 `mermaid-${Date.now()}-${index}-${attempts}`,
                                 code,
                             );
+                            if (!element.isConnected) return;
+                            zoomCleanups.get(element)?.();
+                            zoomCleanups.delete(element);
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(
                                 svg,
@@ -353,6 +373,7 @@
                             // 渲染成功，跳出重试循环
                             break;
                         } catch (error) {
+                            if (!element.isConnected) return;
                             attempts++;
                             console.warn(
                                 `Mermaid rendering attempt ${attempts} failed for element ${index}:`,
@@ -395,6 +416,10 @@
             }
         } finally {
             isRendering = false;
+            if (renderQueued) {
+                renderQueued = false;
+                renderMermaidDiagrams();
+            }
         }
     }
 
@@ -457,20 +482,20 @@
                 return;
             }
 
-            // 设置监听器
-            setupMutationObserver();
-            setupEventListeners();
-
             // 初始化主题状态
             initializeThemeState();
 
             // 加载并初始化 Mermaid
-            await loadMermaid();
+            libraryPromise ||= loadMermaid().catch(error => { libraryPromise = undefined; throw error; });
+            await libraryPromise;
             await initializeMermaid();
         } catch (error) {
             console.error("Failed to initialize Mermaid system:", error);
         }
     }
+
+    setupMutationObserver();
+    setupEventListeners();
 
     // 启动初始化
     if (document.readyState === "loading") {

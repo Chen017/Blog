@@ -1,9 +1,11 @@
 let fancyboxSelectors: string[] = [];
 let Fancybox: any;
+let generation = 0;
 
 // 图片灯箱按需加载
 export async function initFancybox() {
     if (typeof document === "undefined") return;
+    const currentGeneration = generation;
     // 相册图片选择器 (只绑定不在 a 标签内的图片，避免与链接绑定冲突)
     const albumImagesSelector = ".custom-md img:not(a *), #post-cover img:not(a *), .moment-images img:not(a *), .photo-gallery img:not(a *)";
     // 相册链接选择器
@@ -22,6 +24,7 @@ export async function initFancybox() {
         Fancybox = mod.Fancybox;
         await import("@fancyapps/ui/dist/fancybox/fancybox.css");
     }
+    if (generation !== currentGeneration) return;
     if (fancyboxSelectors.length > 0) {
         return; // 已经初始化，直接返回
     }
@@ -93,7 +96,9 @@ export async function initFancybox() {
 
 // 清理 Fancybox 实例
 export function cleanupFancybox() {
+    generation++;
     if (!Fancybox) return; // 如果从未加载过，无需清理
+    Fancybox.close?.();
     fancyboxSelectors.forEach((selector) => {
         Fancybox.unbind(selector);
     });

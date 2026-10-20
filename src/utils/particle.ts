@@ -195,6 +195,8 @@ export class ParticleManager {
     private animationId: number | null = null;
     private img: HTMLImageElement | null = null;
     private isRunning = false;
+    private resizeHandler = () => this.handleResize();
+    private generation = 0;
     // 构造函数
     constructor(config: ParticleConfig) {
         this.config = config;
@@ -204,17 +206,18 @@ export class ParticleManager {
         if (typeof document === "undefined" || !this.config.enable || this.isRunning) {
             return;
         }
+        const generation = ++this.generation;
         // 创建图片对象
         this.img = new Image();
         this.img.src = "/assets/images/particle.png"; // 使用粒子图片
         // 等待图片加载完成
-        await new Promise<void>((resolve, reject) => {
+        const loaded = await new Promise<boolean>((resolve) => {
             if (this.img) {
-                this.img.onload = () => resolve();
-                this.img.onerror = () =>
-                    reject(new Error("Failed to load particle image"));
+                this.img.onload = () => resolve(true);
+                this.img.onerror = () => resolve(false);
             }
         });
+        if (!loaded || generation !== this.generation) return;
         // 创建画布
         this.createCanvas();
         // 创建粒子列表
@@ -239,7 +242,7 @@ export class ParticleManager {
         this.ctx = this.canvas.getContext("2d");
         // 监听窗口大小变化
         if (typeof window !== "undefined") {
-            window.addEventListener("resize", this.handleResize.bind(this));
+            window.addEventListener("resize", this.resizeHandler);
         }
     }
     // 创建粒子列表
@@ -301,16 +304,17 @@ export class ParticleManager {
     }
     // 停止粒子特效
     stop(): void {
+        this.generation++;
         if (this.animationId && typeof window !== "undefined") {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
         }
         if (this.canvas && typeof document !== "undefined") {
-            document.body.removeChild(this.canvas);
+            this.canvas.remove();
             this.canvas = null;
         }
         if (typeof window !== "undefined") {
-            window.removeEventListener("resize", this.handleResize.bind(this));
+            window.removeEventListener("resize", this.resizeHandler);
         }
         this.isRunning = false;
     }
@@ -367,6 +371,7 @@ export function stopParticle(): void {
         globalParticleManager.stop();
         globalParticleManager = null;
     }
+    if (typeof window !== "undefined") (window as any).particleInitialized = false;
 }
 
 // 获取粒子特效运行状态
@@ -379,9 +384,10 @@ export function setupParticleEffects(): void {
     if (typeof window === "undefined") return;
     // 初始化函数
     const init = () => {
+        if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         if (!particleConfig || !particleConfig.enable) return;
         if ((window as any).particleInitialized) return;
-        initParticle(particleConfig);
+        initParticle({ ...particleConfig, particleNum: Math.min(particleConfig.particleNum, 6) });
         (window as any).particleInitialized = true;
     };
     // 处理页面加载状态

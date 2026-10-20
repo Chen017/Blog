@@ -1,21 +1,28 @@
-name: Deploy to VPS 
+name: Deploy to VPS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          persist-credentials: false
 
       - name: Copy files via SCP
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -23,16 +30,31 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "."
           target: "/root/Blog"
+          command_timeout: 10m
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Build, deploy and verify via SSH
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
+          command_timeout: 25m
           script: |
+            set -eu
             cd /root/Blog
+            docker compose config --quiet
             docker compose up -d --build
+            docker compose exec -T twilight-blog sh -ec '
+              test -s /usr/share/nginx/html/index.html
+              test -s /usr/share/nginx/html/pagefind/pagefind.js
+              for attempt in 1 2 3 4 5; do
+                if wget -q -O /dev/null http://127.0.0.1/; then
+                  exit 0
+                fi
+                sleep 2
+              done
+              exit 1
+            '
             docker image prune -f
             docker builder prune -af

@@ -314,7 +314,7 @@ export class WidgetManager {
      */
     getPageHeadings() {
         if (typeof document === "undefined") return [];
-        return Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"))
+        return Array.from(document.querySelectorAll("#content-wrapper :is(h1, h2, h3, h4, h5, h6)"))
             .filter((h) => h.id)
             .map((h) => ({
                 depth: parseInt(h.tagName.substring(1)),

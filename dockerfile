@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1: build Astro site
-FROM node:lts-alpine AS builder
+FROM node:24.13.0-alpine AS builder
 
 WORKDIR /app
 

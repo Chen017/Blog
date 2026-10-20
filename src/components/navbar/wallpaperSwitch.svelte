@@ -9,6 +9,7 @@ import {
     setWallpaperMode,
 } from "@utils/wallpaper";
 import { onClickOutside } from "@utils/widget";
+import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 import type { WALLPAPER_MODE } from "@/types/config";
 import { siteConfig } from "@/config";
 import { i18n } from "@i18n/translation";
@@ -53,9 +54,11 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 onMount(() => {
+    const unbind = bindPanelLifecycle({ isOpen: () => isOpen, close: closePanel, triggerId: "wallpaper-mode-switch" });
     mode = getStoredWallpaperMode();
     document.addEventListener("click", handleClickOutside);
     return () => {
+        unbind();
         document.removeEventListener("click", handleClickOutside);
     };
 });
@@ -63,8 +66,8 @@ onMount(() => {
 
 
 <!-- z-50 make the panel higher than other float panels -->
-<div class="relative z-50" role="menu" tabindex="-1" onmouseleave={closePanel}>
-    <button aria-label="Wallpaper Mode" role="menuitem" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="wallpaper-mode-switch" onmouseenter={openPanel} onclick={() => { if (window.innerWidth < BREAKPOINT_LG) { openPanel(); } else { toggleWallpaperMode(); } }}>
+<div class="relative z-50" role="group" aria-label="Wallpaper settings" onmouseleave={closePanel}>
+    <button aria-label="Wallpaper Mode" aria-expanded={isOpen} aria-controls="wallpaper-mode-panel" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="wallpaper-mode-switch" onmouseenter={openPanel} onclick={() => { if (window.innerWidth < BREAKPOINT_LG) { openPanel(); } else { toggleWallpaperMode(); } }}>
         <div class="absolute" class:opacity-0={mode !== WALLPAPER_BANNER}>
             <Icon icon="material-symbols:image-outline" class="text-[1.25rem]"></Icon>
         </div>
@@ -75,7 +78,7 @@ onMount(() => {
             <Icon icon="material-symbols:hide-image-outline" class="text-[1.25rem]"></Icon>
         </div>
     </button>
-    <div id="wallpaper-mode-panel" class="absolute transition top-11 -right-2 pt-5" class:float-panel-closed={!isOpen}>
+    <div id="wallpaper-mode-panel" inert={!isOpen} aria-hidden={!isOpen} class="absolute transition top-11 -right-2 pt-5" class:float-panel-closed={!isOpen}>
         <DropdownPanel>
             <DropdownItem
                     isActive={mode === WALLPAPER_BANNER}

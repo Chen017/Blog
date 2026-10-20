@@ -20,6 +20,7 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
 <span class={`typewriter ${className}`} data-text={textData} data-speed={speed} data-delete-speed={deleteSpeed} data-pause-time={pauseTime}></span>
 
 <script>
+import { PAGE_READY } from "@utils/page-lifecycle";
 class TypewriterEffect {
     private element: HTMLElement;
     private texts: string[];
@@ -48,7 +49,7 @@ class TypewriterEffect {
         this.pauseTime = parseInt(element.dataset.pauseTime || '2000');
 
         // 如果有多条文本且未启用打字机效果，随机显示一条
-        if (this.texts.length > 1 && !this.isTypewriterEnabled()) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || (this.texts.length > 1 && !this.isTypewriterEnabled())) {
             this.showRandomText();
         } else {
             this.start();
@@ -116,20 +117,27 @@ class TypewriterEffect {
 }
 
 // 初始化所有打字机效果
-document.addEventListener('DOMContentLoaded', () => {
-    const typewriterElements = document.querySelectorAll('.typewriter');
-    typewriterElements.forEach((element) => {
-        new TypewriterEffect(element as HTMLElement);
+const effects = new Map<HTMLElement, TypewriterEffect>();
+const initialize = () => {
+    for (const [element, effect] of effects) {
+        if (!element.isConnected) { effect.destroy(); effects.delete(element); }
+    }
+    document.querySelectorAll<HTMLElement>('.typewriter').forEach(element => {
+        if (!effects.has(element)) effects.set(element, new TypewriterEffect(element));
     });
-});
-
-// 支持页面切换时重新初始化
-document.addEventListener('swup:contentReplaced', () => {
-    const typewriterElements = document.querySelectorAll('.typewriter');
-    typewriterElements.forEach((element) => {
-        new TypewriterEffect(element as HTMLElement);
-    });
-});
+};
+document.addEventListener(PAGE_READY, initialize);
+const resetEffects = () => {
+    effects.forEach(effect => effect.destroy());
+    effects.clear();
+    if (!document.hidden) initialize();
+};
+document.addEventListener('visibilitychange', resetEffects);
+window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', resetEffects);
+window.addEventListener('pagehide', () => { effects.forEach(effect => effect.destroy()); effects.clear(); });
+window.addEventListener('pageshow', (event) => { if (event.persisted) initialize(); });
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
+else initialize();
 </script>
 
 <style>

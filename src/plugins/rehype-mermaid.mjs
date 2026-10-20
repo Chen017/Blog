@@ -12,7 +12,8 @@ export function rehypeMermaid() {
                 node.properties.className &&
                 node.properties.className.includes("mermaid-container")
             ) {
-                const mermaidCode = node.properties["data-mermaid-code"] || "";
+                // MDX normalizes data attributes to HAST's camelCase property names.
+                const mermaidCode = node.properties["data-mermaid-code"] || node.properties.dataMermaidCode || "";
                 const mermaidId = `mermaid-${Math.random().toString(36).slice(-6)}`;
 
                 // 创建 Mermaid 容器

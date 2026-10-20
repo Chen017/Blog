@@ -1,12 +1,10 @@
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import svelte, { vitePreprocess } from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
-import swup from "@swup/astro";
 import sitemap from "@astrojs/sitemap";
-import vercel from "@astrojs/vercel";
-import cloudflarePages from "@astrojs/cloudflare";
 import decapCmsOauth from "astro-decap-cms-oauth";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
@@ -37,17 +35,27 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 
 
 // https://astro.build/config
-// Choose adapter depending on deployment environment
-const adapter = process.env.CF_PAGES ? cloudflarePages() : vercel({ mode: "serverless" });
-
 export default defineConfig({
+    output: "static",
+    outDir: "./dist",
     site: siteConfig.siteURL,
     base: "/",
     trailingSlash: "always",
+    // Preserve Astro 5/6 inline whitespace while upgrading the compiler.
+    compressHTML: true,
     devToolbar: {
         enabled: false,
     },
-    adapter: adapter,
+    fonts: [
+        { name: "MiSans Latin", cssVariable: "--font-misans-latin", provider: fontProviders.local(), fallbacks: [], optimizedFallbacks: false,
+          options: { variants: [
+            { src: ["./src/assets/fonts/MiSansLatin-Regular.woff2"], weight: 400, style: "normal" },
+            { src: ["./src/assets/fonts/MiSansLatin-Semibold.woff2"], weight: 600, style: "normal" },
+          ] } },
+        { name: "MiSans", cssVariable: "--font-misans-cn", provider: fontProviders.local(),
+          options: { variants: [{ src: ["./public/MiSans/woff2/MiSans-Normal.woff2"], weight: 400, style: "normal",
+            unicodeRange: ["U+2E80-9FFF", "U+F900-FAFF", "U+FE10-FE1F", "U+FE30-FE4F", "U+FF00-FFEF", "U+20000-323AF"] }] } },
+    ],
     integrations: [
         expressiveCode({
             themes: ["github-light", "github-dark"],
@@ -100,89 +108,10 @@ export default defineConfig({
                 showCopyToClipboardButton: false,
             },
         }),
-        mdx({
-            extendMarkdownConfig: true,
-            remarkPlugins: [
-                remarkMath,
-                remarkReadingTime,
-                remarkExcerpt,
-                remarkGithubAdmonitionsToDirectives,
-                remarkDirective,
-                remarkSectionize,
-                parseDirectiveNode,
-                remarkMermaid,
-            ],
-            rehypePlugins: [
-                rehypeKatex,
-                rehypeSlug,
-                rehypeMermaid,
-                [
-                    rehypeComponents,
-                    {
-                        components: {
-                            github: GithubCardComponent,
-                            song: SongCardComponent,
-                            music: MusicCardComponent,
-                            note: (x, y) => AdmonitionComponent(x, y, "note"),
-                            tip: (x, y) => AdmonitionComponent(x, y, "tip"),
-                            important: (x, y) => AdmonitionComponent(x, y, "important"),
-                            caution: (x, y) => AdmonitionComponent(x, y, "caution"),
-                            warning: (x, y) => AdmonitionComponent(x, y, "warning"),
-                        },
-                    },
-                ],
-                [
-                    rehypeAutolinkHeadings,
-                    {
-                        behavior: "append",
-                        properties: {
-                            className: ["anchor"],
-                        },
-                        content: {
-                            type: "element",
-                            tagName: "span",
-                            properties: {
-                                className: ["anchor-icon"],
-                                "data-pagefind-ignore": true,
-                            },
-                            children: [
-                                {
-                                    type: "text",
-                                    value: "#",
-                                },
-                            ],
-                        },
-                    },
-                ],
-                rehypeLazyLoadMedia,
-            ],
-        }),
+        mdx(),
         decapCmsOauth({
             decapCMSVersion: "3.9.0",
             oauthDisabled: true, // Disable it to use oauth, requires .env configuration
-        }),
-        swup({
-            theme: false,
-            animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
-            containers: [
-                "#swup-container",
-                "#left-sidebar",
-                "#right-sidebar",
-            ],
-            cache: true,
-            preload: true,
-            accessibility: true,
-            updateHead: true,
-            updateBodyClass: false,
-            globalInstance: true,
-            // Scroll related configuration optimization
-            smoothScrolling: false, // Disable smooth scrolling to improve performance and avoid conflicts with anchor navigation
-            resolveUrl: (url) => url,
-            animateHistoryBrowsing: false,
-            skipPopStateHandling: (event) => {
-                // Skip anchor link handling, let the browser handle it natively
-                return event.state && event.state.url && event.state.url.includes("#");
-            },
         }),
         icon({
             include: {
@@ -198,6 +127,7 @@ export default defineConfig({
         sitemap(),
     ],
     markdown: {
+        processor: unified({
         remarkPlugins: [
             remarkMath,
             remarkReadingTime,
@@ -252,17 +182,14 @@ export default defineConfig({
             ],
             rehypeLazyLoadMedia,
         ],
+        }),
     },
     vite: {
         plugins: [tailwindcss()],
         build: {
             cssCodeSplit: true,
-            cssMinify: "esbuild",
-            minify: "esbuild",
-            esbuildOptions: {
-                drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
-            },
-            rollupOptions: {
+            rolldownOptions: {
+                output: { minify: { compress: { dropConsole: true, dropDebugger: true } } },
                 onwarn(warning, warn) {
                     // temporarily suppress this warning
                     if (
@@ -277,6 +204,6 @@ export default defineConfig({
         },
     },
     build: {
-        inlineStylesheets: "always",
+        inlineStylesheets: "auto",
     },
 });

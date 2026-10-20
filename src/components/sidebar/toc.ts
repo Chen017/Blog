@@ -1,3 +1,4 @@
+import { PAGE_READY, PAGE_BEFORE_REPLACE, getScrollBehavior } from "@utils/page-lifecycle";
 import { NAVBAR_HEIGHT } from "@constants/constants";
 import { widgetManager } from "@utils/widget";
 
@@ -13,6 +14,13 @@ export class TableOfContents extends HTMLElement {
     active: boolean[] = [];
     activeIndicator: HTMLElement | null = null;
     _retryCount = 0;
+    private lifecycle: AbortController | null = null;
+    private timers = new Set<number>();
+    private panelVersion = 0;
+    private schedule(callback: () => void, delay: number) {
+        const id = window.setTimeout(() => { this.timers.delete(id); if (this.isConnected) callback(); }, delay);
+        this.timers.add(id);
+    }
     _backToTopObserver: MutationObserver | null = null;
 
     _handleBtnClick = (e: Event) => {
@@ -103,7 +111,7 @@ export class TableOfContents extends HTMLElement {
         this.tocEl.scrollTo({
             top,
             left: 0,
-            behavior: "smooth",
+            behavior: getScrollBehavior(),
         });
     };
 
@@ -136,16 +144,10 @@ export class TableOfContents extends HTMLElement {
             .find((element) => element instanceof HTMLAnchorElement);
 
         if (anchor) {
-            event.preventDefault();
             const id = decodeURIComponent(anchor.hash?.substring(1));
             const targetElement = document.getElementById(id);
             if (targetElement) {
-                const navbarHeight = parseInt(this.dataset.navbarHeight || NAVBAR_HEIGHT.toString());
-                const targetTop = targetElement.getBoundingClientRect().top + window.scrollY - navbarHeight;
-                window.scrollTo({
-                    top: targetTop,
-                    behavior: "smooth"
-                });
+                targetElement.style.scrollMarginTop = `${Number(this.dataset.navbarHeight || NAVBAR_HEIGHT) + 16}px`;
             }
             const idx = this.headingIdxMap.get(id);
             if (idx !== undefined) {
@@ -155,7 +157,8 @@ export class TableOfContents extends HTMLElement {
             }
             // If floating, close the panel after click
             if (this.dataset.isFloating === "true") {
-                this.toggleFloatingPanel(false);
+                // Let the native fragment navigation run before making its link inert.
+                this.schedule(() => this.toggleFloatingPanel(false), 0);
             }
         }
     };
@@ -179,17 +182,22 @@ export class TableOfContents extends HTMLElement {
     }
 
     toggleFloatingPanel(show: boolean) {
-        const panel = this.querySelector('.toc-floating-panel');
+        const version = ++this.panelVersion;
+        const panel = this.querySelector<HTMLElement>('.toc-floating-panel');
         if (!panel) return;
+        panel.inert = !show;
+        panel.setAttribute('aria-hidden', String(!show));
+        this.querySelector('.toc-floating-btn')?.setAttribute('aria-expanded', String(show));
         if (show) {
             panel.classList.remove('hidden');
             requestAnimationFrame(() => {
+                if (version !== this.panelVersion || !this.isConnected) return;
                 panel.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
             });
         } else {
             panel.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-            setTimeout(() => {
-                panel.classList.add('hidden');
+            this.schedule(() => {
+                if (panel.classList.contains('opacity-0')) panel.classList.add('hidden');
             }, 300);
         }
     }
@@ -205,14 +213,15 @@ export class TableOfContents extends HTMLElement {
         const headings = widgetManager.getPageHeadings();
         if (headings.length === 0 && this.isPostPage() && this._retryCount < 3) {
             this._retryCount++;
-            setTimeout(() => this.init(), 120);
+            this.schedule(() => this.init(), 120);
             return false;
         }
         this._retryCount = 0;
 
-        const isPost = this.isPostPage();
-
-        if (headings.length === 0 && !isPost) {
+        if (headings.length === 0) {
+            tocWrapper.inert = true;
+            tocWrapper.setAttribute('aria-hidden', 'true');
+            this.querySelector('.toc-inner-content')?.replaceChildren();
             if (!tocWrapper.classList.contains('toc-hide')) {
                 if (!isFloating) {
                     tocWrapper.style.maxHeight = tocWrapper.offsetHeight + 'px';
@@ -226,6 +235,9 @@ export class TableOfContents extends HTMLElement {
             return true;
         }
 
+        tocWrapper.inert = false;
+        tocWrapper.removeAttribute('aria-hidden');
+
         if (tocWrapper.classList.contains('toc-hide')) {
             tocWrapper.classList.remove('toc-hide');
             if (!isFloating) {
@@ -233,7 +245,7 @@ export class TableOfContents extends HTMLElement {
                 tocWrapper.style.maxHeight = '0px';
                 tocWrapper.offsetHeight;
                 tocWrapper.style.maxHeight = targetHeight + 'px';
-                setTimeout(() => {
+                this.schedule(() => {
                     if (!tocWrapper.classList.contains('toc-hide')) {
                         tocWrapper.style.maxHeight = '';
                     }
@@ -275,8 +287,7 @@ export class TableOfContents extends HTMLElement {
 
         if (!this.regenerateTOC()) return;
 
-        this.tocEl = this.querySelector('.toc-scroll-container');
-        this.tocEl?.addEventListener("click", this.handleAnchorClick, { capture: true });
+        this.tocEl = this.closest<HTMLElement>('.toc-scroll-container') || this.querySelector<HTMLElement>('.toc-floating-panel');
 
         this.activeIndicator = this.querySelector(".active-indicator");
 
@@ -331,64 +342,31 @@ export class TableOfContents extends HTMLElement {
     };
 
     connectedCallback() {
-        const element = document.querySelector('.custom-md') || document.querySelector('.prose') || document.querySelector('.markdown-content');
-        let initialized = false;
-        const tryInit = () => {
-            if (!initialized) {
-                initialized = true;
-                this.init();
+        this.lifecycle?.abort();
+        this.lifecycle = new AbortController();
+        const { signal } = this.lifecycle;
+        this.addEventListener('click', this.handleAnchorClick, { capture: true, signal });
+        document.addEventListener(PAGE_READY, () => this.init(), { signal });
+        document.addEventListener(PAGE_BEFORE_REPLACE, () => {
+            this.observer.disconnect();
+            this.toggleFloatingPanel(false);
+        }, { signal });
+        window.addEventListener('content-decrypted', () => this.init(), { signal });
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            const panel = this.querySelector<HTMLElement>('.toc-floating-panel');
+            if (panel && !panel.classList.contains('hidden') && !panel.classList.contains('opacity-0')) {
+                this.toggleFloatingPanel(false);
+                this.querySelector<HTMLButtonElement>('.toc-floating-btn')?.focus();
             }
-        };
-        if (element) {
-            element.addEventListener('animationend', tryInit, { once: true });
-            setTimeout(tryInit, 300);
-        } else {
-            tryInit();
-            setTimeout(tryInit, 300);
-        }
-
-        const setupSwup = () => {
-            if (window.swup && window.swup.hooks) {
-                if ((this as any)._swupListenersAdded) return;
-                window.swup.hooks.on('visit:start', () => {
-                    if (this.isPostPage()) {
-                        const isFloating = this.dataset.isFloating === "true";
-                        const tocWrapper = isFloating
-                            ? this.querySelector('.toc-floating-container') as HTMLElement
-                            : this.closest('widget-layout') as HTMLElement;
-                        if (tocWrapper && !tocWrapper.classList.contains('toc-hide')) {
-                            if (!isFloating) {
-                                tocWrapper.style.maxHeight = tocWrapper.offsetHeight + 'px';
-                                tocWrapper.offsetHeight;
-                                tocWrapper.classList.add('toc-hide');
-                                tocWrapper.style.maxHeight = '';
-                            } else {
-                                tocWrapper.classList.add('toc-hide');
-                            }
-                        }
-                    }
-                });
-                window.swup.hooks.on('content:replace', () => {
-                    const isFloating = this.dataset.isFloating === "true";
-                    const tocWrapper = isFloating
-                        ? this.querySelector('.toc-floating-container') as HTMLElement
-                        : this.closest('widget-layout') as HTMLElement;
-                    if (tocWrapper && !this.isPostPage()) {
-                        tocWrapper.classList.add('toc-hide');
-                        if (!isFloating) tocWrapper.style.maxHeight = '';
-                    }
-                    setTimeout(() => this.init(), 100);
-                });
-                (this as any)._swupListenersAdded = true;
-            }
-        };
-
-        if (window.swup) setupSwup();
-        else document.addEventListener('swup:enable', setupSwup);
-        window.addEventListener('content-decrypted', () => this.init());
+        }, { signal });
+        this.schedule(() => this.init(), 0);
     };
 
     disconnectedCallback() {
+        this.lifecycle?.abort();
+        this.timers.forEach(id => clearTimeout(id));
+        this.timers.clear();
         this.headings.forEach((heading) => this.observer.unobserve(heading));
         this.observer.disconnect();
         this._backToTopObserver?.disconnect();

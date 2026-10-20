@@ -4,8 +4,10 @@
  * 使用事件委托，确保在 Swup 无刷新跳转后依然有效
  */
 
+let initialized = false;
 export function initMarkdownActions() {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined" || initialized) return;
+    initialized = true;
     // 移除旧的监听器（如果有），防止重复绑定
     // 注意：由于使用的是匿名函数且通常在页面加载时只运行一次，在 Swup 环境下只要这个脚本在主布局中加载，它就只会运行一次。
     document.addEventListener("click", function (e: MouseEvent) {
@@ -109,8 +111,9 @@ export function initMarkdownActions() {
             const btn = target.classList.contains("collapse-btn") ? target : target.closest(".collapse-btn");
             const codeBlock = btn?.closest(".expressive-code");
             if (codeBlock) {
-                codeBlock.classList.toggle("collapsed");
-                codeBlock.classList.toggle("expanded");
+                const collapsed = codeBlock.classList.toggle("collapsed");
+                codeBlock.classList.toggle("expanded", !collapsed);
+                btn?.setAttribute("aria-expanded", String(!collapsed));
             }
         }
     });

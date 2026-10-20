@@ -13,7 +13,6 @@ import {
 } from "@constants/constants";
 import { pathsEqual, url } from "@utils/url";
 import FontLoader from "@components/fontLoader.astro";
-import LoadingOverlay from "@components/loadingOverlay.astro";
 import ConfigCarrier from "@components/configCarrier.astro";
 import MusicPlayer from "@components/musicPlayer.svelte";
 import Pio from "@components/pio.svelte";
@@ -21,6 +20,7 @@ import "@styles/navbar.css";
 import "@styles/banner.css";
 import "@styles/fancybox.css";
 import "@styles/markdown.css";
+import "@styles/visual.css";
 
 
 interface Props {
@@ -116,13 +116,11 @@ const bannerOffset =
 ---
 
 <!DOCTYPE html>
-<html lang={siteLang} class="bg-(--page-bg) text-[14px] md:text-[16px] is-loading"
+<html lang={siteLang} data-theme="github-dark" class="dark bg-(--page-bg) text-[14px] md:text-[16px]"
 >
     <head>
         <meta charset="UTF-8" />
         <!-- Resource Preconnect -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="preconnect" href="https://code.iconify.design">
         <!-- Font Loader -->
         <FontLoader />
@@ -196,10 +194,9 @@ const bannerOffset =
         <script defer src="https://cloud.umami.is/script.js" data-website-id="6f7ec1f7-de68-4a99-9eaf-3e395237e061"></script>
     </head>
 
-    <body class=" min-h-screen " class:list={[{"is-home": isHomePage, "enable-banner": enableBanner}]}
+    <body class=" min-h-screen " class:list={[{"is-home": isHomePage, "enable-banner": enableBanner, "is-article": !!postSlug}]}
     >
         <!-- 页面加载动画 -->
-        <LoadingOverlay />
         <!-- 全局配置载体 -->
         <ConfigCarrier />
         <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
@@ -210,8 +207,6 @@ const bannerOffset =
         {musicPlayerConfig.enable && <MusicPlayer client:idle />}
         <!-- Pio 看板娘组件 - 如果启用了侧边栏，可能需要调整 z-index -->
         {pioConfig.enable && <Pio client:idle />}
-        <!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
-        <div id="page-height-extend" class="hidden h-[300vh]"></div>
     </body>
 </html>
 
@@ -249,263 +244,45 @@ const bannerOffset =
 
 
 <script>
-import {
-    NAVBAR_HEIGHT,
-    BANNER_HEIGHT,
-    BANNER_HEIGHT_HOME,
-    BANNER_HEIGHT_EXTEND,
-} from "@/constants/constants";
-import { pathsEqual, url } from "@utils/url";
 import { initWallpaperMode } from "@utils/wallpaper";
 import { initTheme } from "@utils/theme";
 import { initHue } from "@utils/hue";
-import { initMarkdownActions } from "@/utils/markdown";
+import { initMarkdownActions } from "@utils/markdown";
 import { initFancybox, cleanupFancybox } from "@utils/fancybox";
-import { setupParticleEffects } from "@/utils/particle";
+import { setupParticleEffects, stopParticle } from "@utils/particle";
+import { announcePageReady, CLOSE_PANELS, PAGE_BEFORE_REPLACE } from "@utils/page-lifecycle";
 
-
-// 初始化Swup
-const setup = () => {
-    // Swup can update the body for each page visit, but it's after the page transition, causing a delay for banner height change, so use Swup hooks instead to change the height immediately when a link is clicked
-    window.swup.hooks.on('link:click', () => {
-        // 简化 navbar 处理逻辑
-        const bannerEnabled = !!document.getElementById('banner-wrapper')
-        if (bannerEnabled) {
-            const navbar = document.getElementById('navbar-wrapper')
-            if (navbar && document.body.classList.contains('is-home')) {
-                const threshold = window.innerHeight * (BANNER_HEIGHT / 100) - NAVBAR_HEIGHT
-                if (document.documentElement.scrollTop >= threshold) {
-                    navbar.classList.add('navbar-hidden')
-                }
-            }
-        }
-    })
-    window.swup.hooks.on('content:replace', () => {
-        // Update main grid layout class name after page transition
-        const gridClassCarrier = document.getElementById("grid-class-carrier");
-        if (gridClassCarrier) {
-            const gridClass = gridClassCarrier.getAttribute("data-grid-class");
-            const mainGrid = document.getElementById("main-grid");
-            if (mainGrid && gridClass) {
-                const currentClasses = mainGrid.className.split(" ");
-                const newClasses = currentClasses.filter(c => !c.startsWith("lg:grid-cols-") && !c.startsWith("md:grid-cols-") && !c.startsWith("grid-cols-"));
-                const gridClasses = gridClass.split(" ");
-                mainGrid.className = [...newClasses, ...gridClasses].join(" ");
-            }
-        }
-        // Reinitialize semifull mode scroll detection after page transition
-        const navbar = document.getElementById('navbar')
-        if (navbar) {
-            const transparentMode = navbar.getAttribute('data-transparent-mode')
-            if (transparentMode === 'semifull') {
-                // Re-call the initialization function to rebind scroll events
-                if (typeof (window as any).initSemifullScrollDetection === 'function') {
-                    (window as any).initSemifullScrollDetection()
-                }
-            }
-        }
-    })
-    window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
-        // Disable scroll protection when a link is clicked to prevent interference with page jump scrolling to top
-        if ((window as any).scrollProtectionManager && typeof (window as any).scrollProtectionManager.disable === 'function') {
-            (window as any).scrollProtectionManager.disable();
-        }
-        // Change banner height immediately when a link is clicked
-        const bodyElement = document.querySelector('body')
-        const isHomePage = pathsEqual(visit.to.url, url('/'))
-        if (isHomePage) {
-            bodyElement!.classList.add('is-home');
-        } else {
-            bodyElement!.classList.remove('is-home');
-        }
-        // Control banner text visibility based on page
-        const bannerTextOverlay = document.querySelector('.banner-text-overlay')
-        if (bannerTextOverlay) {
-            if (isHomePage) {
-                bannerTextOverlay.classList.remove('hidden')
-            } else {
-                bannerTextOverlay.classList.add('hidden')
-            }
-        }
-        // Control navbar transparency based on page
-        const navbar = document.getElementById('navbar')
-        if (navbar) {
-            navbar.setAttribute('data-is-home', isHomePage.toString())
-            const transparentMode = navbar.getAttribute('data-transparent-mode')
-            if (transparentMode === 'semifull') {
-                // Re-call the initialization function to rebind scroll events
-                if (typeof window.initSemifullScrollDetection === 'function') {
-                    window.initSemifullScrollDetection()
-                }
-            }
-        }
-        // increase the page height during page transition to prevent the scrolling animation from jumping
-        const heightExtend = document.getElementById('page-height-extend')
-        if (heightExtend) {
-            heightExtend.classList.remove('hidden')
-        }
-    });
-    window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
-        setTimeout(() => {
-            const heightExtend = document.getElementById('page-height-extend')
-            if (heightExtend) {
-                heightExtend.classList.add('hidden')
-            }
-        }, 300)
-    });
-    window.swup.hooks.on('page:view', () => {
-        // Scroll to top of the page after page transition
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-        // Check if the current page is a post page, if so, trigger a custom event to initialize the comment system
-        setTimeout(() => {
-            if (document.getElementById('tcomment')) {
-                const pageLoadedEvent = new CustomEvent('twilight:page:loaded', {
-                    detail: {
-                        path: window.location.pathname,
-                        timestamp: Date.now()
-                    }
-                });
-                document.dispatchEvent(pageLoadedEvent);
-            }
-        }, 300);
-        // Initialize Fancybox
-        initFancybox();
-    });
-    initFancybox();
-    window.swup.hooks.on("content:replace", () => {
-            cleanupFancybox();
-        },
-        { before: true },
-    )
-}
-if (window?.swup?.hooks) {
-    setup()
-} else {
-    document.addEventListener('swup:enable', setup)
-}
-
-// 初始化 navbar 元素，用于控制 banner 隐藏
-let navbar = document.getElementById('navbar-wrapper')
-// 初始化返回顶部按钮元素，用于控制返回顶部按钮的显示与隐藏
-let backToTopBtn = document.getElementById('back-to-top-btn');
-// 节流函数
-function throttle(func: (...args: any[]) => void, limit: number) {
-    let inThrottle: boolean;
-    return function(this: any, ...args: any[]) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    }
-}
-// 滚动事件处理函数，用于控制返回顶部按钮和banner隐藏
-function scrollFunction() {
-    const scrollTop = document.documentElement.scrollTop;
-    const bannerHeight = window.innerHeight * (BANNER_HEIGHT / 100);
-    const bannerEnabled = !!document.getElementById('banner-wrapper')
-    // 批量处理DOM操作
-    requestAnimationFrame(() => {
-        if (backToTopBtn) {
-            if (scrollTop > bannerHeight) {
-                backToTopBtn.classList.remove('hide')
-            } else {
-                backToTopBtn.classList.add('hide')
-            }
-        }
-        if (bannerEnabled && navbar) {
-            const isHome = document.body.classList.contains('is-home');
-            const currentBannerHeight = isHome ? BANNER_HEIGHT_HOME : BANNER_HEIGHT;
-            const threshold = window.innerHeight * (currentBannerHeight / 100) - NAVBAR_HEIGHT;
-            if (scrollTop >= threshold) {
-                navbar.classList.add('navbar-hidden')
-            } else {
-                navbar.classList.remove('navbar-hidden')
-            }
-        }
-    });
-}
-// 使用节流优化滚动性能
-window.onscroll = throttle(scrollFunction, 16); // 约60fps
-// 监听窗口 resize 事件，用于更新 banner 高度相关的 CSS 变量
-window.onresize = () => {
-    // calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
-    let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
-    offset = offset - offset % 4;
-    document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
-}
-
-// Initialize theme
-initTheme();
-
-// Initialize hue
-initHue();
-
-// Initialize wallpaper mode
-initWallpaperMode();
-
-// 初始化 Markdown 相关操作以防止因 Swup 无刷新跳转的机制限制而导致操作失效
-initMarkdownActions();
-
-// Initialize particle effects
-setupParticleEffects();
-
-// Remove is-loading class and trigger initial-animation after page load
-if (typeof window !== 'undefined') {
-    const onPageLoaded = () => {
-        const overlay = document.getElementById('loading-overlay');
-        const enableBanner = document.body.classList.contains('enable-banner');
-        // 触发 LoadingOverlay 淡出
-        if (overlay) {
-            overlay.classList.add('fade-out');
-        }
-        // 等待 LoadingOverlay 淡出（600ms）
-        setTimeout(() => {
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-            if (enableBanner) {
-                // banner 开始恢复过渡：添加 banner-restoring 类（解除 CSS 中的 height: 0）
-                document.documentElement.classList.add('banner-restoring');
-                // 等待 banner 恢复过渡完成（600ms）
-                setTimeout(() => {
-                    // 触发各容器淡入动画
-                    document.documentElement.classList.remove('is-loading');
-                    document.documentElement.classList.add('show-initial-animation');
-                    setTimeout(() => {
-                        document.documentElement.classList.remove('show-initial-animation');
-                        document.documentElement.classList.remove('banner-restoring');
-                    }, 1200);
-                }, 600);
-            } else {
-                // 非 banner 模式，直接触发淡入
-                document.documentElement.classList.remove('is-loading');
-                document.documentElement.classList.add('show-initial-animation');
-                setTimeout(() => {
-                    document.documentElement.classList.remove('show-initial-animation');
-                }, 1200);
-            }
-        }, 600);
-    };
-
-    const configCarrier = document.getElementById('config-carrier');
-    const waitForAllResources = configCarrier?.dataset.waitForAllResources === 'true';
-
-    if (waitForAllResources) {
-        if (document.readyState === 'complete') {
-            onPageLoaded();
-        } else {
-            window.addEventListener('load', onPageLoaded);
-        }
-    } else {
-        if (document.readyState !== 'loading') {
-            onPageLoaded();
-        } else {
-            document.addEventListener('DOMContentLoaded', onPageLoaded);
-        }
-    }
-}
+const updateScrollControls = () => {
+    const button = document.getElementById('back-to-top-btn');
+    const visible = window.scrollY > Math.min(window.innerHeight * .66, 600);
+    button?.classList.toggle('hide', !visible);
+    if (button) button.inert = !visible;
+};
+let scheduled = false;
+window.addEventListener('scroll', () => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => { scheduled = false; updateScrollControls(); });
+}, { passive: true });
+window.addEventListener('resize', updateScrollControls, { passive: true });
+const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const syncParticles = () => {
+    stopParticle();
+    if (document.body.classList.contains('is-home') && !document.hidden && !motion.matches) setupParticleEffects();
+};
+motion.addEventListener('change', syncParticles);
+document.addEventListener('visibilitychange', syncParticles);
+const ready = () => {
+    initTheme(); initHue(); initWallpaperMode(); initMarkdownActions();
+    initFancybox(); syncParticles(); updateScrollControls(); announcePageReady();
+};
+window.addEventListener('pagehide', event => {
+    document.dispatchEvent(new Event(CLOSE_PANELS));
+    document.dispatchEvent(new CustomEvent(PAGE_BEFORE_REPLACE, { detail: { persisted: event.persisted } }));
+    document.querySelectorAll<HTMLMediaElement>('#content-wrapper audio, #content-wrapper video').forEach(media => media.pause());
+    cleanupFancybox(); stopParticle();
+});
+window.addEventListener('pageshow', event => { if (event.persisted) ready(); });
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, { once: true });
+else ready();
 </script>

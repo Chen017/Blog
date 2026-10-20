@@ -1,11 +1,12 @@
 /**
  * 导航工具函数
- * 提供统一的页面导航功能，支持 Swup 无刷新跳转
+ * 提供统一的页面导航功能，使用浏览器原生多页导航
  */
 import { navbarConfig } from "@/config";
 import { LinkPresets } from "@constants/link-presets";
 import { type NavbarLink } from "@/types/config";
 import { pathsEqual } from "./url";
+import { getScrollBehavior } from "./page-lifecycle";
 
 
 /**
@@ -88,30 +89,13 @@ export function navigateToPage(
         if (typeof document !== "undefined") {
             const element = document.getElementById(url.slice(1));
             if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
+                element.scrollIntoView({ behavior: getScrollBehavior() });
             }
         }
         return;
     }
 
-    // 检查 Swup 是否可用
-    if (typeof window !== "undefined" && (window as any).swup) {
-        try {
-            // 使用 Swup 进行无刷新跳转
-            if (options?.replace) {
-                (window as any).swup.navigate(url, { history: false });
-            } else {
-                (window as any).swup.navigate(url);
-            }
-        } catch (error) {
-            console.error("Swup navigation failed:", error);
-            // 降级到普通跳转
-            fallbackNavigation(url, options);
-        }
-    } else {
-        // Swup 不可用时的降级处理
-        fallbackNavigation(url, options);
-    }
+    fallbackNavigation(url, options);
 }
 
 /**

@@ -11,6 +11,8 @@ interface Props {
     class?: string;
     children?: Snippet;
     element?: HTMLElement;
+    inert?: boolean;
+    "aria-hidden"?: boolean;
 }
 
 let { id, class: className = "", children, element = $bindable(), ...restProps }: Props = $props();
