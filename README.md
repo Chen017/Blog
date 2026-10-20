@@ -1,5 +1,7 @@
 # Blog
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 A CMS integrated static blog template built with Astro framework and based on [Upstream](https://github.com/Spr-Aachen/Twilight)
 
 [**🖥️ Live Demo**](https://www.etalib.space)
@@ -38,16 +40,16 @@ This blog is independently maintained. The sections above introduce its custom f
 
 ### Write and publish online
 
-Open [the writing dashboard](https://www.etalib.space/admin/) and sign in with your GitHub account. Complete the authorization on your first visit.
+Open [the writing dashboard](https://www.etalib.space/admin/) and sign in with your GitHub account. Complete the authorization on your first visit. The dashboard interface currently uses Chinese labels; the steps below describe their functions in English.
 
-1. Choose **文章** to create a Markdown article, or **MDX 文章** for content that uses imports and custom layouts.
+1. Select the **articles** collection to create a Markdown article, or the **MDX articles** collection for content that uses imports and custom layouts.
 2. Fill in the title, publication date, summary, and category. Upload the cover and body images directly in the editor.
-3. Use **常用组件** for music cards, images, admonitions, spoilers, formulas, and Mermaid diagrams. Music cards support both uploads and existing external audio links; external audio does not need to be downloaded into the repository.
-4. Keep **草稿** enabled and click **发布 → 立即发布** to save a draft. Turn **草稿** off before publishing an article publicly.
+3. Use the **common component forms** for music cards, images, admonitions, spoilers, formulas, and Mermaid diagrams. Music cards support both uploads and existing external audio links; external audio does not need to be downloaded into the repository.
+4. Keep the **draft** switch enabled and choose **Publish → Publish now** to save a draft. Turn the draft switch off before publishing an article publicly.
 
 Online saves commit to `main` and trigger GitHub Actions deployment. A saved article appears on the website after deployment succeeds. Existing advanced Markdown and MDX use source editing to preserve their syntax; the final rendering is shown on the blog.
 
-See [CMS_SETUP.md](CMS_SETUP.md) for the complete writing guide, music-card editing, and GitHub login configuration.
+See [CMS_SETUP.md](CMS_SETUP.md) (Chinese) for the complete writing guide, music-card editing, and GitHub login configuration.
 
 ### Write locally
 
