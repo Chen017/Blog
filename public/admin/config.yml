@@ -390,6 +390,8 @@ collections:
           - engines
           - tools
           - others
+          - hardware
+          - system
       - label: Level
         name: level
         widget: select
