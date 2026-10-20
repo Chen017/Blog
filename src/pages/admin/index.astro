@@ -1,0 +1,19 @@
+---
+export const prerender = true;
+---
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex,nofollow" />
+        <title>文章管理 · Etalib's Space</title>
+        <link rel="stylesheet" href="/admin/editor.css" />
+    </head>
+    <body>
+        <script is:inline>window.CMS_MANUAL_INIT = true;</script>
+        <script is:inline src="https://unpkg.com/decap-cms@3.17.1/dist/decap-cms.js"></script>
+        <script is:inline src="/admin/components.js"></script>
+        <script is:inline src="/admin/editor.js"></script>
+    </body>
+</html>

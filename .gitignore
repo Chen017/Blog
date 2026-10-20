@@ -16,9 +16,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+audit/**/*.log
 
 # private config
 .env
+.env.*
+!.env.example
 
 # backup files
 *.bak

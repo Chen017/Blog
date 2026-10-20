@@ -1,8 +1,5 @@
 export const PAGE_SIZE = 8;
 
-export const LIGHT_MODE = "light",
-    DARK_MODE = "dark",
-    SYSTEM_MODE = "system";
 
 export const WALLPAPER_FULLSCREEN = "fullscreen",
     WALLPAPER_BANNER = "banner",

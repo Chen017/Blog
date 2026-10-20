@@ -1,0 +1,31 @@
+{
+  "rich": {
+    "songCards": 1,
+    "spoilerElements": 2,
+    "nonemptySpoilerElements": 0,
+    "mdxImages": 12,
+    "mdxLocalAssetsExist": true,
+    "plainImages": 2
+  },
+  "safe": {
+    "songCards": 1,
+    "spoilerElements": 2,
+    "nonemptySpoilerElements": 2,
+    "mdxImages": 12,
+    "mdxLocalAssetsExist": true,
+    "plainImages": 2
+  },
+  "newPost": {
+    "path": "src/content/posts/decap-audit-bundle/index.md",
+    "imagePath": "src/content/posts/decap-audit-bundle/image.png",
+    "uploadBytes": 2641105,
+    "uploadedImageMatchesOriginal": true,
+    "renderedInlineImageExists": true,
+    "cover": "image.png",
+    "articleUrl": "/posts/decap-audit-bundle/"
+  },
+  "originalContent": {
+    "filesChecked": 70,
+    "unchanged": true
+  }
+}

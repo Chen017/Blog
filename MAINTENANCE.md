@@ -1,0 +1,36 @@
+# Personal blog maintenance
+
+This is an independently maintained Astro blog derived from Spr-Aachen/Twilight. Do not sync upstream automatically. Keep the existing license and attribution.
+
+## Retained behavior
+
+- Preserve published articles, their URLs, relative images, About and Links (`/friends/`).
+- Keep the six personal Skills records and `/skills/`, even though it is not in the primary navigation.
+- Preserve `:::song`, including adaptive colors, background blur, timed lyrics and playback controls. Upstream music and GitHub cards have been removed.
+- Keep math, Mermaid, admonitions, spoilers, image lightboxes and code controls.
+- Keep both Twikoo and Waline, per-article comments, password protection, copy restrictions and optional OG images. Retaining a capability does not require enabling it globally.
+- Use the fixed dark interface, local MiSans fonts, current wallpapers, particles and responsive layout. Preserve the explicit Umami tracking script.
+- Preserve VPS Docker deployment, Pagefind generation, cache rules and BuildKit cache pruning.
+
+## Writing
+
+The editor is at `/admin/`. Plain Markdown supports rich text and source editing. Articles containing directives, JSX, imports, math or Mermaid are opened in source mode. MDX always uses source mode. The common-component forms insert images, song cards, admonitions, spoilers, display math and Mermaid. Inserting an advanced component switches to source mode. Before typing advanced syntax manually, switch to source mode first.
+
+Song forms can update one existing card without rewriting the rest of the article. Song assets upload to `public/assets/media` with site-root URLs; ordinary images remain beside the article. Keep the nested helper fields in the CMS body configuration: Decap uses these field identities to resolve media paths. Helpers are temporary form state, not extra article frontmatter.
+
+The editor preview does not reproduce the complete Astro rendering pipeline. Validate advanced content with the real site build. Do not introduce a parser that silently rewrites custom syntax.
+
+Posts live in `src/content/posts/<slug>/index.md` or `index.mdx`, with images beside the article. Preserve existing paths. New content defaults to a draft. Local editing writes files without committing or pushing; the online GitHub backend commits to `main`, triggering deployment.
+
+Keep functional article fields in the schema. Unreferenced tags/attribution metadata may remain in historical Markdown, but must not restore the removed tag interface, filtering or hydrated payloads. Interface labels stay in the small English dictionary; runtime language switching is absent.
+
+## Verification
+
+- `pnpm check`
+- `pnpm test:unit`
+- `pnpm test:markdown` exercises temporary Markdown and MDX, then removes the fixtures.
+- `pnpm build` generates `dist`, Pagefind and validates required/removed paths.
+
+After `test:markdown`, run a normal build before packaging so temporary test pages cannot enter the release. Keep fixtures in `tests/fixtures/`, outside the production content loader.
+
+See [CMS_SETUP.md](CMS_SETUP.md) for writing and GitHub login setup. OAuth credentials are delivered from encrypted repository Secrets into the VPS `.env`, never browser files or the image build context. The deploy check verifies the auth route when credentials are configured.

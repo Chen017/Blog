@@ -29,20 +29,45 @@ jobs:
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
           source: "."
-          target: "/root/Blog"
+          target: "/root/Blog-incoming/${{ github.run_id }}-${{ github.run_attempt }}"
           command_timeout: 10m
 
       - name: Build, deploy and verify via SSH
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          OAUTH_GITHUB_CLIENT_ID: ${{ secrets.OAUTH_GITHUB_CLIENT_ID }}
+          OAUTH_GITHUB_CLIENT_SECRET: ${{ secrets.OAUTH_GITHUB_CLIENT_SECRET }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
           command_timeout: 25m
+          envs: OAUTH_GITHUB_CLIENT_ID,OAUTH_GITHUB_CLIENT_SECRET
           script: |
             set -eu
+            if ! command -v rsync >/dev/null 2>&1; then
+              if [ "$(id -u)" = 0 ] && command -v apt-get >/dev/null 2>&1; then
+                apt-get update -qq
+                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq rsync
+              else
+                echo 'Please install rsync on the deployment host.' >&2
+                exit 1
+              fi
+            fi
+            incoming="/root/Blog-incoming/${{ github.run_id }}-${{ github.run_attempt }}"
+            test -f "$incoming/package.json"
+            mkdir -p /root/Blog
+            rsync -a --delete --exclude='.env' --exclude='.git/' --exclude='node_modules/' --exclude='.astro/' --exclude='dist/' --exclude='audit/' "$incoming/" /root/Blog/
             cd /root/Blog
+            if [ -n "${OAUTH_GITHUB_CLIENT_ID:-}" ] && [ -n "${OAUTH_GITHUB_CLIENT_SECRET:-}" ]; then
+              umask 077
+              touch .env
+              cms_env="$(mktemp .env.cms.XXXXXX)"
+              sed '/^OAUTH_GITHUB_CLIENT_ID=/d; /^OAUTH_GITHUB_CLIENT_SECRET=/d' .env > "$cms_env"
+              printf '\nOAUTH_GITHUB_CLIENT_ID=%s\nOAUTH_GITHUB_CLIENT_SECRET=%s\n' "$OAUTH_GITHUB_CLIENT_ID" "$OAUTH_GITHUB_CLIENT_SECRET" >> "$cms_env"
+              mv -- "$cms_env" .env
+            fi
             docker compose config --quiet
             docker compose up -d --build
             docker compose exec -T twilight-blog sh -ec '
@@ -56,5 +81,17 @@ jobs:
               done
               exit 1
             '
+            if [ -n "${OAUTH_GITHUB_CLIENT_ID:-}" ] && [ -n "${OAUTH_GITHUB_CLIENT_SECRET:-}" ]; then
+              docker compose exec -T twilight-blog sh -ec '
+                for attempt in 1 2 3 4 5; do
+                  if [ "$(wget -q -O - http://127.0.0.1/oauth/health)" = ready ]; then
+                    exit 0
+                  fi
+                  sleep 2
+                done
+                exit 1
+              '
+            fi
             docker image prune -f
             docker builder prune -af
+            rm -rf -- "$incoming"

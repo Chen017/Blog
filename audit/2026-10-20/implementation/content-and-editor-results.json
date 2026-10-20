@@ -1,0 +1,38 @@
+{
+  "preservedFiles": 58,
+  "archivedFiles": 7,
+  "removedExampleFiles": 5,
+  "skillsFiles": 6,
+  "samples": [
+    {
+      "slug": "to-feel-not-fight",
+      "mode": "rich",
+      "bodyExactExceptMarker": false,
+      "renderedPlainMarkdownUnchanged": true,
+      "originalFieldsPreserved": true,
+      "relativeImageReferencesResolved": 2
+    },
+    {
+      "slug": "happy-new-year-2026",
+      "mode": "source",
+      "bodyExactExceptMarker": true,
+      "renderedPlainMarkdownUnchanged": null,
+      "originalFieldsPreserved": true,
+      "relativeImageReferencesResolved": 3
+    },
+    {
+      "slug": "full-platform-music-players-cloud-local",
+      "mode": "source",
+      "bodyExactExceptMarker": true,
+      "renderedPlainMarkdownUnchanged": null,
+      "originalFieldsPreserved": true,
+      "relativeImageReferencesResolved": 11
+    }
+  ],
+  "newArticle": {
+    "folderCreated": true,
+    "draftDefaultTrue": true,
+    "entryRelativeCover": true,
+    "uploadedImageBytes": 68
+  }
+}

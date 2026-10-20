@@ -1,6 +1,6 @@
 ---
 
-import { siteConfig, profileConfig, musicPlayerConfig, pioConfig } from "@/config";
+import { siteConfig, profileConfig } from "@/config";
 import type { Favicon } from "@/types/config";
 import { defaultFavicons } from "@constants/icon";
 import {
@@ -13,8 +13,6 @@ import {
 import { pathsEqual, url } from "@utils/url";
 import FontLoader from "@components/fontLoader.astro";
 import ConfigCarrier from "@components/configCarrier.astro";
-import MusicPlayer from "@components/musicPlayer.svelte";
-import Pio from "@components/pio.svelte";
 import "@styles/main.css";
 import "@styles/variables.styl";
 import "@styles/navbar.css";
@@ -185,8 +183,6 @@ const bannerOffset =
         }}></style>
         <!-- custom head -->
         <slot name="head"></slot>
-        <!-- Pio 看板娘样式 - 仅在启用时加载 -->
-        {pioConfig.enable && <link rel="stylesheet" href="/pio/static/pio.css" />}
         <!-- rss feed -->
         <link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
         <!-- Umami Analytics (forced script injection; independent from umami.enabled) -->
@@ -195,17 +191,12 @@ const bannerOffset =
 
     <body class=" min-h-screen " class:list={[{"is-home": isHomePage, "enable-banner": enableBanner, "is-article": !!postSlug}]}
     >
-        <!-- 页面加载动画 -->
         <!-- 全局配置载体 -->
         <ConfigCarrier />
         <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
         {shouldShowTopHighlight && <div class="top-gradient-highlight"></div>}
         <!-- 页面内容 -->
         <slot />
-        <!-- Music Player - 仅在启用时加载 -->
-        {musicPlayerConfig.enable && <MusicPlayer client:idle />}
-        <!-- Pio 看板娘组件 - 如果启用了侧边栏，可能需要调整 z-index -->
-        {pioConfig.enable && <Pio client:idle />}
     </body>
 </html>
 

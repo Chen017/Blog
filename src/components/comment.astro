@@ -21,7 +21,7 @@ if (explicitPath) {
     path = getPostUrl(post);
 }
 
-const provider = postConfig.comment?.enable ? postConfig.comment.provider : undefined;
+const provider = postConfig.comment?.enable && post?.data.comment !== false ? postConfig.comment.provider : undefined;
 ---
 
 {provider && (

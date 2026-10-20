@@ -1,0 +1,20 @@
+{
+  "twikoo": {
+    "commentsRendered": true,
+    "perPostDisableRespected": true,
+    "passwordDecryptionPassed": true,
+    "ogPng": [
+      1200,
+      630
+    ]
+  },
+  "waline": {
+    "commentsRendered": true,
+    "perPostDisableRespected": true,
+    "passwordDecryptionPassed": true,
+    "ogPng": [
+      1200,
+      630
+    ]
+  }
+}

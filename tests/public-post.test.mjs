@@ -14,10 +14,9 @@ test('island data excludes secrets and future frontmatter fields', () => {
     },
   };
   const result = toPublicPostListItem(source);
-  assert.deepEqual(Object.keys(result.data).sort(), ['category', 'published', 'routeName', 'tags', 'title']);
+  assert.deepEqual(Object.keys(result.data).sort(), ['category', 'published', 'routeName', 'title']);
   assert.equal(result.id, source.id);
   assert.equal(result.data.routeName, 'stable-link');
   assert.ok(!JSON.stringify(result).includes('must-not-be-public'));
-  result.data.tags.push('changed');
-  assert.deepEqual(source.data.tags, ['example']);
+  assert.ok(!('tags' in result.data));
 });

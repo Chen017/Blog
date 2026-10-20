@@ -1,72 +1,49 @@
-# Blog
+# Etalib's Space
 
-A CMS integrated static blog template built with Astro framework and based on [Upstream](https://github.com/Spr-Aachen/Twilight)
+A personal static blog built with Astro, independently maintained from [Spr-Aachen/Twilight](https://github.com/Spr-Aachen/Twilight).
 
-[**🖥️ Live Demo**](https://www.etalib.space)
-[**📝 Documentation**](https://docs.twilight.spr-aachen.com/en)
+[Website](https://www.etalib.space) · [Writing setup](CMS_SETUP.md) · [Maintenance](MAINTENANCE.md)
 
-## ✨ Features
+## Run locally
 
-Based on upstream, I have added some modifications and new features: 
+Requires Node.js 22.22+ and pnpm 10.29.2.
 
-1. **Music card**
-   Feature **Gaussian blur**, **color picking**, **lyric scrolling vivid animation**, **song covers**, **customizable playback bars**. See the specific effects on [demo](https://www.etalib.space/about/)
+```sh
+pnpm install
+pnpm dev
+```
 
-   ![](image.png)
+For the writing interface with a local file backend:
 
-2. Remove translation and theme
+```sh
+pnpm cms:local
+```
 
-3. Change `Friend` to `Link`
+Open <http://127.0.0.1:4321/admin/>. Online GitHub login requires the one-time setup in [CMS_SETUP.md](CMS_SETUP.md).
 
-4. Optimize the Skill Cards
+## Retained features
 
-5. Media lazy loading
-   Integrated automated lazy loading for images, videos, and iframes across markdown and MDX.
+- Markdown and MDX, code controls, math, Mermaid and custom directives.
+- Custom song cards with synchronized lyrics, adaptive colors and blur.
+- Chinese writing interface with image/audio uploads and forms for song cards and common components.
+- Categories, archive, search, feeds, About, Links and Skills.
+- Optional Twikoo/Waline comments, passwords, copy restrictions and OG images.
+- Fixed dark interface, local MiSans fonts and responsive images.
+- Static VPS deployment through Docker, Nginx and GitHub Actions.
 
-6. Disable Exhibition
-   Disabled the exhibition module, closed the navigation entry point, and prevented its page and associated resources from loading.
+New articles use `src/content/posts/<slug>/index.md` or `index.mdx`; images live beside the article. Settings are in `twilight.config.yaml`. Credentials stay in the VPS `.env`.
 
-## 💻 Configuration
+## Verify and build
 
-1. **Clone the repository:**
-   ```bash
-   git clone
-   cd Blog
-   ```
+```sh
+pnpm check
+pnpm test:unit
+pnpm test:markdown
+pnpm build
+```
 
-2. **Install dependencies:**
-   ```bash
-   # Install pnpm if not already installed
-   npm install -g pnpm
-   pnpm install
-   ```
+The final build writes `dist`, generates Pagefind and checks retained features and removed routes. Deployment mirrors file deletions while preserving server credentials.
 
-3. **Configure your blog:**
-   - [Customize blog settings](https://docs.twilight.spr-aachen.com/en/config/core) inside `twilight.config.yaml`
-   - [Support CMS functionality](https://docs.twilight.spr-aachen.com/en/config/cms) inside `.env`
-   - [Support Umami analytics](https://docs.twilight.spr-aachen.com/en/config/analytics) inside `.env`
-   - [Manage site content](https://docs.twilight.spr-aachen.com/en/config/content) inside `src/content`
+## Credits
 
-4. **Start the development server:**
-   ```bash
-   pnpm dev
-   ```
-
-
-
-## ⚡ Commands
-
-| Command                     | Action                        |
-|:----------------------------|:------------------------------|
-| ~~`pnpm lint`~~             | ~~Check and fix code issues~~ |
-| ~~`pnpm format`~~           | ~~Format code with Biome~~    |
-| `pnpm check`                | Run Astro error checking      |
-| `pnpm dev`                  | Start local dev server        |
-| `pnpm build`                | Build site to `./dist/`       |
-| `pnpm preview`              | Preview build locally         |
-| `pnpm astro ...`            | Run Astro CLI commands        |
-| `pnpm new-post <filename>`  | Create a new blog post        |
-
-
-## 🙏 Acknowledgements
-[Upstream](https://github.com/Spr-Aachen/Twilight)
+Derived from [Twilight](https://github.com/Spr-Aachen/Twilight). Built with [Astro](https://astro.build), [Decap CMS](https://decapcms.org) and [MiSans](https://hyperos.mi.com/font/). Original attribution and license are retained.

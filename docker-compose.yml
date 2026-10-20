@@ -7,4 +7,15 @@ services:
     ports:
       - "127.0.0.1:8070:80"
     restart: unless-stopped
-    
+
+  cms-oauth:
+    build:
+      context: .
+      dockerfile: cms/dockerfile
+    environment:
+      CMS_SITE_URL: ${CMS_SITE_URL:-https://www.etalib.space}
+      CMS_GITHUB_REPO: ${CMS_GITHUB_REPO:-Chen017/Blog}
+      CMS_ALLOWED_USERS: ${CMS_ALLOWED_USERS:-Chen017}
+      OAUTH_GITHUB_CLIENT_ID: ${OAUTH_GITHUB_CLIENT_ID:-}
+      OAUTH_GITHUB_CLIENT_SECRET: ${OAUTH_GITHUB_CLIENT_SECRET:-}
+    restart: unless-stopped

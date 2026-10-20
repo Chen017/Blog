@@ -9,7 +9,6 @@ import sanitizeHtml from "sanitize-html";
 import { siteConfig } from "@/config";
 import { getSortedPosts } from "@utils/post";
 import { getCategoryPathLabel } from "@utils/category";
-import { parseTags } from "@utils/tag";
 import { getFileDirFromPath, getPostUrl } from "@utils/url";
 
 
@@ -89,8 +88,6 @@ export async function GET(context: APIContext) {
         const categoryLabel = getCategoryPathLabel(post.data.category);
         if (categoryLabel) categories.push(categoryLabel);
         
-        const tags = parseTags(post.data.tags);
-        if (tags && tags.length > 0) categories.push(...tags);
 
         feed.push({
             title: post.data.title,

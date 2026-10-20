@@ -4,7 +4,6 @@ interface ListSource {
         title: string;
         published: Date;
         category?: string | string[] | null;
-        tags: string[];
         routeName?: string;
     };
 }
@@ -17,7 +16,6 @@ export function toPublicPostListItem(post: ListSource) {
             title: post.data.title,
             published: post.data.published,
             category: post.data.category,
-            tags: [...post.data.tags],
             routeName: post.data.routeName,
         },
     };

@@ -5,6 +5,9 @@ dist
 .git
 .gitignore
 .env
+.env.*
+audit
+tests
 *.log
 *.bak
 README.md

@@ -29,7 +29,6 @@ const {
     updated,
     description,
     cover,
-    tags,
     category,
     pinned,
 } = entry.data;
@@ -68,7 +67,7 @@ const defaultCoverGradient = "linear-gradient(135deg, color-mix(in oklch, oklch(
             {title}
         </a>
         <!-- metadata -->
-        <PostMetadata published={published!} updated={updated} tags={tags} category={category || undefined} hideTagsForMobile={true} hideUpdateDate={true} postUrl={url} className="mb-4"></PostMetadata>
+        <PostMetadata published={published!} updated={updated} category={category || undefined} hideUpdateDate={true} postUrl={url} className="mb-4"></PostMetadata>
         <!-- description -->
         <div class:list={["transition text-75 mb-3.5 pr-4", {"line-clamp-2 @min-[768px]:line-clamp-1": !description}]}>
             { description || remarkPluginFrontmatter.excerpt }
@@ -112,17 +111,6 @@ const defaultCoverGradient = "linear-gradient(135deg, color-mix(in oklch, oklch(
                             <span class="text-white/81 text-xs font-medium tracking-wide uppercase">
                                 {title}
                             </span>
-                            <div class="flex flex-wrap gap-1.5 mt-0.5">
-                                {tags && tags.length > 0 ? tags.map((tag) => (
-                                    <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white/81 bg-white/9 rounded-md">
-                                        {tag}
-                                    </span>
-                                )) : (
-                                    <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white/63 bg-white/6 rounded-md">
-                                        No Tags
-                                    </span>
-                                )}
-                            </div>
                             {remarkPluginFrontmatter.excerpt && (
                                 <p class="text-white/63 text-sm leading-relaxed line-clamp-3">
                                     {remarkPluginFrontmatter.excerpt}

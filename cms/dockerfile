@@ -1,0 +1,6 @@
+FROM node:24.13.0-alpine
+WORKDIR /app
+COPY cms/oauth.mjs ./oauth.mjs
+USER node
+EXPOSE 8081
+CMD ["node", "oauth.mjs"]

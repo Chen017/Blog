@@ -1,0 +1,54 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import yaml from 'js-yaml';
+import { parse } from 'node-html-parser';
+
+const root = process.cwd(), fixture = path.join(root, '.astro/cms-stage2');
+const site = path.join(root, '.astro/cms-components-site');
+const context = vm.createContext({});
+vm.runInContext(await fs.readFile('public/admin/components.js', 'utf8'), context);
+const split = text => {
+    const normalized = text.replaceAll('\r\n', '\n');
+    const match = normalized.match(/^---\n([\s\S]*?)\n---\n/);
+    return { data: yaml.load(match[1]), body: normalized.slice(match[0].length).trim() };
+};
+const songPath = 'src/content/posts/happy-new-year-2026/index.md';
+const original = split(await fs.readFile(path.join(root, songPath), 'utf8'));
+const changed = split(await fs.readFile(path.join(fixture, songPath), 'utf8'));
+const before = context.BlogComponents.songs(original.body)[0], after = context.BlogComponents.songs(changed.body)[0];
+assert.equal(after.data.title, 'My Love Mine All Mine · Form Test');
+assert.equal(after.data.lyrics, before.data.lyrics);
+assert.equal(changed.body.slice(0, after.start), original.body.slice(0, before.start));
+assert.equal(changed.body.slice(after.end), original.body.slice(before.end));
+const entryPath = 'src/content/posts/cms-form-integration-check/index.md';
+const entry = split(await fs.readFile(path.join(fixture, entryPath), 'utf8'));
+assert.equal(entry.data.draft, true);
+assert.ok(!Object.keys(entry.data).some(key => key.startsWith('component_')));
+for (const text of ['普通图文与高级组件组合检查', ':::song{', '> [!TIP]', ':spoiler[', 'E=mc^2', '```mermaid', '![表单正文图片]', 'AFTER_FORM_CURSOR_OK']) assert.ok(entry.body.includes(text), `Missing ${text}`);
+await fs.access(path.join(fixture, 'public/assets/media/cms-upload-test.png'));
+await fs.access(path.join(fixture, 'public/assets/media/form-audio.wav'));
+await fs.access(path.join(fixture, 'src/content/posts/cms-form-integration-check/cms-upload-test.png'));
+await fs.mkdir(site, { recursive: true });
+for (const folder of ['src', 'public']) await fs.cp(path.join(root, folder), path.join(site, folder), { recursive: true });
+await fs.cp(path.join(fixture, 'src/content'), path.join(site, 'src/content'), { recursive: true });
+await fs.cp(path.join(fixture, 'public'), path.join(site, 'public'), { recursive: true });
+for (const file of ['package.json', 'astro.config.mjs', 'svelte.config.js', 'tsconfig.json', 'postcss.config.mjs', 'twilight.config.yaml']) await fs.copyFile(path.join(root, file), path.join(site, file));
+const article = path.join(site, entryPath);
+await fs.writeFile(article, (await fs.readFile(article, 'utf8')).replace('draft: true', 'draft: false'));
+execFileSync(process.execPath, [path.join(root, 'node_modules/astro/bin/astro.mjs'), 'build', '--root', site], { stdio: 'inherit' });
+const html = parse(await fs.readFile(path.join(site, 'dist/posts/cms-form-integration-check/index.html'), 'utf8'));
+for (const selector of ['[data-song-card]', '.bdm-tip', 'spoiler', '.katex', '.mermaid', 'img[alt="表单正文图片"]']) assert.ok(html.querySelector(selector), selector);
+const source = html.querySelector('[data-song-audio] source');
+assert.equal(source.getAttribute('data-src'), '/assets/media/form-audio.wav');
+assert.equal(source.getAttribute('type'), 'audio/wav');
+assert.equal(html.querySelector('spoiler').textContent, '表单遮罩 [括号] 与 {花括号}');
+assert.ok(html.textContent.includes('AFTER_FORM_CURSOR_OK'));
+await fs.access(path.join(site, 'dist/assets/media/form-audio.wav'));
+const result = { existingSongUpdated: true, lyricsPreserved: true, otherArticleContentPreserved: true,
+    inlineImageBesideArticle: true, songMediaInPublicDirectory: true, uploadedAudioPublished: true,
+    allSixFormsRendered: true, sourceTypingAfterFormKeptAllComponents: true, helperStateNotInFrontmatter: true, productionContentUntouched: true };
+await fs.writeFile('audit/2026-10-20/implementation/component-form-results.json', JSON.stringify(result, null, 2));
+console.log(JSON.stringify(result, null, 2));

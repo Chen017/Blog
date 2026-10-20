@@ -5,7 +5,6 @@ import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import svelte, { vitePreprocess } from "@astrojs/svelte";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
-import decapCmsOauth from "astro-decap-cms-oauth";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
 import mdx from "@astrojs/mdx";
@@ -23,8 +22,6 @@ import { pluginCollapseButton } from "./src/plugins/expressive-code/collapse-but
 import { pluginCopyButton } from "./src/plugins/expressive-code/copy-button.js";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
 import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
-import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
-import { MusicCardComponent } from "./src/plugins/rehype-component-music-card.mjs";
 import { SongCardComponent } from "./src/plugins/rehype-component-song-card.mjs";
 import { rehypeLazyLoadMedia } from "./src/plugins/rehype-lazy-load-media.mjs";
 import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
@@ -112,10 +109,6 @@ export default defineConfig({
             },
         }),
         mdx(),
-        decapCmsOauth({
-            decapCMSVersion: "3.9.0",
-            oauthDisabled: true, // Disable it to use oauth, requires .env configuration
-        }),
         icon({
             include: {
                 "fa6-brands": ["*"],
@@ -149,9 +142,7 @@ export default defineConfig({
                 rehypeComponents,
                 {
                     components: {
-                        github: GithubCardComponent,
                         song: SongCardComponent,
-                        music: MusicCardComponent,
                         note: (x, y) => AdmonitionComponent(x, y, "note"),
                         tip: (x, y) => AdmonitionComponent(x, y, "tip"),
                         important: (x, y) => AdmonitionComponent(x, y, "important"),

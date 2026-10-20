@@ -1,0 +1,17 @@
+.blog-tools { margin: 0 0 20px; padding: 16px; border: 1px solid #ccd8e2; border-radius: 8px; background: #f8fafc; color: #263544; }
+.blog-tools summary { font-size: 16px; font-weight: 650; cursor: pointer; }
+.blog-tools__hint { margin: 12px 0; color: #52636f; font-size: 13px; line-height: 1.6; }
+.blog-tools__field { display: block; margin: 14px 0; font-size: 14px; font-weight: 600; }
+.blog-tools input, .blog-tools select, .blog-tools textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 6px; padding: 10px; border: 1px solid #becbd7; border-radius: 5px; background: white; color: #263544; font: inherit; font-weight: 400; }
+.blog-tools textarea { resize: vertical; line-height: 1.5; }
+.blog-tools input:focus, .blog-tools select:focus, .blog-tools textarea:focus { outline: 2px solid #2786a7; outline-offset: 1px; }
+.blog-tools__media { margin: 16px 0; padding: 12px; border: 1px solid #ccd8e2; border-radius: 6px; min-width: 0; }
+.blog-tools__media legend { padding: 0 4px; font-size: 14px; font-weight: 600; }
+.blog-tools__media > input { margin-bottom: 10px; }
+.blog-tools__song-preview { margin: 14px 0; padding: 12px; border-left: 3px solid #2786a7; background: #edf3f7; overflow-wrap: anywhere; }
+.blog-tools__song-preview p { margin: 8px 0 0; font-size: 13px; }
+.blog-tools__error { color: #a8192b; line-height: 1.5; }
+.blog-tools__notice { color: #176747; line-height: 1.5; }
+.blog-tools__insert { padding: 10px 16px; border: 0; border-radius: 5px; background: #087e9e; color: white; cursor: pointer; font: inherit; }
+.blog-tools__insert:hover { background: #076880; }
+.blog-tools__insert:focus-visible { outline: 2px solid #263544; outline-offset: 2px; }

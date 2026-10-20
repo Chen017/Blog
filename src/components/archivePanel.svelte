@@ -3,7 +3,6 @@ import { onMount } from "svelte";
 
 import { getPostUrl } from "@utils/url";
 import { getCategoryPathLabel, getCategoryPathParts } from "@utils/category";
-import { parseTags } from "@utils/tag";
 import { i18n } from "@i18n/translation";
 import I18nKey from "@i18n/i18nKey";
 
@@ -12,7 +11,6 @@ interface Post {
     id: string;
     data: {
         title: string;
-        tags: string[];
         category?: string | string[] | null;
         published: Date | string;
         routeName?: string;
@@ -30,13 +28,11 @@ interface Props {
 
 let { sortedPosts = [] }: Props = $props();
 
-let tags = $state<string[]>([]);
 let categories = $state<string[]>([]);
 let uncategorized = $state<string | null>(null);
 
 onMount(() => {
     const params = new URLSearchParams(window.location.search);
-    tags = params.has("tag") ? params.getAll("tag") : [];
     categories = params.has("category") ? params.getAll("category") : [];
     uncategorized = params.get("uncategorized");
 });
@@ -48,9 +44,6 @@ function formatDate(date: Date | string) {
     return `${month}-${day}`;
 }
 
-function formatTag(tagList: string[]) {
-    return tagList.map((t) => `#${t}`).join(" ");
-}
 
 function isCategoryMatch(category: string | string[] | null | undefined, targets: string[]) {
     const postParts = getCategoryPathParts(category);
@@ -74,16 +67,6 @@ let groups = $derived.by(() => {
             published: new Date(post.data.published),
         },
     }));
-
-    if (tags.length > 0) {
-        filteredPosts = filteredPosts.filter(
-            (post) =>
-            {
-                const postTags = parseTags(post.data.tags);
-                return postTags.some((tag) => tags.includes(tag));
-            }
-        );
-    }
 
     if (categories.length > 0) {
         filteredPosts = filteredPosts.filter(

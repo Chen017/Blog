@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { parse } from 'node-html-parser';
 
 const output = resolve('dist');
-for (const file of ['index.html', 'archive/index.html', 'friends/index.html', 'about/index.html', '404.html', 'rss.xml', 'atom.xml', 'sitemap-index.xml', 'pagefind/pagefind.js', 'pagefind/pagefind-entry.json']) {
+for (const file of ['index.html', 'archive/index.html', 'friends/index.html', 'about/index.html', 'skills/index.html', 'admin/index.html', 'admin/config.yml', 'admin/editor.js', '404.html', 'rss.xml', 'atom.xml', 'sitemap-index.xml', 'pagefind/pagefind.js', 'pagefind/pagefind-entry.json']) {
   await access(resolve(output, file));
 }
 const home = parse(await readFile(resolve(output, 'index.html'), 'utf8'));
@@ -50,3 +50,14 @@ for (const file of ['index.html', 'archive/index.html']) {
 assert.match(await readFile(resolve(output, 'rss.xml'), 'utf8'), /<rss[\s>]/);
 assert.match(await readFile(resolve(output, 'atom.xml'), 'utf8'), /<feed[\s>]/);
 console.log('Static output, search assets, feeds and personal customizations verified.');
+
+for (const removed of ['albums/index.html','anime/index.html','diary/index.html','projects/index.html','timeline/index.html','exhibition/index.html','pio','assets/music','FooterConfig.html']) {
+  await assert.rejects(access(resolve(output, removed)), { code: 'ENOENT' }, `Removed feature still generated: ${removed}`);
+}
+const admin = await readFile(resolve(output,'admin/index.html'),'utf8');
+for (const file of ['admin/components.js', 'admin/editor.css']) await access(resolve(output, file));
+assert.ok(admin.indexOf('/admin/components.js') < admin.indexOf('/admin/editor.js'), 'Load component serializers before the editor');
+assert.match(admin, /decap-cms@3\.17\.1\//);
+const cmsConfig = await readFile(resolve(output,'admin/config.yml'),'utf8');
+assert.match(cmsConfig, /repo: Chen017\/Blog/);
+assert.ok(!/local_backend:|Spr-Aachen\/Twilight/.test(cmsConfig), 'Production config must use the correct repository without a local proxy');

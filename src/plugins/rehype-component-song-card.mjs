@@ -15,6 +15,9 @@ export function SongCardComponent(properties, children) {
     const artist = properties?.artist || "Unknown Artist";
     const cover = properties?.cover;
     const audio = properties?.audio;
+    const audioExtension = String(audio || '').split(/[?#]/, 1)[0].split('.').pop().toLowerCase();
+    const audioType = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav',
+        ogg: 'audio/ogg', flac: 'audio/flac', webm: 'audio/webm' }[audioExtension];
     const lyricOffsetRaw = properties?.lyricOffset ?? properties?.["lyric-offset"];
     const lyricOffset = lyricOffsetRaw !== undefined && !Number.isNaN(Number(lyricOffsetRaw)) ? Number(lyricOffsetRaw) : 0.35;
     const cardId = `song-${Math.random().toString(36).slice(2, 10)}`;
@@ -153,7 +156,7 @@ export function SongCardComponent(properties, children) {
                 h("div", { class: "song-card__lyrics-line song-card__lyrics-line--exit", "data-lyrics-exit": "true", "aria-hidden": "true" }, ""),
             ]),
             h("audio", { class: "song-card__audio-el", preload: "none", "data-song-audio": "true" }, [
-                h("source", { "data-src": audio, type: "audio/mpeg" }),
+                h("source", { "data-src": audio, type: audioType }),
                 "Your browser does not support the audio element.",
             ]),
             h("div", { class: "song-card__player", "data-player": "true" }, [

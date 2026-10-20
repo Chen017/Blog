@@ -1,16 +1,8 @@
 import type {
-    SYSTEM_MODE,
-    DARK_MODE,
-    LIGHT_MODE,
     WALLPAPER_FULLSCREEN,
     WALLPAPER_BANNER,
     WALLPAPER_NONE
 } from "@constants/constants";
-
-
-/**
- * 
- */
 
 // Favicon 配置
 export type Favicon = {
@@ -18,32 +10,6 @@ export type Favicon = {
     theme?: "light" | "dark";
     sizes?: string;
 };
-
-
-// 加载页配置
-export type LoadingOverlayConfig = {
-    // 是否启用加载页
-    enable: boolean;
-    // 是否等待所有资源 (如图片、样式表) 加载完成
-    waitForAllResources?: boolean;
-    // 加载标题配置
-    title: {
-        // 是否启用加载标题
-        enable: boolean;
-        // 加载标题文本
-        content: string;
-        // 动画周期 (s)
-        interval: number;
-    };
-    // 加载动画配置
-    spinner: {
-        // 是否启用加载动画
-        enable: boolean;
-        // 动画周期 (s)
-        interval: number;
-    };
-};
-
 
 // 站点配置
 export type SiteConfig = {
@@ -56,22 +22,7 @@ export type SiteConfig = {
     // 站点关键词，用于生成 <meta name="keywords">
     keywords?: string[];
     // 语言配置
-    lang: "zh" | "zh_tw" | "en" | "ko" | "ja" | "es" | "th" | "vi" | "tr" | "id" | "fr" | "de" | "ru" | "uk" | "he" | "ar";
-    // 翻译配置
-    translate?: {
-        // 启用翻译功能
-        enable: boolean;
-        // 翻译服务类型，如 'client.edge'
-        service?: string;
-        // 显示语言选择下拉框
-        showSelectTag?: boolean;
-        // 自动识别用户语言
-        autoDiscriminate?: boolean;
-        // 翻译时忽略的 CSS 类名
-        ignoreClasses?: string[];
-        // 翻译时忽略的 HTML 标签
-        ignoreTags?: string[];
-    };
+    lang: "en";
     // 时区配置
     timeZone: -12 | -11 | -10 | -9 | -8 | -7 | -6 | -5 | -4 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
     // 字体配置
@@ -88,8 +39,6 @@ export type SiteConfig = {
         // 主题色的默认色相 (0-360)
         hue: number;
     };
-    // 默认主题
-    defaultTheme: "system" | "light" | "dark";
     // 壁纸配置
     wallpaper: {
         // 模式
@@ -169,51 +118,24 @@ export type SiteConfig = {
             };
         };
     };
-    // 加载页配置
-    loadingOverlay?: LoadingOverlayConfig;
     // Favicon 配置
     favicon: Favicon[];
-    // bangumi 配置
-    bangumi?: {
-        // 用户 ID
-        userId?: string;
-    };
     // OpenGraph 配置
     generateOgImages: boolean;
 };
-
-/**
- * 
- */
-
-export type LIGHT_DARK_MODE =
-    | typeof LIGHT_MODE
-    | typeof DARK_MODE
-    | typeof SYSTEM_MODE;
-
 
 export type WALLPAPER_MODE =
     | typeof WALLPAPER_FULLSCREEN
     | typeof WALLPAPER_BANNER
     | typeof WALLPAPER_NONE;
 
-/**
- * 
- */
-
 export enum LinkPreset {
     Home = 0,
     Archive = 1,
-    Projects = 2,
     Skills = 3,
-    Timeline = 4,
-    Diary = 5,
-    Albums = 6,
-    Anime = 7,
     About = 8,
     Friends = 9,
 }
-
 
 export type NavbarLink = {
     // 链接名称
@@ -230,27 +152,18 @@ export type NavbarLink = {
     children?: (NavbarLink | LinkPreset)[];
 };
 
-
 // 导航栏配置
 export type NavbarConfig = {
     // 链接配置
     links: (NavbarLink | LinkPreset)[]; // 支持多级菜单
 };
 
-/**
- * 
- */
-
 export type WidgetComponentType =
     | "profile"
-    | "announcement"
-    | "directory"
     | "categories"
-    | "tags"
     | "statistics"
     | "toc"
     | "custom";
-
 
 export type WidgetComponentConfig = {
     // 组件类型
@@ -281,7 +194,6 @@ export type WidgetComponentConfig = {
     customProps?: Record<string, any>;
 };
 
-
 // 资料配置
 export type ProfileConfig = {
     // 头像配置
@@ -298,33 +210,6 @@ export type ProfileConfig = {
     }[];
 };
 
-
-// 公告配置
-export type AnnouncementConfig = {
-    // 公告标题
-    title?: string;
-    // 公告内容
-    content: string;
-    // 公告类型
-    type?: "info" | "warning" | "success" | "error";
-    // 公告栏图标
-    icon?: string;
-    // 允许用户关闭公告
-    closable?: boolean;
-    // 链接配置
-    link?: {
-        // 启用链接
-        enable: boolean;
-        // 链接文本
-        text: string;
-        // 链接 URL
-        url: string;
-        // 是否外部链接
-        external?: boolean;
-    };
-};
-
-
 // 侧边栏配置
 export type SidebarConfig = {
     // 侧边栏组件配置列表
@@ -332,26 +217,6 @@ export type SidebarConfig = {
         left: WidgetComponentConfig[];
         right: WidgetComponentConfig[];
     };
-};
-
-/**
- * 
- */
-
-export type BlogPostData = {
-    body: string;
-    title: string;
-    published: Date;
-    description: string;
-    tags: string[];
-    draft?: boolean;
-    image?: string;
-    category?: string;
-    pinned?: boolean;
-    prevTitle?: string;
-    prevSlug?: string;
-    nextTitle?: string;
-    nextSlug?: string;
 };
 
 
@@ -383,15 +248,6 @@ export type PostConfig = {
         // 主题
         theme: string;
     };
-    // 许可证配置
-    license: {
-        // 启用许可证
-        enable: boolean;
-        // 许可证名称
-        name: string;
-        // 许可证链接
-        url: string;
-    };
     // 评论配置
     comment: {
         // 启用评论功能
@@ -422,22 +278,6 @@ export type PostConfig = {
         };
     };
 };
-
-/**
- * 
- */
-
-// 页脚配置
-export type FooterConfig = {
-    // 是否启用 Footer HTML 注入功能
-    enable: boolean;
-    // 自定义 HTML 内容，用于添加备案号等信息
-    customHtml?: string;
-};
-
-/**
- * 
- */
 
 // 粒子特效配置
 export type ParticleConfig = {
@@ -484,98 +324,4 @@ export type ParticleConfig = {
     };
     // 粒子层级
     zIndex: number;
-};
-
-/**
- * 
- */
-
-export type MusicPlayerTrack = {
-    // 序号
-    id: number | string;
-    // 标题
-    title: string;
-    // 作者
-    artist: string;
-    // 封面
-    cover: string;
-    // 路径
-    url: string;
-    // 歌词
-    lrc?: string;
-    // 时长
-    duration: number;
-};
-
-
-// 音乐播放器配置
-export type MusicPlayerConfig = {
-    // 启用音乐播放器功能
-    enable: boolean;
-    // 默认模式
-    mode: "meting" | "local";
-    // meting 模式专属配置
-    meting: {
-        // Meting API 地址
-        meting_api: string;
-        // 音乐平台
-        server: "netease" | "tencent" | "kugou" | "baidu" | "kuwo";
-        // 类型
-        type: "playlist" | "album" | "artist" | "song" | "search";
-        // 资源 ID
-        id: string;
-    };
-    // local 模式专属配置
-    local: {
-        // 播放列表
-        playlist: MusicPlayerTrack[];
-    };
-    // 是否自动播放
-    autoplay?: boolean;
-};
-
-/**
- * 
- */
-
-// 看板娘配置
-export type PioConfig = {
-    // 启用看板娘
-    enable: boolean;
-    // 模型文件路径
-    models?: string[];
-    // 看板娘位置
-    position?: "left" | "right";
-    // 看板娘宽度
-    width?: number;
-    // 看板娘高度
-    height?: number;
-    // 展现模式
-    mode?: "static" | "fixed" | "draggable";
-    // 是否在移动设备上隐藏
-    hiddenOnMobile?: boolean;
-    // 对话框配置
-    dialog?: {
-        // 欢迎词
-        welcome?: string | string[];
-        // 触摸提示
-        touch?: string | string[];
-        // 首页提示
-        home?: string;
-        // 换装提示
-        skin?: [string, string]; // [切换前, 切换后]
-        // 关闭提示
-        close?: string;
-        // 关于链接
-        link?: string;
-        // 自定义属性
-        custom?: Array<{
-            // CSS选择器
-            selector: string;
-            // 类型
-            type: "read" | "link";
-            // 自定义文本
-            text?: string;
-        }>;
-    };
 };

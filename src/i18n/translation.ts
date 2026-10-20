@@ -1,26 +1,9 @@
-import { getResolvedSiteLang } from "@utils/language";
 import { en } from "./languages/en";
 import type I18nKey from "./i18nKey";
 
+export type Translation = { [K in I18nKey]: string };
 
-export type Translation = {
-    [K in I18nKey]: string;
-};
-
-const defaultTranslation = en;
-
-const map: { [key: string]: Translation } = {
-    en: en,
-    en_us: en,
-    en_gb: en,
-    en_au: en,
-};
-
-export function getTranslation(lang: string): Translation {
-    return map[lang.toLowerCase()] || defaultTranslation;
-}
-
+// The interface intentionally has one language; keep labels centralized.
 export function i18n(key: I18nKey): string {
-    const lang = getResolvedSiteLang();
-    return getTranslation(lang)[key];
+    return en[key];
 }

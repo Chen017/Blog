@@ -9,7 +9,6 @@ declare global {
         // Define swup type directly since @swup/astro doesn't export AstroIntegration
         swup: any;
         semifullScrollHandler: (() => void) | null;
-        closeAnnouncement: () => void;
         iconifyLoaded: boolean;
         __iconifyLoader: {
             load: () => Promise<void>;

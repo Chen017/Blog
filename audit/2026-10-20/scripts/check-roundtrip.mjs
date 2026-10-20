@@ -1,0 +1,30 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import yaml from 'js-yaml';
+const root=process.cwd();const base=path.join(root,'.astro/cms-audit');
+const read=p=>fs.readFile(path.join(base,p),'utf8');
+const split=t=>{const m=t.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);return{data:yaml.load(m[1]),body:t.slice(m[0].length).replaceAll('\r\n','\n')}};
+const results=[];
+for(const[slug,ext,label]of[['to-feel-not-fight','md','plain'],['happy-new-year-2026','md','song'],['full-platform-music-players-cloud-local','mdx','mdx']]){
+ const original=split(await read(`originals/${slug}.${ext}`));
+ const saved=split(await read(`fixture/src/content/posts/${slug}/index.${ext}`));
+ const before=original.body.trim();
+ const bodyWithoutMarkers=saved.body.replace(/\n*DECAP_AUDIT_[A-Z_]+\s*/g,'').trim();
+ const fields=Object.keys(original.data).filter(k=>JSON.stringify(original.data[k])!==JSON.stringify(saved.data[k]));
+ assert.equal(fields.length, label==='plain'?1:0,'Unexpected frontmatter changes: '+label);
+ if(label!=='plain')assert.equal(bodyWithoutMarkers,before,label+' raw body must remain identical');
+ const refs=[...saved.body.matchAll(/!\[[^\]]*\]\(([^)]+)\)|^import\s+\w+\s+from\s+['"]([^'"]+)['"]/gm)].map(m=>m[1]||m[2]);
+ for(const ref of refs.filter(r=>!r.startsWith('http')&&!r.startsWith('/')))await fs.access(path.join(base,'fixture/src/content/posts',slug,ref));
+ results.push({sample:label,original:slug,extension:ext,changedOriginalFields:fields,bodyExactExceptAppendedMarkers:bodyWithoutMarkers===before,imageReferencesResolved:refs.length,importCount:[...saved.body.matchAll(/^import /gm)].length,songDirectives:[...saved.body.matchAll(/^:::song\{/gm)].length,spoilerDirectives:[...saved.body.matchAll(/:spoiler\[/g)].length});
+}
+const songOriginal=split(await read('originals/happy-new-year-2026.md'));
+const songRich=split(await read('song-rich.md'));
+const mdxRich=split(await read('mdx-rich.mdx'));
+results.push({sample:'song-rich',spoilerBefore:[...songOriginal.body.matchAll(/:spoiler\[/g)].length,spoilerAfter:[...songRich.body.matchAll(/:spoiler\[/g)].length,escapedSpoilers:[...songRich.body.matchAll(/:spoiler\\\[/g)].length,songDirectives:[...songRich.body.matchAll(/^:::song\{/gm)].length});
+results.push({sample:'mdx-rich',importCount:[...mdxRich.body.matchAll(/^import /gm)].length,jsxImageCount:[...mdxRich.body.matchAll(/<img src=\{/g)].length});
+const currentRich=split(await read('song-current-rich.md'));
+results.push({sample:'song-rich-current',decapVersion:'3.17.1',spoilerDirectives:[...currentRich.body.matchAll(/:spoiler\[/g)].length,escapedSpoilers:[...currentRich.body.matchAll(/:spoiler\\\[/g)].length,songDirectives:[...currentRich.body.matchAll(/^:::song\{/gm)].length});
+for(const[slug,ext,marker]of[['to-feel-not-fight','md','PLAIN'],['happy-new-year-2026','md','SONG'],['full-platform-music-players-cloud-local','mdx','MDX']])assert.ok((await read(`fixture/src/content/posts/${slug}/index.${ext}`)).includes('DECAP_AUDIT_CURRENT_'+marker),'Current version save missing: '+slug);
+await fs.writeFile(path.join(root,'audit/2026-10-20/roundtrip-results.json'),JSON.stringify(results,null,2)+'\n');
+console.log(JSON.stringify(results,null,2));
