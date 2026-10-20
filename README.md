@@ -26,48 +26,6 @@ Based on upstream, I have added some modifications and new features:
 6. Disable Exhibition
    Disabled the exhibition module, closed the navigation entry point, and prevented its page and associated resources from loading.
 
-## 💻 Configuration
-
-1. **Clone the repository:**
-   ```bash
-   git clone
-   cd Blog
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   # Install pnpm if not already installed
-   npm install -g pnpm
-   pnpm install
-   ```
-
-3. **Configure your blog:**
-   - [Customize blog settings](https://docs.twilight.spr-aachen.com/en/config/core) inside `twilight.config.yaml`
-   - [Support CMS functionality](https://docs.twilight.spr-aachen.com/en/config/cms) inside `.env`
-   - [Support Umami analytics](https://docs.twilight.spr-aachen.com/en/config/analytics) inside `.env`
-   - [Manage site content](https://docs.twilight.spr-aachen.com/en/config/content) inside `src/content`
-
-4. **Start the development server:**
-   ```bash
-   pnpm dev
-   ```
-
-
-
-## ⚡ Commands
-
-| Command                     | Action                        |
-|:----------------------------|:------------------------------|
-| ~~`pnpm lint`~~             | ~~Check and fix code issues~~ |
-| ~~`pnpm format`~~           | ~~Format code with Biome~~    |
-| `pnpm check`                | Run Astro error checking      |
-| `pnpm dev`                  | Start local dev server        |
-| `pnpm build`                | Build site to `./dist/`       |
-| `pnpm preview`              | Preview build locally         |
-| `pnpm astro ...`            | Run Astro CLI commands        |
-| `pnpm new-post <filename>`  | Create a new blog post        |
-
-
 ## 🙏 Acknowledgements
 [Upstream](https://github.com/Spr-Aachen/Twilight)
 
@@ -103,6 +61,8 @@ pnpm cms:local
 Open <http://127.0.0.1:4321/admin/>. Local saves write articles and images into this checkout; they do not automatically commit or push to GitHub. Synchronize changes from GitHub before continuing locally after an online edit.
 
 ### Maintain and verify
+
+Blog settings live in `twilight.config.yaml`, site content in `src/content`, and writing-dashboard collections in `public/admin/config.yml`. See [CMS_SETUP.md](CMS_SETUP.md) for the current authentication and deployment configuration.
 
 ```bash
 pnpm check
