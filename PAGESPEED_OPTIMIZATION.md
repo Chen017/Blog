@@ -16,7 +16,7 @@
   并发打开共享请求，成功后复用；下载失败或超时可以点击重试，重试使用新 URL 避免复用失败的模块加载。
   过期查询保护、Escape 焦点恢复和结果原生导航保留。
 - **搜索重试细节**：外部点击判断改用 composedPath，避免重试按钮因状态更新被移除后，被误判成点击了面板外部。
-- **缓存与压缩**：Nginx 对 `/_astro/` 的哈希资源设置一年 immutable；HTML 使用 no-cache；Pagefind 无哈希入口每次重验证；其余公共图片/字体缓存一天。
+- **缓存与压缩**：Nginx 对 `/_astro/` 的哈希资源设置一年 immutable；HTML 使用 no-cache；Pagefind 无哈希脚本与索引入口使用 private, no-store，避免 CDN 的最低浏览器缓存时长覆盖重验证策略；其余搜索分片使用 no-cache，公共图片/字体缓存一天。
   启用文本资源 gzip，不重复压缩 WOFF2 或 WebP。Docker 镜像构建时执行 nginx -t。
 - **导航动效**：导航栏不再对所有属性执行过渡，只保留 opacity/transform 的短过渡，避免边框、圆角和背景位置参与动画。
 - **分页语义**：不可用的上一页/下一页改成有名称的 disabled button，分页区域增加导航名称，当前页增加 aria-current。
