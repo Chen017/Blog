@@ -3,15 +3,30 @@ import { onMount, tick } from "svelte";
 import Icon from "@iconify/svelte";
 import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 import type { SearchResult } from "@/global";
+import { loadSearchIndex } from '@utils/search-index';
 
 let open = $state(false);
 let keyword = $state("");
 let results: SearchResult[] = $state([]);
-let indexState = $state<'loading' | 'ready' | 'error'>('loading');
+let indexState = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 let searching = $state(false);
 let searched = $state(false);
 let queryError = $state(false);
 let version = 0;
+let indexRequest = 0;
+
+const initializeSearch = async () => {
+    if (indexState === 'ready') return;
+    if (import.meta.env.DEV) { indexState = 'error'; return; }
+    const request = ++indexRequest;
+    indexState = 'loading';
+    try {
+        await loadSearchIndex();
+        if (request === indexRequest) indexState = 'ready';
+    } catch {
+        if (request === indexRequest) indexState = 'error';
+    }
+};
 
 const close = () => { open = false; keyword = ''; results = []; version++; };
 const toggle = async () => {
@@ -19,24 +34,17 @@ const toggle = async () => {
     open = true;
     await tick();
     document.getElementById('search-input')?.focus();
+    void initializeSearch();
 };
 onMount(() => {
     const unbind = bindPanelLifecycle({ isOpen: () => open, close, triggerId: 'search-switch' });
-    const ready = () => indexState = 'ready';
-    const failed = () => indexState = 'error';
     const outside = (event: MouseEvent) => {
-        if (open && event.target instanceof Element && !event.target.closest('#search-panel, #search-switch')) close();
+        const inside = event.composedPath().some(target => target instanceof Element && (target.id === 'search-panel' || target.id === 'search-switch'));
+        if (open && !inside) close();
     };
-    if (import.meta.env.DEV || (window as any).__pagefindError) failed();
-    else if (window.pagefind) ready();
-    document.addEventListener('pagefindready', ready);
-    document.addEventListener('pagefindloaderror', failed);
     document.addEventListener('click', outside);
-    const timeout = window.setTimeout(() => { if (indexState === 'loading') failed(); }, 10000);
     return () => {
-        version++; unbind(); clearTimeout(timeout);
-        document.removeEventListener('pagefindready', ready);
-        document.removeEventListener('pagefindloaderror', failed);
+        version++; indexRequest++; unbind();
         document.removeEventListener('click', outside);
     };
 });
@@ -75,7 +83,7 @@ $effect(() => {
     </label>
     <div class="search-status" role="status" aria-live="polite" aria-atomic="true">
         {#if indexState === 'loading'}Loading search index…
-        {:else if indexState === 'error'}{import.meta.env.DEV ? 'Search is available in the production preview.' : 'Search could not load. Please refresh the page to retry.'}
+        {:else if indexState === 'error'}{import.meta.env.DEV ? 'Search is available in the production preview.' : 'Search could not load.'}
         {:else if queryError}Search failed. Try another query or refresh the page.
         {:else if searching}Searching…
         {:else if searched && results.length === 0}No posts found for “{keyword.trim()}”.
@@ -83,6 +91,9 @@ $effect(() => {
         {:else}Search titles and article content.
         {/if}
     </div>
+    {#if indexState === 'error' && !import.meta.env.DEV}
+        <button type="button" class="btn-regular rounded-lg px-3 py-2 text-sm" onclick={() => { document.getElementById('search-input')?.focus(); void initializeSearch(); }}>Retry loading search</button>
+    {/if}
     <div aria-busy={searching}>
         {#each results as item}
             <a href={item.url} class="search-result" onclick={close}>

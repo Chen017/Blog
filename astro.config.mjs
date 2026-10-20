@@ -46,6 +46,9 @@ export default defineConfig({
     devToolbar: {
         enabled: false,
     },
+    image: {
+        remotePatterns: [{ protocol: "https", hostname: "raw.githubusercontent.com", pathname: "/Chen017/komari-emerald-suite/main/docs/ecosystem.png" }],
+    },
     fonts: [
         { name: "MiSans Latin", cssVariable: "--font-misans-latin", provider: fontProviders.local(), fallbacks: [], optimizedFallbacks: false,
           options: { variants: [

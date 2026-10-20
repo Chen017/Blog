@@ -4,6 +4,7 @@ import { Image } from "astro:assets";
 import path from "node:path";
 
 import { url } from "@utils/url";
+import avatar from "../../assets/images/avatar.jpg";
 
 
 interface Props {
@@ -16,9 +17,10 @@ interface Props {
     style?: string;
     loading?: "lazy" | "eager";
     decoding?: "async" | "auto" | "sync";
+    responsive?: "card" | "avatar";
 }
 
-const { id, src, alt, position = "center", basePath = "/", style, loading = "lazy", decoding = "async" } = Astro.props;
+const { id, src, alt, position = "center", basePath = "/", style, loading = "lazy", decoding = "async", responsive } = Astro.props;
 const className = Astro.props.class;
 
 const isLocal = !(
@@ -34,7 +36,7 @@ const isPublic = src.startsWith("/");
 // biome-ignore lint/suspicious/noImplicitAnyLet: <check later>
 let img;
 if (isLocal) {
-    const files = import.meta.glob<ImageMetadata>("../../**", {
+    const files = import.meta.glob<ImageMetadata>("../../**/*.{avif,gif,jpeg,jpg,png,tiff,webp,svg}", {
         import: "default",
     });
     let normalizedPath = path
@@ -52,10 +54,23 @@ if (isLocal) {
 
 const imageClass = "w-full h-full object-cover";
 const imageStyle = `object-position: ${position}`;
+const optimizedSource = responsive === "avatar" && src === "/assets/images/avatar.jpg" ? avatar : img;
+const optimizedRemote = responsive === "card" && src === "https://raw.githubusercontent.com/Chen017/komari-emerald-suite/main/docs/ecosystem.png";
+const sourceWidth = optimizedSource?.width || 1448;
+const requestedWidths = responsive === "avatar" ? [128, 256, 512] : [320, 640, 960, 1280];
+const widths = [...new Set(requestedWidths.map(width => Math.min(width, sourceWidth)))];
+const sizes = responsive === "avatar" ? "(min-width: 1280px) 256px, 192px" : "auto, (min-width: 1408px) 320px, (min-width: 768px) 640px, 100vw";
 ---
 
 <div id={id} class:list={[className, 'overflow-hidden relative']} style={style}>
     <div class="transition absolute inset-0 bg-black/3 dark:bg-black/9 pointer-events-none"></div>
-    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} loading={loading} decoding={decoding}/>}
-    {!isLocal && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} loading={loading} decoding={decoding}/>}
+    {responsive && (optimizedSource || optimizedRemote) ? (
+        <Image src={optimizedSource || src} inferSize={!optimizedSource} width={Math.min(responsive === "avatar" ? 256 : 640, sourceWidth)}
+            {widths} {sizes} quality={82} format="webp" alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding} />
+    ) : (
+        <>
+            {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding}/>}
+            {!isLocal && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding}/>}
+        </>
+    )}
 </div>

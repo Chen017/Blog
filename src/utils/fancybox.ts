@@ -1,6 +1,21 @@
+import fancyboxStyleUrl from '@fancyapps/ui/dist/fancybox/fancybox.css?url';
+import customStyleUrl from '@styles/fancybox.css?url';
+
 let fancyboxSelectors: string[] = [];
 let Fancybox: any;
 let generation = 0;
+let stylesReady: Promise<unknown> | undefined;
+
+function loadStyles() {
+    return stylesReady ||= Promise.all([fancyboxStyleUrl, customStyleUrl].map(href => new Promise<void>((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.onload = () => resolve();
+        link.onerror = () => { link.remove(); reject(new Error('Could not load image viewer styles')); };
+        document.head.append(link);
+    }))).catch(error => { stylesReady = undefined; throw error; });
+}
 
 // 图片灯箱按需加载
 export async function initFancybox() {
@@ -22,8 +37,8 @@ export async function initFancybox() {
     if (!Fancybox) {
         const mod = await import("@fancyapps/ui");
         Fancybox = mod.Fancybox;
-        await import("@fancyapps/ui/dist/fancybox/fancybox.css");
     }
+    await loadStyles();
     if (generation !== currentGeneration) return;
     if (fancyboxSelectors.length > 0) {
         return; // 已经初始化，直接返回

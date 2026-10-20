@@ -21,6 +21,17 @@ for (const font of preloadedFonts) {
 assert.ok(!home.querySelector('#loading-overlay'), 'Content must not wait for a loading screen');
 assert.equal(home.querySelectorAll('astro-island[component-url*="statistics"]').length, 1, 'Only one statistics island per page');
 assert.ok(home.querySelector('#banner picture source[media]'), 'Use one responsive banner image');
+for (const image of home.querySelectorAll('.post-card img')) {
+  assert.ok(image.getAttribute('src').startsWith('/_astro/'), 'Process card covers at build time');
+  assert.ok(image.getAttribute('srcset'), 'Card covers need responsive sizes');
+}
+assert.ok(home.querySelector('[id^="profile-"] img[srcset]'), 'Optimize the author avatar');
+assert.ok(home.querySelector('nav[aria-label="Pagination"] button[disabled][aria-label="Previous Page"]'), 'Unavailable pagination uses a named disabled button');
+assert.ok(!home.querySelector('a[href=""]'), 'Do not output empty navigation links');
+assert.ok(!home.querySelectorAll('script').some(script => script.textContent.includes('/pagefind/pagefind.js')), 'Do not initialize the search index before interaction');
+for (const stylesheet of home.querySelectorAll('link[rel="stylesheet"]')) {
+  assert.ok(!/fancybox|anime|markdown|twikoo/.test(stylesheet.getAttribute('href')), 'Do not load page-specific styles on the home page');
+}
 await access(resolve(output, 'MiSans/woff2/MiSans-Normal.woff2'));
 const links = await readFile(resolve(output, 'friends/index.html'), 'utf8');
 assert.match(links, /My other websites/);
