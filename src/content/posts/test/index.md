@@ -2,7 +2,7 @@
 title: Test
 published: 2026-10-21
 updated: 2026-10-21
-cover: https://www.google.com/imgres?q=google&imgurl=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F32%2FGoogleplex_HQ_%2528cropped%2529.jpg%3Futm_source%3Den.wikipedia.org%26utm_campaign%3Dindex%26utm_content%3Doriginal&imgrefurl=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FGoogle&docid=QmMur21MhneG9M&tbnid=Il8qZswZvSF4AM&vet=12ahUKEwjQ8NT46MmXAxXijuEIHbz6KocQnPAOegQIKxAA..i&w=3024&h=2212&hcb=2&ved=2ahUKEwjQ8NT46MmXAxXijuEIHbz6KocQnPAOegQIKxAA
+cover: https://thumb.wikimedia.org/wikipedia/commons/thumb/3/32/Googleplex_HQ_%28cropped%29.jpg/1920px-Googleplex_HQ_%28cropped%29.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=thumbnail
 coverInContent: true
 pinned: false
 draft: false
