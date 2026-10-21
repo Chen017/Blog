@@ -62,6 +62,8 @@
 		"remark-directive": "^4.0.0",
 		"remark-github-admonitions-to-directives": "^2.1.0",
 		"remark-math": "^6.0.0",
+		"remark-mdx": "3.1.1",
+		"remark-parse": "11.0.0",
 		"remark-sectionize": "^2.1.0",
 		"sanitize-html": "^2.18.1",
 		"satori": "^0.19.3",
@@ -70,6 +72,7 @@
 		"svelte": "5.57.2",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^5.9.3",
+		"unified": "11.0.5",
 		"unist-util-visit": "^5.1.0"
 	},
 	"devDependencies": {

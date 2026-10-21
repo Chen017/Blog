@@ -53,9 +53,10 @@ for (const removed of ['albums/index.html','anime/index.html','diary/index.html'
   await assert.rejects(access(resolve(output, removed)), { code: 'ENOENT' }, `Removed feature still generated: ${removed}`);
 }
 const admin = await readFile(resolve(output,'admin/index.html'),'utf8');
-for (const file of ['admin/components.js', 'admin/editor.css', 'admin/preview.css']) await access(resolve(output, file));
+for (const file of ['admin/components.js', 'admin/editor.css', 'admin/preview.css', 'admin/mdx-editor.js', 'admin/interface.js']) await access(resolve(output, file));
 assert.ok(admin.indexOf('/admin/components.js') < admin.indexOf('/admin/editor.js'), 'Load component serializers before the editor');
 assert.match(admin, /decap-cms@3\.17\.1\//);
+assert.ok(admin.includes('type="module"') && admin.includes('/_astro/'), 'Bundle the MDX parser for the static admin page');
 const cmsConfig = await readFile(resolve(output,'admin/config.yml'),'utf8');
 assert.match(cmsConfig, /repo: Chen017\/Blog/);
 assert.ok(!/local_backend:|Spr-Aachen\/Twilight/.test(cmsConfig), 'Production config must use the correct repository without a local proxy');

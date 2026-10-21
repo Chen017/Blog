@@ -158,7 +158,7 @@ collections:
   - name: mdx
     label: MDX 文章
     label_singular: MDX 文章
-    description: 保留 import 和自定义布局，以源码方式编辑。
+    description: 默认可视化编辑文字和图片，自动保留导入及图片布局；特殊组件保留为独立区块。
     folder: src/content/posts
     create: true
     format: yaml-frontmatter
@@ -278,8 +278,8 @@ collections:
         name: body
         widget: safe-markdown
         required: true
-        force_raw: true
-        hint: 可用“常用组件”表单插入图片、歌曲、提示框、公式和 Mermaid；高级语法自动使用源码编辑。
+        mdx_visual: true
+        hint: 直接编辑文字和图片；导入与布局自动保留。新增图片及歌曲可用“常用组件”表单。
         fields:
           - name: component_cover
             label: 歌曲封面

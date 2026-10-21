@@ -1,0 +1,10 @@
+# CMS visual editing verification
+
+- Preview images keep their aspect ratio within 60% of the preview viewport height (480px maximum), with no change to published article styles. In the 654px test preview, the tallest image measured 393px and the document had no horizontal overflow.
+- The nine requested advanced fields start collapsed, stay mounted with their existing frontmatter names and values, and expand together. Draft/public status stays visible while the fields are collapsed.
+- Asset resolution retries the Decap placeholder after mount, including native image controls that request assets in an effect. Opening the real MDX article loaded its cover and all 12 body images without toggling preview or editing text.
+- MDX opens with rich prose blocks and image forms. Imports, unfamiliar JSX/expressions and special syntax remain protected; the editor never executes imported code. Both existing two-image layouts remain intact.
+- Browser saves used the official local backend pointed at an isolated content copy under `.astro/cms-visual`, not the real content directory. Edited prose, a new paragraph and one selected image survived saving, reopening and a real Astro build of the isolated site. All other prose, images, original imports, layout wrappers and frontmatter were checked against the real article. `verify-visual-editor.mjs` reproduces this check after creating the browser fixture.
+- A separate MDX fixture saved both an existing JSX image changed to an HTTPS URL and a new Markdown image inserted from the URL form. The saved file retains the URLs directly, creates no downloaded image file and preserves its original import and normal Markdown link. Live image loading requires the image host to be reachable; this machine's external connections subsequently timed out.
+- Automated unit tests: 33 passed. Astro check: 0 errors, 0 warnings, 24 hints. A later full root build was interrupted by the existing remote `ecosystem.png` cover download timing out; the earlier isolated full Astro build passed. Deployment must separately confirm the final production build.
+- Neither README nor production articles were changed.

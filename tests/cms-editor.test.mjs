@@ -8,9 +8,15 @@ const script = await readFile(new URL('../public/admin/editor.js', import.meta.u
 const components = await readFile(new URL('../public/admin/components.js', import.meta.url), 'utf8');
 function load(hostname) {
     let widget, config;
+    let assetBoundary;
+    const timers = [];
+    const window = { createBlogMdxEditor: (_model, boundary) => { assetBoundary = boundary; return 'MdxVisual'; } };
     const previews = {};
     const context = vm.createContext({
         location: { hostname },
+        window,
+        setTimeout: callback => { timers.push(callback); return timers.length; },
+        clearTimeout: () => {},
         createClass: definition => definition,
         h: (type, props, ...children) => ({ type, props, children }),
         CMS: {
@@ -23,7 +29,8 @@ function load(hostname) {
     });
     vm.runInContext(components, context);
     vm.runInContext(script, context);
-    return { widget, config, previews };
+    window.initBlogEditor({});
+    return { widget, config, previews, assetBoundary, timers };
 }
 test('advanced article syntax locks source mode; ordinary text can switch modes', () => {
     const { widget } = load('www.etalib.space');
@@ -81,13 +88,46 @@ test('image previews bypass Decap widget memoization without changing article te
         let url = 'blob:placeholder';
         const props = { entry: new Map([['data', new Map([['body', body], ['cover', 'cover.png']])]]),
             fields, getAsset: () => url };
-        assert.equal(previews[name](props).children.at(-2).props.src, 'blob:placeholder');
+        const render = () => previews[name](props).props.render(props.getAsset);
+        assert.equal(render().children.at(-2).props.src, 'blob:placeholder');
         url = 'blob:loaded';
-        const ready = previews[name](props);
+        const ready = render();
         assert.equal(ready.children.at(-2).props.src, 'blob:loaded');
         assert.equal(ready.children.at(-1).type, 'MarkdownPreview');
         assert.equal(ready.children.at(-1).props.value, body);
     }
+});
+
+test('a cached placeholder is retried without typing or toggling the preview', () => {
+    const { assetBoundary, timers } = load('www.etalib.space');
+    let asset = { path: 'empty.svg' }, reads = 0;
+    const boundary = { ...assetBoundary, props: { watchKey: 'post', getAsset: () => { reads++; return asset; }, render: getAsset => getAsset('photo.jpg') },
+        setState(update) { this.state = { ...this.state, ...update }; } };
+    boundary.state = boundary.getInitialState();
+    boundary.getAsset = boundary.getAsset.bind(boundary);
+    boundary.render(); boundary.componentDidMount();
+    assert.equal(timers.length, 1);
+    asset = { path: 'photo.jpg' };
+    timers.shift()();
+    boundary.render(); boundary.componentDidUpdate(boundary.props);
+    assert.equal(reads, 2);
+    assert.equal(boundary.pending, false);
+    assert.equal(timers.length, 0);
+    boundary.componentWillUnmount();
+    assert.equal(boundary.mounted, false);
+});
+
+test('native image fields also retry assets requested in an effect after mount', () => {
+    const { assetBoundary, timers } = load('www.etalib.space');
+    const boundary = { ...assetBoundary, props: { getAsset: () => ({ path: 'empty.svg' }), render: () => null },
+        setState() {} };
+    boundary.getAsset = boundary.getAsset.bind(boundary);
+    boundary.state = boundary.getInitialState();
+    boundary.render(); boundary.componentDidMount();
+    assert.equal(timers.length, 0);
+    boundary.getAsset('cover.png');
+    assert.equal(timers.length, 1);
+    boundary.componentWillUnmount();
 });
 test('production editor does not enable the unauthenticated local proxy', () => {
     assert.equal(load('www.etalib.space').config.config?.local_backend, undefined);

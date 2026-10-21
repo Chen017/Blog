@@ -3,9 +3,56 @@
     // A plain Markdown serializer cannot round-trip directives, JSX or math.
     const needsSource = value => /(^\s*(?:import|export)\s|^\s*:{2,}|^>\s*\[!|:[\w-]+\\?\[|^\s*(?:`{3,}|~{3,})\s*(?:mermaid|math)\b|^\s*\$\$|\$[^\n]+\$|<\/?[A-Za-z][^>]*>)/m.test(value || '');
     const markdown = CMS.getWidget('markdown');
+    let mdxModel, MdxVisual;
+    const AssetBoundary = createClass({
+        getInitialState() { return { revision: 0 }; },
+        componentDidMount() { this.mounted = true; this.attempts = 0; this.watch(); },
+        componentDidUpdate(previous) {
+            if (previous.watchKey !== this.props.watchKey) {
+                this.attempts = 0;
+                clearTimeout(this.timer); this.timer = null;
+            }
+            this.watch();
+        },
+        componentWillUnmount() { this.mounted = false; clearTimeout(this.timer); },
+        watch() {
+            if (!this.pending || this.timer || !this.mounted || this.attempts >= 30) return;
+            this.timer = setTimeout(() => {
+                this.timer = null; this.attempts++;
+                if (this.mounted) this.setState({ revision: this.state.revision + 1 });
+            }, Math.min(2000, 150 * 2 ** Math.min(this.attempts, 4)));
+        },
+        getAsset(path, field) {
+            const asset = this.props.getAsset(path, field);
+            if (path && (asset?.path === 'empty.svg' || asset?.file?.name === 'empty.svg')) {
+                this.pending = true;
+                // Native image fields request assets in an effect, after mount.
+                this.watch();
+            }
+            return asset;
+        },
+        render() {
+            this.pending = false;
+            return h('div', {}, this.props.render(this.getAsset),
+                this.attempts >= 30 && h('button', { type: 'button', className: 'blog-tools__mode', onClick: () => {
+                    this.attempts = 0; this.setState({ revision: this.state.revision + 1 });
+                } }, '重新加载图片预览'));
+        },
+    });
+    const image = CMS.getWidget('image');
+    const refreshingImage = Component => createClass({
+        shouldComponentUpdate() { return true; },
+        render() {
+            return h(AssetBoundary, { ...this.props, watchKey: String(this.props.value || ''), render: getAsset => h(Component, {
+                ...this.props, getAsset: (path, field) => getAsset(path, field),
+            }) });
+        },
+    });
+    CMS.registerWidget('image', refreshingImage(image.control), refreshingImage(image.preview), image.schema || {});
     const SafeMarkdown = createClass({
         getInitialState() {
-            return { source: this.props.field.get('force_raw') || needsSource(this.props.value), richText: false, kind: 'song',
+            return { source: this.props.field.get('force_raw') || needsSource(this.props.value), richText: false,
+                mdxVisual: !!this.props.field.get('mdx_visual'), kind: 'song',
                 song: { title: '', artist: '', cover: '', audio: '', lyrics: '', lyricOffset: '0.35' },
                 selected: null, image: '', alt: '', text: '', noteType: 'note', error: '', notice: '', revision: 0 };
         },
@@ -43,14 +90,14 @@
                 this.setState({ error: error.message, notice: '' });
             }
         },
-        mediaField(name, label, value, onChange) {
+        mediaField(name, label, value, onChange, id = name) {
             const field = this.props.field.get('fields')?.find(field => field.get('name') === name);
             if (!field) return null;
             const widget = CMS.getWidget(field.get('widget'));
             return h('fieldset', { className: 'blog-tools__media', key: name },
                 h('legend', {}, label),
                 h('input', { type: 'text', 'aria-label': `${label}地址`, value, placeholder: '选择/上传文件，或填写 https 链接', onChange: event => onChange(event.target.value) }),
-                h(widget.control, { ...this.props, forID: `${this.props.forID}-${name}`, field, value, onChange }),
+                h(widget.control, { ...this.props, forID: `${this.props.forID}-${id}`, field, value, onChange }),
             );
         },
         componentForm() {
@@ -91,7 +138,12 @@
             );
         },
         render() {
-            const source = this.state.source || this.props.field.get('force_raw') || needsSource(this.props.value);
+            const mdx = this.props.field.get('mdx_visual');
+            const switchMdx = mdx && h('button', { type: 'button', className: 'blog-tools__mode', onClick: () => this.setState({ mdxVisual: !this.state.mdxVisual, revision: this.state.revision + 1 }) },
+                this.state.mdxVisual ? '切换为 MDX 源码' : '切换为可视化编辑');
+            if (mdx && this.state.mdxVisual) return h('div', {}, this.componentForm(), switchMdx,
+                h(MdxVisual, { ...this.props, key: `mdx-${this.state.revision}`, mediaField: this.mediaField, ref: control => { this.control = control; } }));
+            const source = mdx || this.state.source || this.props.field.get('force_raw') || needsSource(this.props.value);
             const available = this.props.field.get('modes') || this.props.field.keySeq().take(0).concat(['rich_text', 'raw']).toList();
             // Use the documented modes setting instead of Decap's shared browser
             // preference, so every article starts in Markdown on every device.
@@ -100,6 +152,7 @@
             const field = this.props.field.set('modes', modes).set('sanitize_preview', true);
             return h('div', {},
                 this.componentForm(),
+                switchMdx,
                 !source && h('button', { type: 'button', className: 'blog-tools__mode',
                     onClick: () => this.setState({ richText: !this.state.richText, revision: this.state.revision + 1 }) },
                     this.state.richText ? '切换为 Markdown' : '切换为富文本'),
@@ -116,18 +169,29 @@
     // neither, leaving the initial empty SVG visible until the article is edited.
     // Render the Markdown preview directly so store updates can resolve images,
     // including requests that finish inside the same React update batch.
-    const ContentPreview = props => {
+    const ContentPreview = props => h(AssetBoundary, { ...props, watchKey: props.entry.get('path'), render: getAsset => {
         const data = props.entry.get('data');
         const body = props.fields.find(field => field.get('name') === 'body');
         const cover = props.fields.find(field => field.get('name') === 'cover');
+        const mdx = body?.get('mdx_visual') && mdxModel?.parseDocument(data.get('body') || '');
+        const preview = value => h(markdown.preview, { ...props, getAsset, field: body, value });
         return h('article', { className: 'blog-preview' },
             data.get('title') && h('h1', {}, data.get('title')),
             data.get('published') && h('p', {}, String(data.get('published')).slice(0, 10)),
-            data.get('cover') && h('img', { src: String(props.getAsset(data.get('cover'), cover)), alt: '' }),
-            h(markdown.preview, { ...props, field: body, value: data.get('body') || '' }));
-    };
+            data.get('cover') && h('img', { src: String(getAsset(data.get('cover'), cover)), alt: '' }),
+            mdx && !mdx.error ? mdx.segments.map((segment, index) => segment.type === 'images'
+                ? h('div', { key: index, className: segment.images.length > 1 ? 'blog-preview__grid' : '' }, segment.images.map((image, imageIndex) => h('img', {
+                    key: imageIndex, src: String(getAsset(image.src, body.get('fields').find(field => field.get('name') === 'component_image'))), alt: image.alt })))
+                : segment.type === 'prose' ? h('div', { key: index }, preview(segment.raw))
+                    : segment.type === 'protected' ? h('p', { key: index, className: 'blog-preview__protected' }, `自定义区块：${segment.name}（完整效果请查看文章页）`) : null)
+                : preview(data.get('body') || ''));
+    } });
     for (const name of ['posts', 'mdx', 'about', 'links_intro']) CMS.registerPreviewTemplate(name, ContentPreview);
     CMS.registerPreviewStyle('/admin/preview.css');
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
-    CMS.init(local ? { config: { local_backend: { url: 'http://127.0.0.1:8081/api/v1' } } } : {});
+    window.initBlogEditor = model => {
+        mdxModel = model;
+        MdxVisual = window.createBlogMdxEditor(model, AssetBoundary);
+        CMS.init(local ? { config: { local_backend: { url: 'http://127.0.0.1:8081/api/v1' } } } : {});
+    };
 })();

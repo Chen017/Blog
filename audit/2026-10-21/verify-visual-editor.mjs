@@ -1,0 +1,45 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import yaml from 'js-yaml';
+import { parse } from 'node-html-parser';
+import { parseDocument } from '../../src/cms/mdx-document.js';
+
+const root = process.cwd();
+const article = 'src/content/posts/full-platform-music-players-cloud-local/index.mdx';
+const split = text => {
+    const normalized = text.replaceAll('\r\n', '\n');
+    const header = normalized.match(/^---\n([\s\S]*?)\n---\n/);
+    return { data: yaml.load(header[1]), body: normalized.slice(header[0].length).trim() };
+};
+const original = split(await fs.readFile(article, 'utf8'));
+const saved = split(await fs.readFile(path.join('.astro/cms-visual', article), 'utf8'));
+assert.deepEqual(saved.data, original.data);
+const before = parseDocument(original.body), after = parseDocument(saved.body);
+assert.equal(after.error, null);
+const oldImages = before.segments.filter(segment => segment.type === 'images');
+const newImages = after.segments.filter(segment => segment.type === 'images');
+assert.equal(newImages.flatMap(segment => segment.images).length, 12);
+assert.equal(newImages[0].images[0].src, './image1.png');
+assert.equal(newImages[0].images[0].alt, 'MDX_VISUAL_IMAGE_CHECK');
+assert.deepEqual(newImages.slice(1).map(segment => segment.raw), oldImages.slice(1).map(segment => segment.raw));
+assert.equal(newImages[0].raw, oldImages[0].raw.replace('src={saltImg1.src}', 'src={cmsImage1.src}').replace('alt="Salt Player 1"', 'alt="MDX_VISUAL_IMAGE_CHECK"'));
+assert.ok(saved.body.includes('MDX_VISUAL_TEXT_CHECK') && saved.body.includes('MDX_NEW_PARAGRAPH'));
+assert.deepEqual(after.segments.filter(segment => segment.type === 'prose').slice(1).map(segment => segment.raw), before.segments.filter(segment => segment.type === 'prose').slice(1).map(segment => segment.raw));
+for (const line of before.segments.filter(segment => segment.type === 'code').flatMap(segment => segment.raw.split('\n'))) assert.ok(saved.body.includes(line));
+
+const site = path.join(root, '.astro/cms-visual-build');
+await fs.mkdir(site, { recursive: true });
+for (const dir of ['src', 'public']) await fs.cp(path.join(root, dir), path.join(site, dir), { recursive: true });
+for (const file of ['package.json', 'astro.config.mjs', 'svelte.config.js', 'tsconfig.json', 'postcss.config.mjs', 'twilight.config.yaml']) await fs.copyFile(path.join(root, file), path.join(site, file));
+await fs.copyFile(path.join(root, '.astro/cms-visual', article), path.join(site, article));
+execFileSync(process.execPath, [path.join(root, 'node_modules/astro/bin/astro.mjs'), 'build', '--root', site], { stdio: 'inherit' });
+const html = parse(await fs.readFile(path.join(site, 'dist/posts/full-platform-music-players-cloud-local/index.html'), 'utf8'));
+assert.ok(html.textContent.includes('MDX_NEW_PARAGRAPH'));
+const image = html.querySelector('img[alt="MDX_VISUAL_IMAGE_CHECK"]');
+assert.ok(image);
+assert.ok(image.getAttribute('src').startsWith('/_astro/'));
+await fs.access(path.join(site, 'dist', image.getAttribute('src')));
+assert.equal(html.querySelectorAll('div.grid.grid-cols-2.gap-3.max-w-xl').length, 2);
+console.log('Visual MDX save and real Astro build passed: imports, layouts, other prose, metadata and images preserved.');
