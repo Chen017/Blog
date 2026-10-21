@@ -16,14 +16,16 @@ export const prerender = true;
         <script is:inline src="/admin/components.js"></script>
         <script is:inline src="/admin/interface.js"></script>
         <script is:inline src="/admin/mdx-editor.js"></script>
+        <script is:inline src="/admin/preview.js"></script>
         <script is:inline src="/admin/editor.js"></script>
         <script>
             import * as model from '../../cms/mdx-document.js';
+            import { preview, katexStyle } from '../../cms/preview-runtime.js';
             declare global {
-                interface Window { initBlogEditor: (model: typeof import('../../cms/mdx-document.js')) => void; }
+                interface Window { initBlogEditor: (model: typeof import('../../cms/mdx-document.js'), preview: typeof import('../../cms/preview-runtime.js').preview, katexStyle: string) => void; }
             }
             // Classic scripts above register controls before this deferred module runs.
-            window.initBlogEditor(model);
+            window.initBlogEditor(model, preview, katexStyle);
         </script>
     </body>
 </html>

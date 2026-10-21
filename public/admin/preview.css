@@ -4,3 +4,26 @@ body { margin: 24px; font: 16px/1.7 system-ui, sans-serif; color: #263544; overf
 .blog-preview pre { overflow: auto; padding: 12px; background: #f1f5f9; }
 .blog-preview__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: center; }
 .blog-preview__protected { padding: 12px; background: #f1f5f9; color: #52636f; }
+.blog-preview-notice { --notice: #3178b5; margin: 20px 0; padding: 12px 16px; border-left: 4px solid var(--notice); border-radius: 6px; background: color-mix(in srgb, var(--notice) 9%, white); }
+.blog-preview-notice--tip { --notice: #188064; }
+.blog-preview-notice--important { --notice: #8250b5; }
+.blog-preview-notice--warning { --notice: #9b7000; }
+.blog-preview-notice--caution { --notice: #bc3541; }
+.blog-preview-notice__title { color: var(--notice); font-weight: 700; }
+.blog-preview-notice__title p { margin: 0; }
+.blog-preview-notice > :last-child { margin-bottom: 0; }
+.blog-preview-spoiler { display: inline; padding: 1px 5px; border: 0; border-radius: 4px; background: #455e79; color: inherit; font: inherit; cursor: pointer; }
+.blog-preview-spoiler__text { opacity: 0; }
+.blog-preview-spoiler:hover, .blog-preview-spoiler:focus-visible, .blog-preview-spoiler.is-revealed { background: #e7edf3; }
+.blog-preview-spoiler:hover > .blog-preview-spoiler__text, .blog-preview-spoiler:focus-visible > .blog-preview-spoiler__text, .blog-preview-spoiler.is-revealed > .blog-preview-spoiler__text { opacity: 1; }
+.blog-preview-math .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 6px 0; }
+.blog-preview-error { color: #ac2537; white-space: pre-wrap; overflow-wrap: anywhere; }
+.blog-preview-diagram { margin: 20px 0; padding: 12px; border: 1px solid #d8e1e9; border-radius: 8px; overflow: auto; }
+.blog-preview-diagram__svg svg { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto; }
+.blog-preview-diagram button, .blog-preview-song button { border: 1px solid #becbd7; border-radius: 5px; padding: 6px 12px; background: #fff; color: #263544; font: inherit; cursor: pointer; }
+.blog-preview-song { margin: 20px 0; padding: 16px; border: 1px solid #d8e1e9; border-radius: 10px; background: #f8fafc; }
+.blog-preview-song__header { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.blog-preview-song__header .blog-preview-song__cover { width: 96px !important; height: 96px !important; object-fit: cover; margin: 0; border-radius: 8px; }
+.blog-preview-song h3, .blog-preview-song p { margin: 0 0 6px; }
+.blog-preview-song__lyrics { margin-top: 16px; padding-top: 12px; border-top: 1px solid #d8e1e9; white-space: pre-wrap; }
+.blog-preview-table { overflow-x: auto; }

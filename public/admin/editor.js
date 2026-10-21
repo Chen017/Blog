@@ -3,7 +3,7 @@
     // A plain Markdown serializer cannot round-trip directives, JSX or math.
     const needsSource = value => /(^\s*(?:import|export)\s|^\s*:{2,}|^>\s*\[!|:[\w-]+\\?\[|^\s*(?:`{3,}|~{3,})\s*(?:mermaid|math)\b|^\s*\$\$|\$[^\n]+\$|<\/?[A-Za-z][^>]*>)/m.test(value || '');
     const markdown = CMS.getWidget('markdown');
-    let mdxModel, MdxVisual;
+    let mdxModel, MdxVisual, MarkdownPreview = markdown.preview;
     const AssetBoundary = createClass({
         getInitialState() { return { revision: 0 }; },
         componentDidMount() { this.mounted = true; this.attempts = 0; this.watch(); },
@@ -174,7 +174,7 @@
         const body = props.fields.find(field => field.get('name') === 'body');
         const cover = props.fields.find(field => field.get('name') === 'cover');
         const mdx = body?.get('mdx_visual') && mdxModel?.parseDocument(data.get('body') || '');
-        const preview = value => h(markdown.preview, { ...props, getAsset, field: body, value });
+        const preview = value => h(MarkdownPreview, { ...props, getAsset, field: body, value });
         return h('article', { className: 'blog-preview' },
             data.get('title') && h('h1', {}, data.get('title')),
             data.get('published') && h('p', {}, String(data.get('published')).slice(0, 10)),
@@ -182,16 +182,18 @@
             mdx && !mdx.error ? mdx.segments.map((segment, index) => segment.type === 'images'
                 ? h('div', { key: index, className: segment.images.length > 1 ? 'blog-preview__grid' : '' }, segment.images.map((image, imageIndex) => h('img', {
                     key: imageIndex, src: String(getAsset(image.src, body.get('fields').find(field => field.get('name') === 'component_image'))), alt: image.alt })))
-                : segment.type === 'prose' ? h('div', { key: index }, preview(segment.raw))
+                : segment.type === 'prose' || segment.type === 'protected' && segment.previewable ? h('div', { key: index }, preview(segment.raw))
                     : segment.type === 'protected' ? h('p', { key: index, className: 'blog-preview__protected' }, `自定义区块：${segment.name}（完整效果请查看文章页）`) : null)
                 : preview(data.get('body') || ''));
     } });
     for (const name of ['posts', 'mdx', 'about', 'links_intro']) CMS.registerPreviewTemplate(name, ContentPreview);
     CMS.registerPreviewStyle('/admin/preview.css');
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
-    window.initBlogEditor = model => {
+    window.initBlogEditor = (model, preview, katexStyle) => {
         mdxModel = model;
         MdxVisual = window.createBlogMdxEditor(model, AssetBoundary);
+        if (preview) MarkdownPreview = window.createBlogPreview(preview, markdown, AssetBoundary);
+        if (katexStyle) CMS.registerPreviewStyle(katexStyle, { raw: true });
         CMS.init(local ? { config: { local_backend: { url: 'http://127.0.0.1:8081/api/v1' } } } : {});
     };
 })();

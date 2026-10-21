@@ -13,6 +13,7 @@ const attributes = node => node.attributes || [];
 const attr = (node, name) => attributes(node).find(item => item.type === 'mdxJsxAttribute' && item.name === name);
 const isSpecial = node => /^mdx|Directive$/.test(node.type) || ['math', 'inlineMath', 'imageReference', 'definition'].includes(node.type)
     || children(node).some(isSpecial);
+const containsMdx = node => /^mdx/.test(node.type) || children(node).some(containsMdx);
 
 function image(node, imports) {
     if (node.type !== 'mdxJsxFlowElement' || node.name !== 'img' || children(node).length) return null;
@@ -63,7 +64,8 @@ export function parseDocument(source = '') {
             prose(start(node));
             const images = imageGroup(node, imports);
             segments.push({ type: node.type === 'mdxjsEsm' ? 'code' : images ? 'images' : 'protected',
-                name: node.name || node.type, start: start(node), end: end(node), raw: source.slice(start(node), end(node)), images });
+                name: node.name || node.type, start: start(node), end: end(node), raw: source.slice(start(node), end(node)), images,
+                previewable: !containsMdx(node) });
             cursor = end(node);
         }
         prose(source.length);
