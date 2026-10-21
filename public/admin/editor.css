@@ -15,3 +15,4 @@
 .blog-tools__insert { padding: 10px 16px; border: 0; border-radius: 5px; background: #087e9e; color: white; cursor: pointer; font: inherit; }
 .blog-tools__insert:hover { background: #076880; }
 .blog-tools__insert:focus-visible { outline: 2px solid #263544; outline-offset: 2px; }
+.blog-tools__mode { margin: 0 0 12px; padding: 8px 12px; border: 1px solid #becbd7; border-radius: 5px; background: #fff; color: #263544; cursor: pointer; }

@@ -14,7 +14,7 @@ collections:
   - name: posts
     label: 文章
     label_singular: 文章
-    description: 普通文章支持富文本；含歌曲、提示框、公式等扩展语法的文章会自动使用源码模式。
+    description: 默认使用 Markdown 源码；普通文章也可切换富文本，高级语法保持源码编辑。
     folder: src/content/posts
     create: true
     format: yaml-frontmatter
@@ -93,7 +93,8 @@ collections:
         name: comment
         widget: boolean
         required: false
-        default: true
+        default: false
+        hint: 默认关闭；网站全局评论开关当前也关闭。
       - label: 密码保护
         name: encrypted
         widget: boolean
@@ -236,7 +237,8 @@ collections:
         name: comment
         widget: boolean
         required: false
-        default: true
+        default: false
+        hint: 默认关闭；网站全局评论开关当前也关闭。
       - label: 密码保护
         name: encrypted
         widget: boolean

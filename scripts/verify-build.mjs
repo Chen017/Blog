@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, access, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse } from 'node-html-parser';
+import { verifyCardImages } from './lib/verify-card-images.mjs';
 
 const output = resolve('dist');
 for (const file of ['index.html', 'archive/index.html', 'friends/index.html', 'about/index.html', 'skills/index.html', 'admin/index.html', 'admin/config.yml', 'admin/editor.js', '404.html', 'rss.xml', 'atom.xml', 'sitemap-index.xml', 'pagefind/pagefind.js', 'pagefind/pagefind-entry.json']) {
@@ -21,10 +22,7 @@ for (const font of preloadedFonts) {
 assert.ok(!home.querySelector('#loading-overlay'), 'Content must not wait for a loading screen');
 assert.equal(home.querySelectorAll('astro-island[component-url*="statistics"]').length, 1, 'Only one statistics island per page');
 assert.ok(home.querySelector('#banner picture source[media]'), 'Use one responsive banner image');
-for (const image of home.querySelectorAll('.post-card img')) {
-  assert.ok(image.getAttribute('src').startsWith('/_astro/'), 'Process card covers at build time');
-  assert.ok(image.getAttribute('srcset'), 'Card covers need responsive sizes');
-}
+await verifyCardImages(home, output);
 assert.ok(home.querySelector('[id^="profile-"] img[srcset]'), 'Optimize the author avatar');
 assert.ok(home.querySelector('nav[aria-label="Pagination"] button[disabled][aria-label="Previous Page"]'), 'Unavailable pagination uses a named disabled button');
 assert.ok(!home.querySelector('a[href=""]'), 'Do not output empty navigation links');
@@ -55,7 +53,7 @@ for (const removed of ['albums/index.html','anime/index.html','diary/index.html'
   await assert.rejects(access(resolve(output, removed)), { code: 'ENOENT' }, `Removed feature still generated: ${removed}`);
 }
 const admin = await readFile(resolve(output,'admin/index.html'),'utf8');
-for (const file of ['admin/components.js', 'admin/editor.css']) await access(resolve(output, file));
+for (const file of ['admin/components.js', 'admin/editor.css', 'admin/preview.css']) await access(resolve(output, file));
 assert.ok(admin.indexOf('/admin/components.js') < admin.indexOf('/admin/editor.js'), 'Load component serializers before the editor');
 assert.match(admin, /decap-cms@3\.17\.1\//);
 const cmsConfig = await readFile(resolve(output,'admin/config.yml'),'utf8');

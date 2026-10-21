@@ -5,7 +5,7 @@
     const markdown = CMS.getWidget('markdown');
     const SafeMarkdown = createClass({
         getInitialState() {
-            return { source: this.props.field.get('force_raw') || needsSource(this.props.value), kind: 'song',
+            return { source: this.props.field.get('force_raw') || needsSource(this.props.value), richText: false, kind: 'song',
                 song: { title: '', artist: '', cover: '', audio: '', lyrics: '', lyricOffset: '0.35' },
                 selected: null, image: '', alt: '', text: '', noteType: 'note', error: '', notice: '', revision: 0 };
         },
@@ -93,10 +93,16 @@
         render() {
             const source = this.state.source || this.props.field.get('force_raw') || needsSource(this.props.value);
             const available = this.props.field.get('modes') || this.props.field.keySeq().take(0).concat(['rich_text', 'raw']).toList();
-            const modes = source ? available.filter(mode => mode === 'raw') : available;
+            // Use the documented modes setting instead of Decap's shared browser
+            // preference, so every article starts in Markdown on every device.
+            const mode = !source && this.state.richText ? 'rich_text' : 'raw';
+            const modes = available.filter(candidate => candidate === mode);
             const field = this.props.field.set('modes', modes).set('sanitize_preview', true);
             return h('div', {},
                 this.componentForm(),
+                !source && h('button', { type: 'button', className: 'blog-tools__mode',
+                    onClick: () => this.setState({ richText: !this.state.richText, revision: this.state.revision + 1 }) },
+                    this.state.richText ? '切换为 Markdown' : '切换为富文本'),
                 source && h('p', { style: { color: '#52636f', fontSize: '13px', marginBottom: '8px' } }, '此文章包含高级语法，使用源码编辑以保留原有内容；最终效果以博客页面为准。'),
                 // Recreate CodeMirror/Slate after a form insertion; these editors keep
                 // their own document and do not always adopt external value changes.
@@ -106,6 +112,22 @@
         },
     });
     CMS.registerWidget('safe-markdown', SafeMarkdown, markdown.preview);
+    // Decap memoizes widget previews by value/getAsset. Asset completion changes
+    // neither, leaving the initial empty SVG visible until the article is edited.
+    // Render the Markdown preview directly so store updates can resolve images,
+    // including requests that finish inside the same React update batch.
+    const ContentPreview = props => {
+        const data = props.entry.get('data');
+        const body = props.fields.find(field => field.get('name') === 'body');
+        const cover = props.fields.find(field => field.get('name') === 'cover');
+        return h('article', { className: 'blog-preview' },
+            data.get('title') && h('h1', {}, data.get('title')),
+            data.get('published') && h('p', {}, String(data.get('published')).slice(0, 10)),
+            data.get('cover') && h('img', { src: String(props.getAsset(data.get('cover'), cover)), alt: '' }),
+            h(markdown.preview, { ...props, field: body, value: data.get('body') || '' }));
+    };
+    for (const name of ['posts', 'mdx', 'about', 'links_intro']) CMS.registerPreviewTemplate(name, ContentPreview);
+    CMS.registerPreviewStyle('/admin/preview.css');
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
     CMS.init(local ? { config: { local_backend: { url: 'http://127.0.0.1:8081/api/v1' } } } : {});
 })();
