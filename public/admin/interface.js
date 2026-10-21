@@ -1,6 +1,6 @@
 /* Presentation only: fields stay mounted and keep their original frontmatter names. */
 (() => {
-    const names = ['coverInContent', 'pinned', 'draft', 'lang', 'routeName', 'comment', 'encrypted', 'password', 'copyProtection'];
+    const names = ['updated', 'coverInContent', 'pinned', 'draft', 'lang', 'routeName', 'comment', 'encrypted', 'password', 'copyProtection'];
     let group, queued = false, route = location.hash;
     const refresh = () => {
         queued = false;

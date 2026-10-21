@@ -44,13 +44,6 @@ collections:
         format: YYYY-MM-DD
         date_format: YYYY-MM-DD
         time_format: false
-      - label: 更新日期
-        name: updated
-        widget: datetime
-        required: false
-        format: YYYY-MM-DD
-        date_format: YYYY-MM-DD
-        time_format: false
       - label: 摘要
         name: description
         widget: text
@@ -63,6 +56,13 @@ collections:
         name: cover
         widget: image
         required: false
+      - label: 更新日期
+        name: updated
+        widget: datetime
+        required: false
+        format: YYYY-MM-DD
+        date_format: YYYY-MM-DD
+        time_format: false
       - label: 正文显示封面
         name: coverInContent
         widget: boolean
@@ -188,13 +188,6 @@ collections:
         format: YYYY-MM-DD
         date_format: YYYY-MM-DD
         time_format: false
-      - label: 更新日期
-        name: updated
-        widget: datetime
-        required: false
-        format: YYYY-MM-DD
-        date_format: YYYY-MM-DD
-        time_format: false
       - label: 摘要
         name: description
         widget: text
@@ -207,6 +200,13 @@ collections:
         name: cover
         widget: image
         required: false
+      - label: 更新日期
+        name: updated
+        widget: datetime
+        required: false
+        format: YYYY-MM-DD
+        date_format: YYYY-MM-DD
+        time_format: false
       - label: 正文显示封面
         name: coverInContent
         widget: boolean
