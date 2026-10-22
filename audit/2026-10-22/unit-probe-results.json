@@ -1,0 +1,22 @@
+{
+  "tocTurnsEscapedTextIntoImageElement": true,
+  "twikooInitCallsDuringNormalPageLoad": 2,
+  "archiveDateInLosAngeles": {
+    "year": 2024,
+    "month": 12,
+    "day": 31
+  },
+  "rssDisplaysMdxImportSource": true,
+  "atomDisplaysMdxImportSource": true,
+  "relativeFeedImage": {
+    "expectedImageKey": "/src/content/posts/to-feel-not-fight/image.png",
+    "requestedImageKeys": [
+      "/src/content/to-feel-not-fight/image.png"
+    ],
+    "outputContent": "<p><img src=\"../to-feel-not-fight/image.png\" alt=\"Sibling\" /></p>\n"
+  },
+  "newPostCli": {
+    "file": "src\\content\\posts\\review-cli.md",
+    "publishesByDefault": true
+  }
+}

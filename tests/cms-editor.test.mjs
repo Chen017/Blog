@@ -12,6 +12,7 @@ function load(hostname) {
     const timers = [];
     const window = { createBlogMdxEditor: (_model, boundary) => { assetBoundary = boundary; return 'MdxVisual'; } };
     const previews = {};
+    const events = {};
     const context = vm.createContext({
         location: { hostname },
         window,
@@ -24,14 +25,24 @@ function load(hostname) {
             registerWidget: (_name, control) => { widget = control; },
             registerPreviewTemplate: (name, preview) => { previews[name] = preview; },
             registerPreviewStyle: () => {},
+            registerEventListener: event => { events[event.name] = event.handler; },
             init: value => { config = value; },
         },
     });
     vm.runInContext(components, context);
     vm.runInContext(script, context);
     window.initBlogEditor({});
-    return { widget, config, previews, assetBoundary, timers };
+    return { widget, config, previews, assetBoundary, timers, events };
 }
+test('CMS refuses to save encrypted content without a password and preserves valid data', () => {
+    const { events } = load('www.etalib.space');
+    for (const password of ['', '  ', undefined]) {
+        const data = new Map([['encrypted', true], ['password', password]]);
+        assert.throws(() => events.preSave({ entry: new Map([['data', data]]) }), /密码/);
+    }
+    const data = new Map([['encrypted', true], ['password', 'private']]);
+    assert.equal(events.preSave({ entry: new Map([['data', data]]) }), data);
+});
 test('advanced article syntax locks source mode; ordinary text can switch modes', () => {
     const { widget } = load('www.etalib.space');
     const source = (value, force = false) => widget.getInitialState.call({

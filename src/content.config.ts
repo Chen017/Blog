@@ -3,6 +3,7 @@ import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 import { getCategoryPathParts } from "@utils/category";
+import { hasValidPostPassword } from "@utils/post-security";
 
 
 // Helper for handling dates that might be empty strings from JSON
@@ -58,6 +59,9 @@ const postsCollection = defineCollection({
         prevSlug: z.string().default(""),
         nextTitle: z.string().default(""),
         nextSlug: z.string().default(""),
+    }).refine(hasValidPostPassword, {
+        message: "Encrypted posts require a non-empty password.",
+        path: ["password"],
     }),
 });
 

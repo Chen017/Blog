@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFile, writeFile, unlink } from 'node:fs/promises';
+import { readFile, writeFile, unlink, mkdir, rmdir, readdir } from 'node:fs/promises';
 import { parse } from 'node-html-parser';
 import vm from 'node:vm';
 
@@ -18,6 +18,7 @@ const formContent = [
 
 // Temporary posts exercise the actual Astro/MDX pipeline, then leave no content behind.
 const created = [];
+const createdDirectories = [];
 const body = `
 ## Integration check
 
@@ -45,12 +46,39 @@ graph LR
 ${formContent}
 `;
 try {
+  const protectedFile = 'src/content/posts/beta-protected.md';
+  await writeFile(protectedFile, `---\ntitle: Protected regression\npublished: 2026-10-22\nencrypted: true\npassword: regression-password\n---\n\nPRIVATE_REGRESSION_BODY_78521\n\n## Protected heading\n\n![Unlock image](/favicon/icon.png)\n`, { flag: 'wx' });
+  created.push(protectedFile);
+  await mkdir('src/content/posts/beta-route');
+  createdDirectories.push('src/content/posts/beta-route');
+  const routeFile = 'src/content/posts/beta-route/index.md';
+  await writeFile(routeFile, `---\ntitle: Route regression\npublished: 2026-10-22\nrouteName: /posts/beta-canonical/\n---\n\nPublic route regression.\n\n## \`<img src=x onerror="document.documentElement.dataset.tocRegression='unsafe'">\`\n\n![Parent directory image](../to-feel-not-fight/image.png)\n`, { flag: 'wx' });
+  created.push(routeFile);
   for (const extension of ['md', 'mdx']) {
     const file = `src/content/posts/beta-regression-${extension}.${extension}`;
     await writeFile(file, `---\ntitle: Beta regression ${extension}\npublished: 2026-01-01\ncategory: Beta\n---\n${body}`, { flag: 'wx' });
     created.push(file);
   }
-  execFileSync(process.execPath, ['scripts/build-with-pagefind.cjs'], { stdio: 'inherit' });
+  execFileSync(process.execPath, ['scripts/build-with-pagefind.cjs'], { stdio: 'inherit', env: { ...process.env, UMAMI_API_KEY: 'BUILD_ONLY_SECRET_CANARY_65291' } });
+  const home = await readFile('dist/index.html', 'utf8');
+  assert.ok(!home.includes('PRIVATE_REGRESSION_BODY_78521'), 'Protected body must not become a home excerpt');
+  assert.ok(home.includes('/posts/beta-canonical/') && !home.includes('/posts/posts/beta-canonical/'), 'Use canonical route links');
+  const protectedPage = parse(await readFile('dist/posts/beta-protected/index.html', 'utf8'));
+  assert.ok(protectedPage.querySelector('[data-encrypted]'));
+  assert.ok(!protectedPage.textContent.includes('PRIVATE_REGRESSION_BODY_78521'));
+  for (const file of (await readdir('dist', { recursive: true })).filter(file => /\.(?:html|js|mjs|json|yml)$/.test(file))) {
+    const text = await readFile(`dist/${file}`, 'utf8');
+    assert.ok(!text.includes('BUILD_ONLY_SECRET_CANARY_65291'), `${file}: build credentials leaked into public output`);
+    assert.ok(!text.includes('data-umami-api-key'), `${file}: analytics credential attribute in public output`);
+  }
+  for (const feedFile of ['rss.xml', 'atom.xml']) {
+    const feed = await readFile(`dist/${feedFile}`, 'utf8');
+    assert.ok(!feed.includes('PRIVATE_REGRESSION_BODY_78521'));
+    assert.ok(!feed.includes('import saltImg1 from'));
+    assert.ok(!feed.includes('src={saltImg1.src}'));
+    assert.ok(feed.includes('https://www.etalib.space/_astro/'), 'Feed images must have public absolute URLs');
+    assert.ok(!feed.includes('../to-feel-not-fight/image.png'), 'Parent-directory images must be resolved');
+  }
   for (const extension of ['md', 'mdx']) {
     const html = parse(await readFile(`dist/posts/beta-regression-${extension}/index.html`, 'utf8'));
     for (const selector of ['.katex', '.mermaid[data-mermaid-code]', '[data-song-card]', 'spoiler', '.expressive-code', '.collapse-btn']) {
@@ -74,4 +102,5 @@ try {
   console.log('Markdown and MDX: math, Mermaid, song, spoiler and code controls verified.');
 } finally {
   await Promise.all(created.map(file => unlink(file)));
+  for (const directory of createdDirectories) await rmdir(directory);
 }

@@ -9,6 +9,7 @@ import { i18n } from "@i18n/translation";
 import I18nKey from "@i18n/i18nKey";
 import ImageWrapper from "@components/common/imageWrapper.astro";
 import PostMetadata from "./postMeta.astro";
+import { publicPostDescription } from "@utils/post-security";
 
 
 interface Props {
@@ -70,7 +71,7 @@ const defaultCoverGradient = "linear-gradient(135deg, color-mix(in oklch, oklch(
         <PostMetadata published={published!} updated={updated} category={category || undefined} hideUpdateDate={true} postUrl={url} className="mb-4"></PostMetadata>
         <!-- description -->
         <div class:list={["transition text-75 mb-3.5 pr-4", {"line-clamp-2 @min-[768px]:line-clamp-1": !description}]}>
-            { description || remarkPluginFrontmatter.excerpt }
+            { publicPostDescription(entry.data, remarkPluginFrontmatter.excerpt) }
         </div>
         <!-- word count and read time  -->
         <div class="text-sm text-black/50 dark:text-white/50 flex gap-4 transition">

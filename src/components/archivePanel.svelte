@@ -39,8 +39,8 @@ onMount(() => {
 
 function formatDate(date: Date | string) {
     const d = new Date(date);
-    const month = (d.getMonth() + 1).toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, "0");
+    const day = d.getUTCDate().toString().padStart(2, "0");
     return `${month}-${day}`;
 }
 
@@ -83,7 +83,7 @@ let groups = $derived.by(() => {
 
     const grouped = filteredPosts.reduce(
         (acc, post) => {
-            const year = post.data.published.getFullYear();
+            const year = post.data.published.getUTCFullYear();
             if (!acc[year]) {
                 acc[year] = [];
             }

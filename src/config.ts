@@ -20,6 +20,7 @@ type ConfigFile = {
     umami: {
         enabled: boolean;
         apiKey?: string;
+        websiteId?: string;
         baseUrl: string;
         scripts?: string;
     };
@@ -33,6 +34,9 @@ type ConfigFile = {
 };
 
 const config = yaml.load(rawConfig) as ConfigFile;
+if (config.umami.apiKey) {
+    throw new Error('Move umami.apiKey out of twilight.config.yaml into the build environment variable UMAMI_API_KEY.');
+}
 
 const normalizeFavicons = (favicons: FaviconInput[] | undefined): Favicon[] =>
     (favicons ?? [])
@@ -103,8 +107,8 @@ export const siteConfig: SiteConfig = {
 // Umami统计配置
 export const umamiConfig = {
     enabled: config.umami.enabled,
-    apiKey: import.meta.env.UMAMI_API_KEY ?? config.umami.apiKey,
     baseUrl: config.umami.baseUrl,
+    websiteId: config.umami.websiteId || (config.umami.scripts || '').match(/data-website-id="([^"]+)"/)?.[1] || '',
     scripts: import.meta.env.UMAMI_TRACKING_CODE ?? config.umami.scripts,
 } as const;
 

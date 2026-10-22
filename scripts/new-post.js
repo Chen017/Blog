@@ -1,59 +1,34 @@
-/* This is a script to create a new post markdown file with front-matter */
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import yaml from 'js-yaml';
 
-import fs from "fs"
-import path from "path"
-
-function getDate() {
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = String(today.getMonth() + 1).padStart(2, "0")
-  const day = String(today.getDate()).padStart(2, "0")
-
-  return `${year}-${month}-${day}`
+export function createPost(name, root = process.cwd(), today = new Date()) {
+    const extension = /\.mdx$/i.test(name) ? 'mdx' : 'md';
+    const slug = name.replace(/\.(?:md|mdx)$/i, '').replace(/\\/g, '/');
+    if (!slug || path.posix.isAbsolute(slug) || slug.split('/').some(part => !part || part === '.' || part === '..') || /[<>:"|?*\u0000-\u001f]/.test(slug)) {
+        throw new Error('Use a relative post slug without reserved filename characters.');
+    }
+    const file = path.resolve(root, 'src/content/posts', slug, `index.${extension}`);
+    const base = path.resolve(root, 'src/content/posts') + path.sep;
+    if (!file.startsWith(base)) throw new Error('Post path must stay inside src/content/posts.');
+    if (fs.existsSync(file) || fs.existsSync(file.replace(/\.mdx?$/, extension === 'md' ? '.mdx' : '.md'))) {
+        throw new Error('This post already exists.');
+    }
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const content = { title: path.posix.basename(slug), published: date, description: '', cover: '',
+        category: '', draft: true, lang: '', comment: false, encrypted: false, coverInContent: false, pinned: false };
+    fs.writeFileSync(file, `---\n${yaml.dump(content, { lineWidth: -1 })}---\n\n`, { flag: 'wx' });
+    return file;
 }
 
-const args = process.argv.slice(2)
-
-if (args.length === 0) {
-  console.error(`Error: No filename argument provided
-Usage: npm run new-post -- <filename>`)
-  process.exit(1) // Terminate the script and return error code 1
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+    try {
+        if (!process.argv[2]) throw new Error('Usage: pnpm new-post <slug[.md|.mdx]>');
+        console.log(`Draft created: ${createPost(process.argv[2])}`);
+    } catch (error) {
+        console.error(error.message);
+        process.exitCode = 1;
+    }
 }
-
-let fileName = args[0]
-
-// Add .md extension if not present
-const fileExtensionRegex = /\.(md|mdx)$/i
-if (!fileExtensionRegex.test(fileName)) {
-  fileName += ".md"
-}
-
-const targetDir = "./src/content/posts/"
-const fullPath = path.join(targetDir, fileName)
-
-if (fs.existsSync(fullPath)) {
-  console.error(`Error: File ${fullPath} already exists `)
-  process.exit(1)
-}
-
-// recursive mode creates multi-level directories
-const dirPath = path.dirname(fullPath)
-if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true })
-}
-
-const content = `---
-title: ${args[0]}
-published: ${getDate()}
-description: ''
-cover: ''
-tags: []
-category: ''
-draft: false 
-lang: ''
----
-`
-
-fs.writeFileSync(path.join(targetDir, fileName), content)
-
-console.log(`Post ${fullPath} created`)

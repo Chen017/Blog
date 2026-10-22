@@ -1,0 +1,19 @@
+{
+  "environment": "Local production preview on loopback, port 4328",
+  "toc": {
+    "originalHeadingWasInlineCode": true,
+    "injectedImageCount": 4,
+    "documentElementDatasetReviewToc": "executed",
+    "payloadEffect": "Only set a test DOM data attribute; no network or credential access"
+  },
+  "protectedImage": {
+    "decryptedContentDisplay": "block",
+    "fancyboxStylesLoaded": [],
+    "fancyboxDialogCountAfterClick": 0
+  },
+  "home": {
+    "privateFirstParagraphVisibleWithoutPassword": true,
+    "customRouteLink": "/posts/posts/review-custom/"
+  },
+  "cleanup": "Temporary content source files removed; normal production build rerun; temporary preview stopped"
+}

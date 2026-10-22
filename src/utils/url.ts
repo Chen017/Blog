@@ -3,6 +3,7 @@ import type { CollectionEntry } from "astro:content";
 import { CATEGORY_SEPARATOR } from "@utils/category";
 import { i18n } from "@i18n/translation";
 import I18nKey from "@i18n/i18nKey";
+import { normalizePostRoute } from "./route-name";
 
 
 export function pathsEqual(path1: string, path2: string) {
@@ -28,7 +29,7 @@ export function getPostUrlBySlug(slug: string): string {
 
 export function getPostUrlByRouteName(routeName: string): string {
     // 移除开头的斜杠并确保固定链接在 /posts/ 路径下
-    const cleanRouteName = routeName.replace(/^\/+/, "");
+    const cleanRouteName = normalizePostRoute(routeName);
     return url(`/posts/${cleanRouteName}/`);
 }
 

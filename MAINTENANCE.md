@@ -27,6 +27,7 @@ Keep functional article fields in the schema. Unreferenced tags/attribution meta
 ## Verification
 
 - `pnpm check`
+- `pnpm type-check` uses the same Astro-aware checker, including `.astro` imports.
 - `pnpm test:unit`
 - `pnpm test:markdown` exercises temporary Markdown and MDX, then removes the fixtures.
 - `pnpm build` generates `dist`, Pagefind and validates required/removed paths.
@@ -34,3 +35,11 @@ Keep functional article fields in the schema. Unreferenced tags/attribution meta
 After `test:markdown`, run a normal build before packaging so temporary test pages cannot enter the release. Keep fixtures in `tests/fixtures/`, outside the production content loader.
 
 See [CMS_SETUP.md](CMS_SETUP.md) for writing and GitHub login setup. OAuth credentials are delivered from encrypted repository Secrets into the VPS `.env`, never browser files or the image build context. The deploy check verifies the auth route when credentials are configured.
+
+## Optional analytics counts
+
+The existing tracking script stays independent of the optional count display. When `umami.enabled` is enabled, set `umami.baseUrl` (for Cloud: `https://api.umami.is`) and `umami.websiteId` in the YAML. Supply `UMAMI_API_KEY` only to the build environment or local ignored `.env`; a nonempty YAML `apiKey` is rejected. Counts update on each build. API failures show the unavailable message, and credentials and raw API responses never become browser payloads.
+
+Docker builds can receive the optional key as a BuildKit secret: `docker build --secret id=umami_api_key,env=UMAMI_API_KEY -f dockerfile .`. The default Compose deployment leaves this optional count integration unconfigured. Do not pass secrets through build arguments or commit them in the site configuration.
+
+`pnpm new-post <slug[.md|.mdx]>` creates a draft at `src/content/posts/<slug>/index.md` or `index.mdx`; publishing requires explicitly changing `draft` to false. Encrypted articles require a nonblank password both when saved in the CMS and when built. Keep automatic excerpts out of their public cards.

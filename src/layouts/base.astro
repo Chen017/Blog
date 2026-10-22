@@ -242,6 +242,8 @@ import { initFancybox, cleanupFancybox } from "@utils/fancybox";
 import { setupParticleEffects, stopParticle } from "@utils/particle";
 import { announcePageReady, CLOSE_PANELS, PAGE_BEFORE_REPLACE } from "@utils/page-lifecycle";
 
+window.addEventListener('content-decrypted', () => { void initFancybox(); });
+
 const updateScrollControls = () => {
     const button = document.getElementById('back-to-top-btn');
     const visible = window.scrollY > Math.min(window.innerHeight * .66, 600);

@@ -1,6 +1,7 @@
 import { PAGE_READY, PAGE_BEFORE_REPLACE, getScrollBehavior } from "@utils/page-lifecycle";
 import { NAVBAR_HEIGHT } from "@constants/constants";
 import { widgetManager } from "@utils/widget";
+import { escapeHtml } from "@utils/html";
 
 
 export class TableOfContents extends HTMLElement {
@@ -264,11 +265,11 @@ export class TableOfContents extends HTMLElement {
                 const badgeContent = heading.depth === minDepth ? (heading1Count++) :
                     heading.depth === minDepth + 1 ? '<div class="transition w-2 h-2 rounded-[0.1875rem] bg-(--toc-badge-bg)"></div>' :
                     '<div class="transition w-1.5 h-1.5 rounded-xs bg-black/5 dark:bg-white/10"></div>';
-                return `<a href="#${heading.slug}" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl hover:bg-(--toc-btn-hover) active:bg-(--toc-btn-active) py-2">
+                return `<a href="#${encodeURIComponent(heading.slug)}" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl hover:bg-(--toc-btn-hover) active:bg-(--toc-btn-active) py-2">
                     <div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ${depthClass} ${heading.depth === minDepth ? 'bg-(--toc-badge-bg) text-(--btn-content)' : ''}">
                         ${badgeContent}
                     </div>
-                    <div class="transition text-sm ${heading.depth <= minDepth + 1 ? 'text-50' : 'text-30'}">${heading.text}</div>
+                    <div class="transition text-sm ${heading.depth <= minDepth + 1 ? 'text-50' : 'text-30'}">${escapeHtml(heading.text)}</div>
                 </a>`;
             }).join('');
 

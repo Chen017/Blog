@@ -5,14 +5,12 @@ import { profileConfig, umamiConfig } from "@/config";
 import { url } from "@utils/url";
 import { i18n } from "@i18n/translation";
 import I18nKey from "@i18n/i18nKey";
+import { getUmamiStats } from '@utils/umami-server';
 import ImageWrapper from "@/components/common/imageWrapper.astro";
 
 
-// 解析 umami
-const umamiEnabled = umamiConfig.enabled || false;
-const umamiWebsiteId = umamiConfig.scripts.match(/data-website-id="([^"]+)"/)?.[1] || "";
-const umamiApiKey = umamiConfig.apiKey || "";
-const umamiBaseUrl = umamiConfig.baseUrl || "";
+const umamiEnabled = umamiConfig.enabled;
+const stats = umamiEnabled ? await getUmamiStats() : null;
 
 interface Props {
     class?: string;
@@ -55,58 +53,10 @@ const id = `profile-${side}`;
             <hr class="my-2 border-t border-dashed border-gray-300 dark:border-gray-700" />
             <div class="text-sm text-gray-500 mt-2 text-center"
                  id="site-stats-container"
-                 data-umami-base-url={umamiBaseUrl}
-                 data-umami-api-key={umamiApiKey}
-                 data-umami-website-id={umamiWebsiteId}
-                 data-i18n-error={i18n(I18nKey.statsError)}
             >
                 <Icon name="fa6-solid:eye" class="inline-block mr-1 text-gray-400 text-sm align-middle" />
-                <span id="site-stats-display">统计加载中...</span>
+                <span id="site-stats-display">{stats ? `浏览量 ${stats.pageviews} · 访问次数 ${stats.visits}` : i18n(I18nKey.statsError)}</span>
             </div>
         )}
     </div>
 </div>
-
-{umamiEnabled && (
-    <script>
-        import "@/plugins/umami-share";
-
-        // 客户端统计文案生成函数
-        function generateStatsText(pageViews, visits) {
-            return `浏览量 ${pageViews} · 访问次数 ${visits}`;
-        }
-        // 获取访问量统计
-        async function fetchSiteStats() {
-            const container = document.getElementById('site-stats-container');
-            if (!container) return;
-
-            const umamiBaseUrl = container.dataset.umamiBaseUrl;
-            const umamiApiKey = container.dataset.umamiApiKey;
-            const umamiWebsiteId = container.dataset.umamiWebsiteId;
-            const i18nError = container.dataset.i18nError;
-
-            try {
-                // 调用全局工具获取 Umami 统计数据
-                // @ts-ignore
-                const stats = await window.getUmamiWebsiteStats(umamiBaseUrl, umamiApiKey, umamiWebsiteId);
-                // 从返回的数据中提取页面浏览量和访客数
-                const pageViews = stats.pageviews || 0;
-                const visits = stats.visits || 0;
-                // 更新页面上的显示内容
-                const displayElement = document.getElementById('site-stats-display');
-                if (displayElement) {
-                    displayElement.textContent = generateStatsText(pageViews, visits);
-                }
-            } catch (error) {
-                console.error('Error fetching site stats:', error);
-                const displayElement = document.getElementById('site-stats-display');
-                if (displayElement) {
-                    displayElement.textContent = i18nError || null;
-                }
-            }
-        }
-        // 页面加载完成后获取统计数据
-        fetchSiteStats();
-        document.addEventListener('astro:page-load', fetchSiteStats);
-    </script>
-)}

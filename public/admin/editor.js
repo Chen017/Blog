@@ -165,6 +165,13 @@
         },
     });
     CMS.registerWidget('safe-markdown', SafeMarkdown, markdown.preview);
+    CMS.registerEventListener?.({ name: 'preSave', handler: ({ entry }) => {
+        const data = entry.get('data');
+        if (data.get('encrypted') && !String(data.get('password') || '').trim()) {
+            throw new Error('开启密码保护后，请填写非空的文章密码再保存。');
+        }
+        return data;
+    } });
     // Decap memoizes widget previews by value/getAsset. Asset completion changes
     // neither, leaving the initial empty SVG visible until the article is edited.
     // Render the Markdown preview directly so store updates can resolve images,

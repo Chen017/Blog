@@ -1,0 +1,24 @@
+{
+  "protected": {
+    "homeLeaksFirstParagraph": true,
+    "protectedPageLeaksBody": false,
+    "encryptedPayloadPresent": true,
+    "rssLeaksBody": false,
+    "atomLeaksBody": false
+  },
+  "emptyPassword": {
+    "publishedAsPlaintext": true,
+    "passwordPromptPresent": false
+  },
+  "customRoute": {
+    "generatedAliasExists": true,
+    "linkedFromHome": [
+      "/posts/posts/review-custom/"
+    ],
+    "doublePrefixPathExists": false
+  },
+  "feed": {
+    "rssExposesMdxImports": true,
+    "atomExposesMdxImports": true
+  }
+}

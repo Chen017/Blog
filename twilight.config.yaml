@@ -55,7 +55,7 @@ site:
 umami:
   enabled: false
   baseUrl: ''
-  apiKey: ''
+  websiteId: ''
   scripts: ''
 navbar:
   links:
