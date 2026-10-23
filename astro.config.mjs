@@ -52,9 +52,6 @@ export default defineConfig({
             { src: ["./src/assets/fonts/MiSansLatin-Regular.woff2"], weight: 400, style: "normal" },
             { src: ["./src/assets/fonts/MiSansLatin-Semibold.woff2"], weight: 600, style: "normal" },
           ] } },
-        { name: "MiSans", cssVariable: "--font-misans-cn", provider: fontProviders.local(),
-          options: { variants: [{ src: ["./public/MiSans/woff2/MiSans-Normal.woff2"], weight: 400, style: "normal",
-            unicodeRange: ["U+2E80-9FFF", "U+F900-FAFF", "U+FE10-FE1F", "U+FE30-FE4F", "U+FF00-FFEF", "U+20000-323AF"] }] } },
     ],
     integrations: [
         expressiveCode({

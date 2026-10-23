@@ -1,7 +1,8 @@
 ---
 import type { ImageMetadata } from "astro";
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import path from "node:path";
+import DeferredImage from "./deferredImage.astro";
 
 import { url } from "@utils/url";
 import avatar from "../../assets/images/avatar.jpg";
@@ -60,17 +61,26 @@ const sourceWidth = optimizedSource?.width || 1448;
 const requestedWidths = responsive === "avatar" ? [128, 256, 512] : [320, 640, 960, 1280];
 const widths = [...new Set(requestedWidths.map(width => Math.min(width, sourceWidth)))];
 const sizes = responsive === "avatar" ? "(min-width: 1280px) 256px, 192px" : "auto, (min-width: 1408px) 320px, (min-width: 768px) 640px, 100vw";
+const avif = responsive === "card" && (optimizedSource || optimizedRemote) ? await getImage({
+    src: optimizedSource || src, inferSize: !optimizedSource, width: Math.min(640, sourceWidth),
+    widths, format: "avif", quality: 70,
+}) : undefined;
 ---
 
 <div id={id} class:list={[className, 'overflow-hidden relative']} style={style}>
     <div class="transition absolute inset-0 bg-black/3 dark:bg-black/9 pointer-events-none"></div>
+    <DeferredImage enabled={responsive === "card"}>
     {responsive && (optimizedSource || optimizedRemote) ? (
-        <Image src={optimizedSource || src} inferSize={!optimizedSource} width={Math.min(responsive === "avatar" ? 256 : 640, sourceWidth)}
-            {widths} {sizes} quality={82} format="webp" alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding} />
+        <picture class="block w-full h-full">
+            {avif && <source type="image/avif" srcset={avif.srcSet.attribute} {sizes} />}
+            <Image src={optimizedSource || src} inferSize={!optimizedSource} width={Math.min(responsive === "avatar" ? 256 : 640, sourceWidth)}
+                {widths} {sizes} quality={82} format="webp" alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding} />
+        </picture>
     ) : (
         <>
             {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding}/>}
             {!isLocal && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} {loading} {decoding}/>}
         </>
     )}
+    </DeferredImage>
 </div>

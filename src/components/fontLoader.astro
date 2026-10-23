@@ -2,9 +2,8 @@
 import { Font } from "astro:assets";
 ---
 <Font cssVariable="--font-misans-latin" preload={[{ weight: 400, style: "normal" }]} />
-<Font cssVariable="--font-misans-cn" />
 <style is:global>
-:root { --global-font-family: var(--font-misans-latin), var(--font-misans-cn), system-ui, sans-serif; }
+:root { --global-font-family: var(--font-misans-latin), system-ui, sans-serif; }
 body, button, input, select, textarea { font-family: var(--global-font-family); }
 .font-misans-normal, .font-misans-normal * { font-family: var(--global-font-family) !important; }
 </style>

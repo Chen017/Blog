@@ -1,0 +1,963 @@
+{
+  "performance": [
+    {
+      "label": "baseline",
+      "lcp": 4596,
+      "cls": 0.00268574639798332,
+      "shifts": [
+        {
+          "value": 0.00014892766680546605,
+          "nodes": []
+        },
+        {
+          "value": 0.00012200289088583376,
+          "nodes": []
+        },
+        {
+          "value": 0.000122423590509578,
+          "nodes": []
+        },
+        {
+          "value": 0.00016827984949770175,
+          "nodes": []
+        },
+        {
+          "value": 0.0006180077472803096,
+          "nodes": []
+        },
+        {
+          "value": 0.00011737519502464697,
+          "nodes": []
+        },
+        {
+          "value": 0.00042532731960544115,
+          "nodes": []
+        },
+        {
+          "value": 0.00011947869314336823,
+          "nodes": []
+        },
+        {
+          "value": 0.00012494778825204353,
+          "nodes": []
+        },
+        {
+          "value": 0.0001274719859945091,
+          "nodes": []
+        },
+        {
+          "value": 0.0003887264523396911,
+          "nodes": []
+        },
+        {
+          "value": 0.0001013886093223653,
+          "nodes": []
+        },
+        {
+          "value": 0.0001013886093223653,
+          "nodes": []
+        }
+      ],
+      "hero": "http://127.0.0.1:4333/_astro/mobileWallpaper.1e-v1V5L_27CUVH.webp",
+      "fonts": [
+        {
+          "family": "MiSans Latin-1d1bf54acb261963",
+          "status": "loaded"
+        },
+        {
+          "family": "MiSans Latin-1d1bf54acb261963",
+          "status": "loaded"
+        },
+        {
+          "family": "MiSans-9cf98f00b7dc3834",
+          "status": "loaded"
+        },
+        {
+          "family": "MiSans-9cf98f00b7dc3834 fallback: Arial",
+          "status": "loaded"
+        }
+      ],
+      "deferredTotal": 0,
+      "deferredLoaded": 0,
+      "overflow": false,
+      "localBytes": 5755018,
+      "fontBytes": 5013646,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4333/",
+          "type": "Document",
+          "bytes": 21245
+        },
+        {
+          "url": "https://cloud.umami.is/script.js",
+          "type": "Script",
+          "bytes": 25
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/grid.CQGvpFF8.css",
+          "type": "Stylesheet",
+          "bytes": 21017
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/mobileWallpaper.1e-v1V5L_27CUVH.webp",
+          "type": "Image",
+          "bytes": 225097
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/typewriterText.astro_astro_type_script_index_0_lang.BD4POwlf.js",
+          "type": "Script",
+          "bytes": 1113
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/toc.astro_astro_type_script_index_0_lang.CpkVwaN3.js",
+          "type": "Script",
+          "bytes": 306
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/avatar.DSlJlzBg_8FpK0.webp",
+          "type": "Image",
+          "bytes": 27664
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/tocButton.astro_astro_type_script_index_0_lang.CpkVwaN3.js",
+          "type": "Script",
+          "bytes": 306
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/back2TopButton.astro_astro_type_script_index_0_lang.oHZPmpee.js",
+          "type": "Script",
+          "bytes": 421
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/base.astro_astro_type_script_index_0_lang.BZX29UHB.js",
+          "type": "Script",
+          "bytes": 3885
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/page-lifecycle.D9Ee_trr.js",
+          "type": "Script",
+          "bytes": 503
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/toc.DLmPjUaD.js",
+          "type": "Script",
+          "bytes": 3165
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/hue.C-6EyzaX.js",
+          "type": "Script",
+          "bytes": 585
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/preload-helper.DHhhL8Zf.js",
+          "type": "Script",
+          "bytes": 1113
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/wallpaper.ByOeYOUp.js",
+          "type": "Script",
+          "bytes": 1627
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/config.DRISF19O.js",
+          "type": "Script",
+          "bytes": 16076
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/fonts/e6a4982ecde6b9b7.woff2",
+          "type": "Font",
+          "bytes": 61348
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/image-cerp.DdRO1LVC_Z20cIkm.webp",
+          "type": "Image",
+          "bytes": 62836
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/ecosystem_LnY7J.webp",
+          "type": "Image",
+          "bytes": 55526
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/cover.FAMUDCg3_Z18ieWX.webp",
+          "type": "Image",
+          "bytes": 55198
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/widget.Bu9XU5cx.js",
+          "type": "Script",
+          "bytes": 1957
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/constants.C8bOkoWK.js",
+          "type": "Script",
+          "bytes": 340
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/fonts/31e1da0e04d0148b.woff2",
+          "type": "Font",
+          "bytes": 69488
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/search.D2zTydDc.js",
+          "type": "Script",
+          "bytes": 2355
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/client.svelte.CLC_akRb.js",
+          "type": "Script",
+          "bytes": 759
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/displaySettings.DbXUK6ee.js",
+          "type": "Script",
+          "bytes": 1847
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/wallpaperSwitch.CZqW2Bge.js",
+          "type": "Script",
+          "bytes": 2171
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/cover.CcAdhNF3_Z2cWn4K.webp",
+          "type": "Image",
+          "bytes": 11302
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/navMenu.BhNR1J9g.js",
+          "type": "Script",
+          "bytes": 1469
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/disclose-version.xihTtKlq.js",
+          "type": "Script",
+          "bytes": 340
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/url.OQ3AE2Du.js",
+          "type": "Script",
+          "bytes": 594
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/translation.D0XX5aCT.js",
+          "type": "Script",
+          "bytes": 2259
+        },
+        {
+          "url": "http://127.0.0.1:4333/assets/images/particle.png",
+          "type": "Image",
+          "bytes": 9816
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/panel-lifecycle.wMO3O8YI.js",
+          "type": "Script",
+          "bytes": 7445
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/client.CQiekV9o.js",
+          "type": "Script",
+          "bytes": 18589
+        },
+        {
+          "url": "https://api.iconify.design/material-symbols.json?icons=archive%2Cchevron-right-rounded%2Cgroup%2Chide-image-outline%2Chome%2Cimage-outline%2Cinfo%2Cmenu-rounded%2Cpalette-outline%2Csearch%2Cwallpaper",
+          "type": "Fetch",
+          "bytes": 2194
+        },
+        {
+          "url": "https://api.iconify.design/fa6-solid.json?icons=arrow-rotate-left",
+          "type": "Fetch",
+          "bytes": 564
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/fonts/9105e66b76526976.woff2",
+          "type": "Font",
+          "bytes": 4882810
+        },
+        {
+          "url": "http://127.0.0.1:4333/favicon/icon.png",
+          "type": "Other",
+          "bytes": 182446
+        }
+      ]
+    },
+    {
+      "label": "font-only",
+      "lcp": 3728,
+      "cls": 0.021199083286970885,
+      "shifts": [
+        {
+          "value": 0.00012544497871646857,
+          "nodes": []
+        },
+        {
+          "value": 0.00011205908159733321,
+          "nodes": []
+        },
+        {
+          "value": 0.00011129417319052546,
+          "nodes": []
+        },
+        {
+          "value": 0.00016827984949770175,
+          "nodes": []
+        },
+        {
+          "value": 0.0006806919912182036,
+          "nodes": []
+        },
+        {
+          "value": 0.00011737519502464697,
+          "nodes": []
+        },
+        {
+          "value": 0.01844262110677819,
+          "nodes": [
+            {
+              "tag": "H1",
+              "id": "",
+              "previous": {
+                "x": 24.953125,
+                "y": 172.953125,
+                "width": 340.09375,
+                "height": 186.3125,
+                "top": 172.953125,
+                "right": 365.046875,
+                "bottom": 359.265625,
+                "left": 24.953125
+              },
+              "current": {
+                "x": 0,
+                "y": 202.953125,
+                "width": 390,
+                "height": 127,
+                "top": 202.953125,
+                "right": 390,
+                "bottom": 329.953125,
+                "left": 0
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.00042532731960544115,
+          "nodes": []
+        },
+        {
+          "value": 0.00011947869314336823,
+          "nodes": []
+        },
+        {
+          "value": 0.00012494778825204353,
+          "nodes": []
+        },
+        {
+          "value": 0.0001274719859945091,
+          "nodes": []
+        },
+        {
+          "value": 0.00012494778825204353,
+          "nodes": []
+        },
+        {
+          "value": 0.00041775472637804457,
+          "nodes": []
+        },
+        {
+          "value": 0.0001013886093223653,
+          "nodes": []
+        }
+      ],
+      "hero": "http://127.0.0.1:4333/_astro/mobileWallpaper.1e-v1V5L_27CUVH.webp",
+      "fonts": [
+        {
+          "family": "MiSans Latin-1d1bf54acb261963",
+          "status": "loaded"
+        },
+        {
+          "family": "MiSans Latin-1d1bf54acb261963",
+          "status": "loaded"
+        },
+        {
+          "family": "MiSans-9cf98f00b7dc3834",
+          "status": "unloaded"
+        },
+        {
+          "family": "MiSans-9cf98f00b7dc3834 fallback: Arial",
+          "status": "unloaded"
+        }
+      ],
+      "deferredTotal": 0,
+      "deferredLoaded": 0,
+      "overflow": false,
+      "localBytes": 965299,
+      "fontBytes": 130836,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4333/",
+          "type": "Document",
+          "bytes": 114336
+        },
+        {
+          "url": "https://cloud.umami.is/script.js",
+          "type": "Script",
+          "bytes": 25
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/typewriterText.astro_astro_type_script_index_0_lang.BD4POwlf.js",
+          "type": "Script",
+          "bytes": 1113
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/grid.CQGvpFF8.css",
+          "type": "Stylesheet",
+          "bytes": 21017
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/toc.astro_astro_type_script_index_0_lang.CpkVwaN3.js",
+          "type": "Script",
+          "bytes": 306
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/avatar.DSlJlzBg_8FpK0.webp",
+          "type": "Image",
+          "bytes": 27664
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/mobileWallpaper.1e-v1V5L_27CUVH.webp",
+          "type": "Image",
+          "bytes": 225097
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/tocButton.astro_astro_type_script_index_0_lang.CpkVwaN3.js",
+          "type": "Script",
+          "bytes": 306
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/back2TopButton.astro_astro_type_script_index_0_lang.oHZPmpee.js",
+          "type": "Script",
+          "bytes": 421
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/base.astro_astro_type_script_index_0_lang.BZX29UHB.js",
+          "type": "Script",
+          "bytes": 3885
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/page-lifecycle.D9Ee_trr.js",
+          "type": "Script",
+          "bytes": 503
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/hue.C-6EyzaX.js",
+          "type": "Script",
+          "bytes": 585
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/toc.DLmPjUaD.js",
+          "type": "Script",
+          "bytes": 3165
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/preload-helper.DHhhL8Zf.js",
+          "type": "Script",
+          "bytes": 1113
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/wallpaper.ByOeYOUp.js",
+          "type": "Script",
+          "bytes": 1627
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/config.DRISF19O.js",
+          "type": "Script",
+          "bytes": 16076
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/widget.Bu9XU5cx.js",
+          "type": "Script",
+          "bytes": 1957
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/fonts/e6a4982ecde6b9b7.woff2",
+          "type": "Font",
+          "bytes": 61348
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/search.D2zTydDc.js",
+          "type": "Script",
+          "bytes": 2355
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/client.svelte.CLC_akRb.js",
+          "type": "Script",
+          "bytes": 759
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/displaySettings.DbXUK6ee.js",
+          "type": "Script",
+          "bytes": 1847
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/wallpaperSwitch.CZqW2Bge.js",
+          "type": "Script",
+          "bytes": 2171
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/navMenu.BhNR1J9g.js",
+          "type": "Script",
+          "bytes": 1469
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/constants.C8bOkoWK.js",
+          "type": "Script",
+          "bytes": 340
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/disclose-version.xihTtKlq.js",
+          "type": "Script",
+          "bytes": 340
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/url.OQ3AE2Du.js",
+          "type": "Script",
+          "bytes": 594
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/panel-lifecycle.wMO3O8YI.js",
+          "type": "Script",
+          "bytes": 7445
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/image-cerp.DdRO1LVC_Z20cIkm.webp",
+          "type": "Image",
+          "bytes": 62836
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/translation.D0XX5aCT.js",
+          "type": "Script",
+          "bytes": 2259
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/client.CQiekV9o.js",
+          "type": "Script",
+          "bytes": 18589
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/cover.FAMUDCg3_Z18ieWX.webp",
+          "type": "Image",
+          "bytes": 55198
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/ecosystem_LnY7J.webp",
+          "type": "Image",
+          "bytes": 55526
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/cover.CcAdhNF3_Z2cWn4K.webp",
+          "type": "Image",
+          "bytes": 11302
+        },
+        {
+          "url": "http://127.0.0.1:4333/_astro/fonts/31e1da0e04d0148b.woff2",
+          "type": "Font",
+          "bytes": 69488
+        },
+        {
+          "url": "http://127.0.0.1:4333/assets/images/particle.png",
+          "type": "Image",
+          "bytes": 9816
+        },
+        {
+          "url": "http://127.0.0.1:4333/favicon/icon.png",
+          "type": "Other",
+          "bytes": 182446
+        }
+      ]
+    },
+    {
+      "label": "candidate",
+      "lcp": 3176,
+      "cls": 0.021114388803627097,
+      "shifts": [
+        {
+          "value": 0.00012544497871646857,
+          "nodes": []
+        },
+        {
+          "value": 0.00011205908159733321,
+          "nodes": []
+        },
+        {
+          "value": 0.0001279882991691043,
+          "nodes": []
+        },
+        {
+          "value": 0.00016827984949770175,
+          "nodes": []
+        },
+        {
+          "value": 0.00043374131208032623,
+          "nodes": []
+        },
+        {
+          "value": 0.00012789268561825333,
+          "nodes": []
+        },
+        {
+          "value": 0.00011905799351962399,
+          "nodes": []
+        },
+        {
+          "value": 0.01844262110677819,
+          "nodes": [
+            {
+              "tag": "H1",
+              "id": "",
+              "previous": {
+                "x": 24.953125,
+                "y": 172.953125,
+                "width": 340.09375,
+                "height": 186.3125,
+                "top": 172.953125,
+                "right": 365.046875,
+                "bottom": 359.265625,
+                "left": 24.953125
+              },
+              "current": {
+                "x": 0,
+                "y": 202.953125,
+                "width": 390,
+                "height": 127,
+                "top": 202.953125,
+                "right": 390,
+                "bottom": 329.953125,
+                "left": 0
+              }
+            }
+          ]
+        },
+        {
+          "value": 0.0004619281868711913,
+          "nodes": []
+        },
+        {
+          "value": 0.00008077432775889683,
+          "nodes": []
+        },
+        {
+          "value": 0.00011947869314336823,
+          "nodes": []
+        },
+        {
+          "value": 0.00012494778825204353,
+          "nodes": []
+        },
+        {
+          "value": 0.0005687858913022319,
+          "nodes": []
+        },
+        {
+          "value": 0.0001013886093223653,
+          "nodes": []
+        }
+      ],
+      "hero": "http://127.0.0.1:4334/_astro/mobileWallpaper.1e-v1V5L_uerqF.avif",
+      "fonts": [
+        {
+          "family": "MiSans Latin-1d1bf54acb261963",
+          "status": "loaded"
+        },
+        {
+          "family": "MiSans Latin-1d1bf54acb261963",
+          "status": "loaded"
+        }
+      ],
+      "deferredTotal": 7,
+      "deferredLoaded": 2,
+      "overflow": false,
+      "localBytes": 733767,
+      "fontBytes": 130836,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4334/",
+          "type": "Document",
+          "bytes": 23353
+        },
+        {
+          "url": "https://cloud.umami.is/script.js",
+          "type": "Script",
+          "bytes": 25
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/grid.CQsXhdIo.css",
+          "type": "Stylesheet",
+          "bytes": 21013
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/mobileWallpaper.1e-v1V5L_uerqF.avif",
+          "type": "Image",
+          "bytes": 167804
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/typewriterText.astro_astro_type_script_index_0_lang.BD4POwlf.js",
+          "type": "Script",
+          "bytes": 1113
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/avatar.DSlJlzBg_8FpK0.webp",
+          "type": "Image",
+          "bytes": 27664
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/toc.astro_astro_type_script_index_0_lang.CpkVwaN3.js",
+          "type": "Script",
+          "bytes": 306
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/tocButton.astro_astro_type_script_index_0_lang.CpkVwaN3.js",
+          "type": "Script",
+          "bytes": 306
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/back2TopButton.astro_astro_type_script_index_0_lang.oHZPmpee.js",
+          "type": "Script",
+          "bytes": 421
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/base.astro_astro_type_script_index_0_lang.BZX29UHB.js",
+          "type": "Script",
+          "bytes": 3885
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/page-lifecycle.D9Ee_trr.js",
+          "type": "Script",
+          "bytes": 503
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/toc.DLmPjUaD.js",
+          "type": "Script",
+          "bytes": 3165
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/hue.C-6EyzaX.js",
+          "type": "Script",
+          "bytes": 585
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/preload-helper.DHhhL8Zf.js",
+          "type": "Script",
+          "bytes": 1113
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/wallpaper.ByOeYOUp.js",
+          "type": "Script",
+          "bytes": 1627
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/config.DRISF19O.js",
+          "type": "Script",
+          "bytes": 16076
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/widget.Bu9XU5cx.js",
+          "type": "Script",
+          "bytes": 1957
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/fonts/e6a4982ecde6b9b7.woff2",
+          "type": "Font",
+          "bytes": 61348
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/search.yEwP1giF.js",
+          "type": "Script",
+          "bytes": 2368
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/client.svelte.BuOOZMWR.js",
+          "type": "Script",
+          "bytes": 759
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/displaySettings.Cg_bFWvL.js",
+          "type": "Script",
+          "bytes": 1856
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/wallpaperSwitch.C-Jb_bBq.js",
+          "type": "Script",
+          "bytes": 2187
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/navMenu.CPbLj_RS.js",
+          "type": "Script",
+          "bytes": 1478
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/constants.C8bOkoWK.js",
+          "type": "Script",
+          "bytes": 340
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/disclose-version.xihTtKlq.js",
+          "type": "Script",
+          "bytes": 340
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/url.OQ3AE2Du.js",
+          "type": "Script",
+          "bytes": 594
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/panel-lifecycle.B2StFhCA.js",
+          "type": "Script",
+          "bytes": 3342
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/image-cerp.DdRO1LVC_ZuDKpv.avif",
+          "type": "Image",
+          "bytes": 55652
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/translation.D0XX5aCT.js",
+          "type": "Script",
+          "bytes": 2259
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/client.Bgnyn1jN.js",
+          "type": "Script",
+          "bytes": 18526
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/cover.FAMUDCg3_SsPn7.avif",
+          "type": "Image",
+          "bytes": 50077
+        },
+        {
+          "url": "http://127.0.0.1:4334/assets/images/particle.png",
+          "type": "Image",
+          "bytes": 9816
+        },
+        {
+          "url": "http://127.0.0.1:4334/_astro/fonts/31e1da0e04d0148b.woff2",
+          "type": "Font",
+          "bytes": 69488
+        },
+        {
+          "url": "http://127.0.0.1:4334/favicon/icon.png",
+          "type": "Other",
+          "bytes": 182446
+        }
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "width": 390,
+      "pathname": "/",
+      "overflow": false,
+      "canvas": true,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/mobileWallpaper.1e-v1V5L_uerqF.avif"
+    },
+    {
+      "width": 390,
+      "pathname": "/posts/repairing-malformed-flac-files-without-re-encoding/",
+      "overflow": false,
+      "canvas": false,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/mobileWallpaper.1e-v1V5L_uerqF.avif"
+    },
+    {
+      "width": 390,
+      "pathname": "/about/",
+      "overflow": false,
+      "canvas": false,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/mobileWallpaper.1e-v1V5L_uerqF.avif"
+    },
+    {
+      "width": 768,
+      "pathname": "/",
+      "overflow": false,
+      "canvas": true,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/desktopWallpaper.CuQIj2uO_Z25K6t1.webp"
+    },
+    {
+      "width": 768,
+      "pathname": "/posts/repairing-malformed-flac-files-without-re-encoding/",
+      "overflow": false,
+      "canvas": false,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/desktopWallpaper.CuQIj2uO_Z25K6t1.webp"
+    },
+    {
+      "width": 768,
+      "pathname": "/about/",
+      "overflow": false,
+      "canvas": false,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/desktopWallpaper.CuQIj2uO_Z25K6t1.webp"
+    },
+    {
+      "width": 1440,
+      "pathname": "/",
+      "overflow": false,
+      "canvas": true,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/desktopWallpaper.CuQIj2uO_Z25K6t1.webp"
+    },
+    {
+      "width": 1440,
+      "pathname": "/posts/repairing-malformed-flac-files-without-re-encoding/",
+      "overflow": false,
+      "canvas": false,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/desktopWallpaper.CuQIj2uO_Z25K6t1.webp"
+    },
+    {
+      "width": 1440,
+      "pathname": "/about/",
+      "overflow": false,
+      "canvas": false,
+      "waves": 4,
+      "hero": "http://127.0.0.1:4334/_astro/desktopWallpaper.CuQIj2uO_Z25K6t1.webp"
+    }
+  ],
+  "functionality": {
+    "search": true,
+    "menuAndSettings": true,
+    "allCoversLoadAfterScroll": true,
+    "renderedFonts": {
+      "qa-latin": [
+        {
+          "familyName": "MiSans Latin",
+          "postScriptName": "MiSansLatin-Regular",
+          "isCustomFont": true,
+          "glyphCount": 41
+        }
+      ],
+      "qa-bold": [
+        {
+          "familyName": "MiSans Latin",
+          "postScriptName": "MiSansLatin-Semibold",
+          "isCustomFont": true,
+          "glyphCount": 15
+        }
+      ],
+      "qa-chinese": [
+        {
+          "familyName": "Microsoft YaHei UI",
+          "postScriptName": "MicrosoftYaHeiUI",
+          "isCustomFont": false,
+          "glyphCount": 10
+        }
+      ]
+    },
+    "pageErrors": [],
+    "no-js": true,
+    "no-observer": true,
+    "webp-fallback": true
+  }
+}

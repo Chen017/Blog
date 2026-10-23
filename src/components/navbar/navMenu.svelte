@@ -1,5 +1,6 @@
 <script lang="ts">
-import Icon from "@iconify/svelte";
+import Icon from "@iconify/svelte/dist/OfflineIcon.svelte";
+import type { IconifyIcon } from "@iconify/svelte";
 import { onMount } from "svelte";
 
 import type { NavbarLink } from "@/types/config";
@@ -10,9 +11,10 @@ import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 
 interface Props {
     links: NavbarLink[];
+    icons: Record<string, IconifyIcon>;
 }
 
-let { links }: Props = $props();
+let { links, icons }: Props = $props();
 let isOpen = $state(false);
 
 function togglePanel() {
@@ -44,7 +46,7 @@ onMount(() => {
         aria-controls="nav-menu-panel"
         onclick={togglePanel}
     >
-        <Icon icon="material-symbols:menu-rounded" class="text-[1.25rem]"></Icon>
+        <Icon icon={icons["material-symbols:menu-rounded"]} class="text-[1.25rem]"></Icon>
     </button>
     <div id="nav-menu-panel" 
         inert={!isOpen}
@@ -61,14 +63,14 @@ onMount(() => {
                 >
                     <div class="flex items-center transition text-black/75 dark:text-white/75 font-bold group-hover:text-(--primary) group-active:text-(--primary)">
                         {#if link.icon}
-                            <Icon icon={link.icon} class="text-[1.1rem] mr-2" />
+                            <Icon icon={icons[link.icon]} class="text-[1.1rem] mr-2" />
                         {/if}
                         {link.name}
                     </div>
                     {#if !link.external}
-                        <Icon icon="material-symbols:chevron-right-rounded" class="transition text-[1.25rem] text-(--primary)" />
+                        <Icon icon={icons["material-symbols:chevron-right-rounded"]} class="transition text-[1.25rem] text-(--primary)" />
                     {:else}
-                        <Icon icon="fa6-solid:arrow-up-right-from-square" class="transition text-[0.75rem] text-black/25 dark:text-white/25 -translate-x-1" />
+                        <Icon icon={icons["fa6-solid:arrow-up-right-from-square"]} class="transition text-[0.75rem] text-black/25 dark:text-white/25 -translate-x-1" />
                     {/if}
                 </a>
             </div>

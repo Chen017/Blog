@@ -1,5 +1,6 @@
 <script lang="ts">
-import Icon from "@iconify/svelte";
+import Icon from "@iconify/svelte/dist/OfflineIcon.svelte";
+import type { IconifyIcon } from "@iconify/svelte";
 import { onMount } from "svelte";
 
 import { getDefaultHue, getHue, setHue } from "@utils/hue";
@@ -9,6 +10,7 @@ import { i18n } from "@i18n/translation";
 import I18nKey from "@i18n/i18nKey";
 
 
+let { icons }: { icons: Record<string, IconifyIcon> } = $props();
 let hue = $state(getDefaultHue());
 const defaultHue = getDefaultHue();
 let isOpen = $state(false);
@@ -59,7 +61,7 @@ $effect(() => {
         onclick={openPanel}
         onmouseenter={openPanel}
     >
-        <Icon icon="material-symbols:palette-outline" class="text-[1.25rem]"></Icon>
+        <Icon icon={icons["material-symbols:palette-outline"]} class="text-[1.25rem]"></Icon>
     </button>
     <div id="display-setting-wrapper" inert={!isOpen} aria-hidden={!isOpen} class="fixed top-14.5 pt-5 right-4 w-[calc(100vw-2rem)] max-w-80 md:absolute md:top-11 md:right-0 md:w-80 md:pt-5 transition-all z-50" class:float-panel-closed={!isOpen}>
         <div id="display-setting" class="card-base float-panel px-4 py-4 w-full">
@@ -72,7 +74,7 @@ $effect(() => {
                     <button aria-label="Reset to Default" disabled={hue === defaultHue} class="btn-regular w-7 h-7 rounded-md  active:scale-90"
                             class:opacity-0={hue === defaultHue} class:pointer-events-none={hue === defaultHue} onclick={resetHue}>
                         <div class="text-(--btn-content)">
-                            <Icon icon="fa6-solid:arrow-rotate-left" class="text-[0.875rem]"></Icon>
+                            <Icon icon={icons["fa6-solid:arrow-rotate-left"]} class="text-[0.875rem]"></Icon>
                         </div>
                     </button>
                 </div>

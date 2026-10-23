@@ -17,6 +17,7 @@ function runPackageBin(name, binName, args) {
 try {
   runPackageBin('astro', 'astro', ['build']);
   if (!existsSync(join(outputDir, 'index.html'))) throw new Error('Astro did not generate dist/index.html');
+  execFileSync(process.execPath, [join(__dirname, 'optimize-picture-formats.mjs')], { cwd: root, stdio: 'inherit' });
   runPackageBin('pagefind', 'pagefind', ['--site', outputDir]);
   execFileSync(process.execPath, [join(__dirname, 'verify-build.mjs')], { cwd: root, stdio: 'inherit' });
 } catch (error) {

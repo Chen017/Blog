@@ -1,0 +1,39 @@
+---
+interface Props { enabled: boolean; }
+const { enabled } = Astro.props;
+const markup = await Astro.slots.render("default");
+---
+{enabled ? (
+    <deferred-cover class="block w-full h-full">
+        <template set:html={markup} />
+        <noscript set:html={markup} />
+    </deferred-cover>
+) : <Fragment set:html={markup} />}
+
+<script>
+    class DeferredCover extends HTMLElement {
+        static observer = "IntersectionObserver" in window ? new IntersectionObserver(entries => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) (entry.target as DeferredCover).reveal();
+            }
+        }, { rootMargin: "350px 0px" }) : null;
+
+        connectedCallback() {
+            if (!this.querySelector("template")) return;
+            if (DeferredCover.observer) DeferredCover.observer.observe(this);
+            else this.reveal();
+        }
+
+        disconnectedCallback() { DeferredCover.observer?.unobserve(this); }
+
+        reveal() {
+            const template = this.querySelector("template");
+            if (!template) return;
+            this.insertBefore(template.content.cloneNode(true), template);
+            template.remove();
+            this.dataset.loaded = "true";
+            DeferredCover.observer?.unobserve(this);
+        }
+    }
+    if (!customElements.get("deferred-cover")) customElements.define("deferred-cover", DeferredCover);
+</script>

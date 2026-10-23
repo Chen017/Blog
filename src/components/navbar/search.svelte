@@ -1,10 +1,12 @@
 <script lang="ts">
 import { onMount, tick } from "svelte";
-import Icon from "@iconify/svelte";
+import Icon from "@iconify/svelte/dist/OfflineIcon.svelte";
+import type { IconifyIcon } from "@iconify/svelte";
 import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 import type { SearchResult } from "@/global";
 import { loadSearchIndex } from '@utils/search-index';
 
+let { icons }: { icons: Record<string, IconifyIcon> } = $props();
 let open = $state(false);
 let keyword = $state("");
 let results: SearchResult[] = $state([]);
@@ -72,13 +74,13 @@ $effect(() => {
 
 <button id="search-switch" aria-label="Search" aria-expanded={open} aria-controls="search-panel"
     onclick={toggle} class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90">
-    <Icon icon="material-symbols:search" class="text-[1.25rem]" />
+    <Icon icon={icons["material-symbols:search"]} class="text-[1.25rem]" />
 </button>
 <section id="search-panel" aria-label="Site search" aria-hidden={!open} inert={!open}
     class="card-base float-panel search-panel absolute top-20 left-4 md:left-auto right-4 p-3 z-50"
     class:float-panel-closed={!open}>
     <label class="search-field" for="search-input">
-        <Icon icon="material-symbols:search" class="text-xl shrink-0" />
+        <Icon icon={icons["material-symbols:search"]} class="text-xl shrink-0" />
         <input id="search-input" aria-label="Search" type="search" autocomplete="off" placeholder="Search posts" bind:value={keyword} />
     </label>
     <div class="search-status" role="status" aria-live="polite" aria-atomic="true">
