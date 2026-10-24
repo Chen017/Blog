@@ -29,7 +29,35 @@ const markup = await Astro.slots.render("default");
         reveal() {
             const template = this.querySelector("template");
             if (!template) return;
-            this.insertBefore(template.content.cloneNode(true), template);
+            const content = template.content.cloneNode(true) as DocumentFragment;
+            const image = content.querySelector("img");
+            if (image) {
+                this.dataset.loading = "true";
+                const cleanup = () => {
+                    image.removeEventListener("load", loaded);
+                    image.removeEventListener("error", failed);
+                };
+                const loaded = async () => {
+                    cleanup();
+                    // A cached image can be complete before its load listener runs.
+                    // Wait for decoding so the fade never reveals undecoded pixels.
+                    try { await image.decode(); } catch { /* A responsive source may change while decoding. */ }
+                    delete this.dataset.loading;
+                    this.dataset.ready = "true";
+                };
+                const failed = () => {
+                    cleanup();
+                    delete this.dataset.loading;
+                    this.dataset.error = "true";
+                };
+                image.addEventListener("load", loaded, { once: true });
+                image.addEventListener("error", failed, { once: true });
+                this.insertBefore(content, template);
+                if (image.complete) {
+                    if (image.naturalWidth > 0) void loaded();
+                    else failed();
+                }
+            } else this.insertBefore(content, template);
             template.remove();
             this.dataset.loaded = "true";
             DeferredCover.observer?.unobserve(this);
@@ -37,3 +65,15 @@ const markup = await Astro.slots.render("default");
     }
     if (!customElements.get("deferred-cover")) customElements.define("deferred-cover", DeferredCover);
 </script>
+
+<style>
+    :global(deferred-cover[data-loading] img) { opacity: 0; }
+    :global(deferred-cover[data-ready] img) { animation: cover-reveal 360ms ease-out both; }
+    @keyframes cover-reveal {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        :global(deferred-cover[data-ready] img) { animation: none; }
+    }
+</style>

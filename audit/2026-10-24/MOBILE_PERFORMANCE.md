@@ -50,4 +50,10 @@
 - 禁用 JavaScript、缺少 IntersectionObserver、使用 WebP 回退的路径均通过。
 - 波浪仍为四层，首页粒子画布保留；动效相关源文件和配置无变更。
 
-原始浏览器记录见 [browser-results.json](browser-results.json)。本次完成本地修改和测试，尚未发布；线上 PageSpeed 得分需发布后另测。
+原始浏览器记录见 [browser-results.json](browser-results.json)。本报告记录本地测试；线上 PageSpeed 得分以上线后的复测为准。
+
+## 后续：懒加载封面淡入
+
+沿用 Astro 官方支持的 [.astro 组件脚本与自定义元素](https://docs.astro.build/en/guides/client-side-scripts/#web-components-with-custom-elements)方式，配合 CSS 实现图片加载后的淡入。图片下载及 decode 完成后，透明度在 360ms 内从 0 过渡至 1；不引入动画依赖，也不改变 350px 的提前加载范围。Astro View Transitions 用于页面导航切换，这里保持现有导航方式。
+
+浏览器验证覆盖了等待解码、中间动画帧、完全显示、缓存命中、加载失败、滚动加载、禁用 JavaScript、缺少 IntersectionObserver，以及系统减少动态效果设置。实测封面高度在动画前后均为 168.796875px，首屏仍只激活 7 张封面中的 2 张，没有因为淡入而提前下载远处图片。加载失败时恢复可见以显示替代文字；系统要求减少动态效果时直接显示图片。54 项单元测试、Astro 检查和正常构建通过。详细状态见 [image-fade-results.json](image-fade-results.json)。
