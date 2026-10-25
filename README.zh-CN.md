@@ -77,6 +77,7 @@ Markdown 集成检查完成后，需要再运行一次正常构建，避免临�
 
 - [MAINTENANCE.md](MAINTENANCE.md)（英文）：保留功能与维护边界。
 - [CMS_SETUP.md](CMS_SETUP.md)：写作、媒体上传、认证与部署说明。
-- [清理与后台交付报告](audit/2026-10-20/DELIVERY.md)：实施内容和验证结果。
+
+`src/`、`public/`、`cms/`、`scripts/` 和 `tests/` 是持续维护的项目文件。`dist/`、`.astro/` 和 `.vercel/` 是构建产物或本地缓存，不使用时可以删除。一次性排查报告和日志不纳入 Git。
 
 OAuth 凭据保存在 GitHub Actions 加密 Secrets 中，并在部署时写入服务器的 `.env`。不要把本地凭据提交到 Git。现有 VPS 部署使用 Docker、Nginx 和 GitHub Actions。

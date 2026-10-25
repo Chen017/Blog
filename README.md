@@ -77,6 +77,7 @@ Run a normal build after the Markdown integration checks so temporary test pages
 
 - [MAINTENANCE.md](MAINTENANCE.md): retained features and maintenance boundaries.
 - [CMS_SETUP.md](CMS_SETUP.md): writing, media uploads, authentication, and deployment.
-- [Cleanup and CMS delivery report](audit/2026-10-20/DELIVERY.md): implementation and validation details.
+
+`src/`, `public/`, `cms/`, `scripts/`, and `tests/` contain maintained project files. `dist/`, `.astro/`, and `.vercel/` are generated output or local caches and can be removed when not in use. One-off investigation reports and logs stay out of Git.
 
 OAuth credentials are stored in GitHub Actions encrypted Secrets and delivered to the server's `.env`. Keep local credentials out of Git. The existing VPS deployment uses Docker, Nginx, and GitHub Actions.

@@ -9,7 +9,7 @@ This is an independently maintained Astro blog derived from Spr-Aachen/Twilight.
 - Preserve `:::song`, including adaptive colors, background blur, timed lyrics and playback controls. Upstream music and GitHub cards have been removed.
 - Keep math, Mermaid, admonitions, spoilers, image lightboxes and code controls.
 - Keep both Twikoo and Waline, per-article comments, password protection, copy restrictions and optional OG images. Retaining a capability does not require enabling it globally.
-- Use the fixed dark interface, local MiSans fonts, current wallpapers, particles and responsive layout. Preserve the explicit Umami tracking script.
+- Use the fixed dark interface, local MiSans Latin for English and numbers, system fonts for Chinese, current wallpapers, particles and responsive layout. Preserve the explicit Umami tracking script. Font provenance and licenses are documented in `src/assets/fonts/README.md`.
 - Preserve VPS Docker deployment, Pagefind generation, cache rules and BuildKit cache pruning.
 
 ## Writing
@@ -33,6 +33,20 @@ Keep functional article fields in the schema. Unreferenced tags/attribution meta
 - `pnpm build` generates `dist`, Pagefind and validates required/removed paths.
 
 After `test:markdown`, run a normal build before packaging so temporary test pages cannot enter the release. Keep fixtures in `tests/fixtures/`, outside the production content loader.
+
+Keep regression coverage for canonical article routes, empty encryption passwords and public excerpts, escaped TOC/JSON-LD content, MDX feed rendering and relative images, single comment initialization, and image lightboxes after decryption. Use the maintained tests for verification; historical one-off probe scripts are not regression test entrypoints.
+
+## Build output and performance
+
+The production site is static and generated in `dist/`. `.astro/` is Astro's generated cache and type data; `.vercel/` is not used by the current VPS deployment. These directories can be deleted while development and preview servers are stopped, then recreated by the relevant tools. Keep installed dependencies in `node_modules/` for local development. One-off reports, screenshots, probe scripts and logs do not belong in the maintained source tree; historical reports remain recoverable from Git history.
+
+Parse `twilight.config.yaml` at production build time through the `twilight-build-config` Vite plugin. Keep the YAML fallback for Astro configuration loading and development updates, so browsers do not download the YAML parser. Keep the configuration validation and normalization paths shared.
+
+Preserve responsive AVIF/WebP pictures, eager high-priority loading for the banner, deferred post covers, and interaction-triggered search loading. Latin Regular is the only preloaded font face. Do not restore the complete Chinese font to the active font stack; its public URL remains available for compatibility. Cache hashed `/_astro/` assets for one year with `immutable`, revalidate HTML, and keep Pagefind entry files uncached so new deployments use the matching index.
+
+The image postprocessor selects AVIF only when every responsive size is smaller than WebP. Deferred covers start loading within 350px of the viewport and fade in after decoding; keep no-JavaScript, missing IntersectionObserver, failure and reduced-motion fallbacks. Navigation icons use local SVG data, while the Skills page has its own icon loader.
+
+Measure performance changes with repeated comparisons under the same browser and network settings. Distinguish observed paint and presentation timing from Lighthouse's simulated metrics; resource-size reductions do not imply an equal loading-time or score improvement.
 
 See [CMS_SETUP.md](CMS_SETUP.md) for writing and GitHub login setup. OAuth credentials are delivered from encrypted repository Secrets into the VPS `.env`, never browser files or the image build context. The deploy check verifies the auth route when credentials are configured.
 
