@@ -1,5 +1,3 @@
-import yaml from "js-yaml";
-
 import type {
     SiteConfig,
     NavbarLink,
@@ -33,10 +31,18 @@ type ConfigFile = {
     particle: ParticleConfig;
 };
 
-const config = yaml.load(rawConfig) as ConfigFile;
+declare const __TWILIGHT_CONFIG__: ConfigFile;
+
+// Astro's config loader reads YAML; Vite replaces this with that same parsed data.
+// Browser entrypoints can then drop the YAML parser and its initialization work.
+const config = typeof __TWILIGHT_CONFIG__ === "undefined"
+    ? (await import("js-yaml")).default.load(rawConfig) as ConfigFile
+    : __TWILIGHT_CONFIG__;
 if (config.umami.apiKey) {
     throw new Error('Move umami.apiKey out of twilight.config.yaml into the build environment variable UMAMI_API_KEY.');
 }
+
+export const buildTimeConfig = config;
 
 const normalizeFavicons = (favicons: FaviconInput[] | undefined): Favicon[] =>
     (favicons ?? [])

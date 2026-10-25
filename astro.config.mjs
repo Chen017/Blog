@@ -17,7 +17,7 @@ import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-di
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
 
-import { siteConfig } from "./src/config.ts";
+import { buildTimeConfig, siteConfig } from "./src/config.ts";
 import { pluginCollapseButton } from "./src/plugins/expressive-code/collapse-button.ts";
 import { pluginCopyButton } from "./src/plugins/expressive-code/copy-button.js";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
@@ -176,7 +176,18 @@ export default defineConfig({
         }),
     },
     vite: {
-        plugins: [tailwindcss()],
+        plugins: [
+            tailwindcss(),
+            {
+                name: "twilight-build-config",
+                config(_config, { command }) {
+                    // Keep YAML edits live in dev; publish only parsed data.
+                    if (command === "build") {
+                        return { define: { __TWILIGHT_CONFIG__: JSON.stringify(buildTimeConfig) } };
+                    }
+                },
+            },
+        ],
         build: {
             cssCodeSplit: true,
             rolldownOptions: {
