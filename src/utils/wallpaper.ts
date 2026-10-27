@@ -11,6 +11,7 @@ import type {
 import {
     siteConfig,
 } from "@/config";
+import { scheduleScrollControls } from "./scroll-controls";
 
 
 // Declare global function types for carousel initializers
@@ -18,7 +19,6 @@ declare global {
     interface Window {
         initBannerCarousel?: () => void;
         initFullscreenWallpaperCarousel?: () => void;
-        initSemifullScrollDetection?: () => void;
         bannerCarouselState?: {
             currentIndex: number;
             lastSwitchTime: number;
@@ -108,14 +108,21 @@ function updateNavbarTransparency(mode: WALLPAPER_MODE) {
     const transparentMode = getNavbarTransparentModeForWallpaperMode(mode);
     // 更新导航栏的透明模式属性
     navbar.setAttribute('data-transparent-mode', transparentMode);
-    // 重新初始化半透明模式滚动检测（如果需要）
-    if (transparentMode === 'semifull' && typeof window.initSemifullScrollDetection === 'function') {
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => window.initSemifullScrollDetection!());
-        } else {
-            setTimeout(() => window.initSemifullScrollDetection!(), 0);
-        }
-    }
+    scheduleScrollControls();
+}
+
+// Let visibility changes paint before starting a transition, without forcing layout.
+function afterWallpaperPaint(mode: WALLPAPER_MODE, callback: () => void) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (document.documentElement.getAttribute('data-wallpaper-mode') === mode) callback();
+    }));
+}
+
+function stopWallpaperCarousels() {
+    clearTimeout(window.bannerCarouselTimer);
+    clearTimeout(window.fullscreenWallpaperTimer);
+    window.bannerCarouselTimer = null;
+    window.fullscreenWallpaperTimer = null;
 }
 
 // Helper to initialize banner elements
@@ -135,6 +142,8 @@ function initBannerElements(banner: HTMLElement | null) {
 // Function to show banner mode wallpaper
 function showBannerMode() {
     const { bannerWrapper, fullscreenContainer, banner } = getElements();
+    clearTimeout(window.fullscreenWallpaperTimer);
+    window.fullscreenWallpaperTimer = null;
     // 隐藏全屏壁纸（通过CSS类控制）
     if (fullscreenContainer) {
         fullscreenContainer.style.opacity = '0';
@@ -155,40 +164,41 @@ function showBannerMode() {
         document.documentElement.classList.add('banner-transitioning');
         // 移除 hidden
         bannerWrapper.classList.remove('hidden');
-        // 触发重绘
-        void bannerWrapper.offsetHeight;
-        // 移除过渡类
-        document.documentElement.classList.remove('banner-transitioning');
-        // 添加显示动画类
-        document.documentElement.classList.add('show-banner-animation');
-        setTimeout(() => {
-            document.documentElement.classList.remove('show-banner-animation');
-        }, 200);
+        afterWallpaperPaint(WALLPAPER_BANNER, () => {
+            document.documentElement.classList.remove('banner-transitioning');
+            document.documentElement.classList.add('show-banner-animation');
+            setTimeout(() => {
+                document.documentElement.classList.remove('show-banner-animation');
+            }, 200);
+        });
     }
     // 确保banner可见
     bannerWrapper.classList.remove('opacity-0');
     bannerWrapper.classList.add('opacity-100');
     // Initialize carousel or static banner
-    if (typeof window.initBannerCarousel === 'function') {
-        window.initBannerCarousel();
-    } else {
-        setTimeout(() => {
-            initBannerElements(banner);
-        }, 100);
-    }
+    initBannerElements(banner);
+    window.initBannerCarousel?.();
 }
 
 // Function to show fullscreen mode wallpaper
 function showFullscreenMode() {
     const { bannerWrapper, fullscreenContainer } = getElements();
+    clearTimeout(window.bannerCarouselTimer);
+    window.bannerCarouselTimer = null;
     // 显示全屏
     if (!fullscreenContainer) {
         requestAnimationFrame(showFullscreenMode);
         return;
     }
-    fullscreenContainer.classList.remove('hidden');
-    void fullscreenContainer.offsetHeight;
-    fullscreenContainer.style.opacity = siteConfig.wallpaper.fullscreen?.opacity?.toString() || '0.8';
+    const opacity = siteConfig.wallpaper.fullscreen?.opacity?.toString() || '0.8';
+    if (fullscreenContainer.classList.contains('hidden')) {
+        fullscreenContainer.style.opacity = '0';
+        fullscreenContainer.classList.remove('hidden');
+        afterWallpaperPaint(WALLPAPER_FULLSCREEN, () => { fullscreenContainer.style.opacity = opacity; });
+    } else {
+        fullscreenContainer.style.opacity = opacity;
+    }
+    window.initFullscreenWallpaperCarousel?.();
     // 隐藏banner
     if (bannerWrapper) {
         if (typeof document !== 'undefined' && document.documentElement.classList.contains('banner-hiding')) {
@@ -204,6 +214,7 @@ function showFullscreenMode() {
 // Function to show none mode wallpaper
 function showNoneMode() {
     const { bannerWrapper, fullscreenContainer } = getElements();
+    stopWallpaperCarousels();
     // 隐藏banner
     if (bannerWrapper) {
         bannerWrapper.classList.add('hidden');
@@ -214,15 +225,6 @@ function showNoneMode() {
         runIfMode(WALLPAPER_NONE, () => {
             fullscreenContainer.classList.add('hidden');
         });
-    }
-}
-
-// Function to reinitialize components based on wallpaper mode
-function reinitializeComponents(mode: WALLPAPER_MODE) {
-    if (mode === WALLPAPER_BANNER) {
-        setTimeout(() => {
-            initBannerElements(getElements().banner);
-        }, 100);
     }
 }
 
@@ -266,6 +268,7 @@ export function applyWallpaperModeToDocument(mode: WALLPAPER_MODE, force = false
         }
         // 添加过渡保护类
         document.documentElement.classList.add('is-wallpaper-transitioning');
+        document.documentElement.classList.remove('banner-transitioning');
         // 只有当新模式不需要透明效果时，才移除 wallpaper-transparent
         const nextRequiresTransparency = mode === WALLPAPER_BANNER || mode === WALLPAPER_FULLSCREEN;
         if (!nextRequiresTransparency) {
@@ -306,8 +309,6 @@ export function applyWallpaperModeToDocument(mode: WALLPAPER_MODE, force = false
         adjustMainContentPosition(mode);
         // 更新导航栏透明模式
         updateNavbarTransparency(mode);
-        // 重新初始化相关组件
-        reinitializeComponents(mode);
         // 等待过渡动画完成后移除过渡保护类
         setTimeout(() => {
             document.documentElement.classList.remove('is-wallpaper-transitioning');

@@ -161,11 +161,11 @@ const isPerformanceMode = config.banner?.waves?.performanceMode;
     )}
 </div>
 
-<script define:vars={{ carouselInterval }}>
+{isCarouselEnabled && <script define:vars={{ carouselInterval }}>
     // 轮播图初始化函数
     window.initBannerCarousel = function() {
         const carousel = document.getElementById('banner-carousel');
-        if (!carousel) return;
+        if (!carousel || document.getElementById('banner-wrapper')?.classList.contains('hidden')) return;
 
         // 检查是否是同一个 DOM 元素且定时器正在运行，避免重复初始化导致动画重置
         if (window.bannerCarouselTimer && window.currentBannerCarousel === carousel) {
@@ -233,8 +233,11 @@ const isPerformanceMode = config.banner?.waves?.performanceMode;
                     // 通过切换 is-animating 类来重置下一张图片的动画
                     if (nextItem.classList.contains('ken-burns-enabled')) {
                         nextItem.classList.remove('is-animating');
-                        nextItem.offsetHeight; // 强制重绘
-                        nextItem.classList.add('is-animating');
+                        requestAnimationFrame(() => requestAnimationFrame(() => {
+                            if (nextItem.isConnected && nextItem.classList.contains('opacity-100')) {
+                                nextItem.classList.add('is-animating');
+                            }
+                        }));
                     }
                 }
 
@@ -320,4 +323,4 @@ const isPerformanceMode = config.banner?.waves?.performanceMode;
     } else {
         showBanner();
     }
-</script>
+</script>}

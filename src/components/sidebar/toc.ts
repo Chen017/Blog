@@ -18,6 +18,14 @@ export class TableOfContents extends HTMLElement {
     private lifecycle: AbortController | null = null;
     private timers = new Set<number>();
     private panelVersion = 0;
+    private initFrame: number | null = null;
+    private queueInit = () => {
+        if (this.initFrame !== null) return;
+        this.initFrame = requestAnimationFrame(() => {
+            this.initFrame = null;
+            if (this.isConnected) this.init();
+        });
+    };
     private schedule(callback: () => void, delay: number) {
         const id = window.setTimeout(() => { this.timers.delete(id); if (this.isConnected) callback(); }, delay);
         this.timers.add(id);
@@ -223,36 +231,14 @@ export class TableOfContents extends HTMLElement {
             tocWrapper.inert = true;
             tocWrapper.setAttribute('aria-hidden', 'true');
             this.querySelector('.toc-inner-content')?.replaceChildren();
-            if (!tocWrapper.classList.contains('toc-hide')) {
-                if (!isFloating) {
-                    tocWrapper.style.maxHeight = tocWrapper.offsetHeight + 'px';
-                    tocWrapper.offsetHeight;
-                    tocWrapper.classList.add('toc-hide');
-                    tocWrapper.style.maxHeight = '';
-                } else {
-                    tocWrapper.classList.add('toc-hide');
-                }
-            }
+            tocWrapper.classList.add('toc-hide');
             return true;
         }
 
         tocWrapper.inert = false;
         tocWrapper.removeAttribute('aria-hidden');
 
-        if (tocWrapper.classList.contains('toc-hide')) {
-            tocWrapper.classList.remove('toc-hide');
-            if (!isFloating) {
-                const targetHeight = tocWrapper.scrollHeight;
-                tocWrapper.style.maxHeight = '0px';
-                tocWrapper.offsetHeight;
-                tocWrapper.style.maxHeight = targetHeight + 'px';
-                this.schedule(() => {
-                    if (!tocWrapper.classList.contains('toc-hide')) {
-                        tocWrapper.style.maxHeight = '';
-                    }
-                }, 300);
-            }
-        }
+        tocWrapper.classList.remove('toc-hide');
 
         const minDepth = Math.min(...headings.map(h => h.depth));
         const maxLevel = parseInt(this.dataset.depth || '3');
@@ -347,12 +333,12 @@ export class TableOfContents extends HTMLElement {
         this.lifecycle = new AbortController();
         const { signal } = this.lifecycle;
         this.addEventListener('click', this.handleAnchorClick, { capture: true, signal });
-        document.addEventListener(PAGE_READY, () => this.init(), { signal });
+        document.addEventListener(PAGE_READY, this.queueInit, { signal });
         document.addEventListener(PAGE_BEFORE_REPLACE, () => {
             this.observer.disconnect();
             this.toggleFloatingPanel(false);
         }, { signal });
-        window.addEventListener('content-decrypted', () => this.init(), { signal });
+        window.addEventListener('content-decrypted', this.queueInit, { signal });
         document.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') return;
             const panel = this.querySelector<HTMLElement>('.toc-floating-panel');
@@ -361,11 +347,13 @@ export class TableOfContents extends HTMLElement {
                 this.querySelector<HTMLButtonElement>('.toc-floating-btn')?.focus();
             }
         }, { signal });
-        this.schedule(() => this.init(), 0);
+        this.queueInit();
     };
 
     disconnectedCallback() {
         this.lifecycle?.abort();
+        if (this.initFrame !== null) cancelAnimationFrame(this.initFrame);
+        this.initFrame = null;
         this.timers.forEach(id => clearTimeout(id));
         this.timers.clear();
         this.headings.forEach((heading) => this.observer.unobserve(heading));

@@ -22,6 +22,9 @@ for (const font of preloadedFonts) {
 assert.ok(!home.querySelector('#loading-overlay'), 'Content must not wait for a loading screen');
 assert.equal(home.querySelectorAll('astro-island[component-url*="statistics"]').length, 1, 'Only one statistics island per page');
 assert.ok(home.querySelector('#banner picture source[media]'), 'Use one responsive banner image');
+assert.equal(home.querySelector('table-of-contents'), null, 'The home page has no article TOC');
+assert.ok(!home.querySelectorAll('script').some(script => /initBannerCarousel|initFullscreenWallpaperCarousel/.test(script.textContent)), 'Single wallpapers must not ship carousel initialization');
+assert.ok(!home.querySelectorAll('script[src]').some(script => /\/toc(?:\.|Button\.)/.test(script.getAttribute('src'))), 'The home page must not request TOC scripts');
 await verifyCardImages(home, output);
 assert.ok(home.querySelector('[id^="profile-"] img[srcset]'), 'Optimize the author avatar');
 assert.ok(home.querySelector('nav[aria-label="Pagination"] button[disabled][aria-label="Previous Page"]'), 'Unavailable pagination uses a named disabled button');

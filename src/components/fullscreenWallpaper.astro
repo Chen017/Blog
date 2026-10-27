@@ -105,11 +105,11 @@ const blur = config.fullscreen?.blur || 0;
     )}
 </div>
 
-<script define:vars={{ carouselInterval }}>
+{isCarouselEnabled && <script define:vars={{ carouselInterval }}>
     // 全屏壁纸轮播图初始化函数
     window.initFullscreenWallpaperCarousel = function() {
         const carousel = document.getElementById('fullscreen-wallpaper-carousel');
-        if (!carousel) return;
+        if (!carousel || document.getElementById('fullscreen-wallpaper-wrapper')?.classList.contains('hidden')) return;
 
         // 检查是否是同一个 DOM 元素且定时器正在运行，避免重复初始化导致动画重置
         if (window.fullscreenWallpaperTimer && window.currentFullscreenWallpaperCarousel === carousel) {
@@ -177,8 +177,11 @@ const blur = config.fullscreen?.blur || 0;
                     // 通过切换 is-animating 类来重置下一张图片的动画
                     if (nextItem.classList.contains('ken-burns-enabled')) {
                         nextItem.classList.remove('is-animating');
-                        nextItem.offsetHeight; // 强制重绘
-                        nextItem.classList.add('is-animating');
+                        requestAnimationFrame(() => requestAnimationFrame(() => {
+                            if (nextItem.isConnected && nextItem.classList.contains('opacity-100')) {
+                                nextItem.classList.add('is-animating');
+                            }
+                        }));
                     }
                 }
 
@@ -264,4 +267,4 @@ const blur = config.fullscreen?.blur || 0;
     } else {
         showFullscreenWallpaper();
     }
-</script>
+</script>}

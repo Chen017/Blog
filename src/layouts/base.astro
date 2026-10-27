@@ -239,22 +239,10 @@ import { initMarkdownActions } from "@utils/markdown";
 import { initFancybox, cleanupFancybox } from "@utils/fancybox";
 import { setupParticleEffects, stopParticle } from "@utils/particle";
 import { announcePageReady, CLOSE_PANELS, PAGE_BEFORE_REPLACE } from "@utils/page-lifecycle";
+import { initScrollControls } from "@utils/scroll-controls";
 
 window.addEventListener('content-decrypted', () => { void initFancybox(); });
 
-const updateScrollControls = () => {
-    const button = document.getElementById('back-to-top-btn');
-    const visible = window.scrollY > Math.min(window.innerHeight * .66, 600);
-    button?.classList.toggle('hide', !visible);
-    if (button) button.inert = !visible;
-};
-let scheduled = false;
-window.addEventListener('scroll', () => {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; updateScrollControls(); });
-}, { passive: true });
-window.addEventListener('resize', updateScrollControls, { passive: true });
 const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const syncParticles = () => {
     stopParticle();
@@ -264,7 +252,7 @@ motion.addEventListener('change', syncParticles);
 document.addEventListener('visibilitychange', syncParticles);
 const ready = () => {
     initTheme(); initHue(); initWallpaperMode(); initMarkdownActions();
-    initFancybox(); syncParticles(); updateScrollControls(); announcePageReady();
+    initFancybox(); syncParticles(); initScrollControls(); announcePageReady();
 };
 window.addEventListener('pagehide', event => {
     document.dispatchEvent(new Event(CLOSE_PANELS));

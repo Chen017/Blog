@@ -8,7 +8,6 @@ declare global {
     interface Window {
         // Define swup type directly since @swup/astro doesn't export AstroIntegration
         swup: any;
-        semifullScrollHandler: (() => void) | null;
         iconifyLoaded: boolean;
         __iconifyLoader: {
             load: () => Promise<void>;

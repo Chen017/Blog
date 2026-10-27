@@ -43,6 +43,8 @@ const hasBannerLink = !!siteConfig.wallpaper.banner?.credit?.url;
 
 // 检查是否为首页
 const isHomePage = pathsEqual(Astro.url.pathname, url("/"));
+// Encrypted articles can acquire their headings after decryption.
+const hasToc = headings.length > 0 || !!postSlug;
 
 // 检查是否应该启用半透明效果
 const shouldEnableTransparency = siteConfig.wallpaper.mode === "banner" || siteConfig.wallpaper.mode === "fullscreen";
@@ -171,6 +173,7 @@ const {
                                 side="left"
                                 class={`${leftSidebarClass} ${transparentClass} onload-animation-up`}
                                 headings={headings}
+                                enableToc={hasToc}
                             />
                         ) : (
                             <div id="left-sidebar" class="hidden"></div>
@@ -183,6 +186,7 @@ const {
                                 side="right"
                                 class={`${rightSidebarClass} ${transparentClass} onload-animation-up`}
                                 headings={headings}
+                                enableToc={hasToc}
                             />
                         ) : (
                             <div id="right-sidebar" class="hidden"></div>
@@ -214,6 +218,7 @@ const {
                         side="middle"
                         class={`${transparentClass} onload-animation-up`}
                         headings={headings}
+                        enableToc={hasToc}
                     />
                 </div>
 
@@ -225,7 +230,7 @@ const {
         </div>
     </div>
 
-    <TocButton />
+    {hasToc && <TocButton />}
 
     <BackToTopButton />
 

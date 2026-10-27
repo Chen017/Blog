@@ -42,7 +42,7 @@ test('custom route aliases and their links use one normalization rule', () => {
 test('TOC preserves literal code in headings without creating HTML elements or attributes', async () => {
     const raw = (await readFile('src/components/sidebar/toc.ts', 'utf8')).replace(/^import[^\n]*\n/gm, '');
     const content = { innerHTML: '' };
-    const wrapper = { classList: { contains: () => false }, removeAttribute() {} };
+    const wrapper = { classList: { contains: () => false, add() {}, remove() {} }, removeAttribute() {} };
     const heading = { depth: 2, slug: 'title" onclick="bad', text: '<img src=x onerror="bad"> & literal' };
     const context = vm.createContext({ HTMLElement: class {}, IntersectionObserver: class {}, customElements: { get: () => true },
         escapeHtml, widgetManager: { getPageHeadings: () => [heading] } });
