@@ -1,0 +1,42 @@
+---
+import { Font } from "astro:assets";
+import { profileConfig, siteConfig } from "@/config";
+import { defaultFavicons } from "@constants/icon";
+import { url } from "@utils/url";
+import "@styles/voyage.css";
+
+const title = `${siteConfig.title} — Mathematics, Code & Life`;
+const description = "Notes on mathematics, code, and the rest of life. A personal blog by Eta Lib.";
+const favicons = siteConfig.favicon.length ? siteConfig.favicon : defaultFavicons;
+---
+<!doctype html>
+<html lang="en" class="dark" data-theme="github-dark">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content={Astro.generator} />
+        <meta name="theme-color" content="#080c17" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta name="author" content={profileConfig.name} />
+        <link rel="canonical" href={new URL(url("/"), Astro.site)} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={siteConfig.title} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={Astro.url} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <Font cssVariable="--font-voyage-sans" preload={[{ weight: 400, style: "normal" }]} />
+        <Font cssVariable="--font-voyage-serif" preload={[{ weight: 400, style: "italic" }]} />
+        {favicons.map(favicon => <link rel="icon" href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src} sizes={favicon.sizes} media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`} />)}
+        <link rel="alternate" type="application/rss+xml" title={siteConfig.title} href={new URL(url("/rss.xml"), Astro.site)} />
+        <script is:inline>
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'github-dark');
+        </script>
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="6f7ec1f7-de68-4a99-9eaf-3e395237e061"></script>
+    </head>
+    <body class="voyage-home"><slot /></body>
+</html>

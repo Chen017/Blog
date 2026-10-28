@@ -1,4 +1,6 @@
 ---
+displayTitle: "Happy New Year, 2025"
+displayDescription: "A short note, and a wish for things to get better."
 title: "新年快乐 Happy New Year"
 directoryTitle: "2025 新年"
 published: 2025-01-01

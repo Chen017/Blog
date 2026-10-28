@@ -1,4 +1,5 @@
 ---
+displayDescription: "Making room for mathematics on the page."
 title: "Recommending Configuration of MkDocs for Maths"
 directoryTitle: "MkDocs Maths Setup"
 published: 2025-02-27

@@ -1,4 +1,6 @@
 ---
+displayTitle: "A Brief Guide to OPPO Watch Development"
+displayDescription: "A first step into building for a smaller screen."
 title: "OPPOWATCH应用开发浅指引"
 directoryTitle: "OPPO Watch 开发指引"
 published: 2025-02-06

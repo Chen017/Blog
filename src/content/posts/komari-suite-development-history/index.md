@@ -1,4 +1,5 @@
 ---
+displayDescription: "The mistakes, repairs, and small victories behind the Komari suite."
 title: "From a Single Tool to Four Projects: The Development Chronicle of Komari Theme & Plugins — A Wrap-Up Gift to Myself"
 directoryTitle: "Komari Suite Journey"
 published: 2026-09-22

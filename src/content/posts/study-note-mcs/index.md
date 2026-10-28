@@ -1,4 +1,5 @@
 ---
+displayDescription: "A growing collection of mathematics and computer science notes."
 title: Study Note (MCS)
 directoryTitle: MCS Study Notes
 published: 2024-12-15

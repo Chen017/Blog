@@ -1,5 +1,11 @@
 # MiSans fonts used by this website
 
+The Voyage homepage additionally uses locally hosted Latin subsets of DM Sans
+and Instrument Serif from Google Fonts, retrieved on 2026-10-29. Both are
+licensed under the SIL Open Font License; the original licenses are included
+as `DM-Sans-OFL.txt` and `Instrument-Serif-OFL.txt`. No third-party font request
+is made by the homepage. Article and archive pages retain MiSans.
+
 This website uses MiSans Latin, created by Xiaomi and its font partners, for
 English, Arabic numerals, and English punctuation. Chinese text and punctuation
 use the device's system font.

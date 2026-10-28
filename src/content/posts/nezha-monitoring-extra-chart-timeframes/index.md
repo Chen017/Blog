@@ -1,4 +1,5 @@
 ---
+displayDescription: "A little more perspective on the same monitoring data."
 title: "Nezha Monitoring: Extra Chart Timeframes"
 directoryTitle: "Nezha Timeframes"
 published: 2026-04-12

@@ -1,4 +1,5 @@
 ---
+displayDescription: "A personal Open WebUI setup for multiple language model APIs."
 title: "ChatGPT (Self-built)"
 directoryTitle: "Self-built ChatGPT"
 published: 2024-12-15

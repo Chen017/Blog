@@ -1,0 +1,12 @@
+---
+interface Props { id: string; }
+const { id } = Astro.props;
+---
+<div class="nv-art" aria-hidden="true">
+    {id === "komari-suite-development-history" ? <div class="nv-art-network"><span>IPQA</span><span>theme</span><span>history</span></div>
+    : id === "nezha-monitoring-extra-chart-timeframes" ? <div class="nv-art-curves"><span></span><span></span><span></span></div>
+    : id === "mkdocs-maths-configuration" ? <span class="nv-art-word">∫ f(x) dx</span>
+    : id === "immigrate-from-markdown-to-memos" ? <pre>Markdown<br />       ↓<br />   Python + API<br />       ↓<br />     Memos</pre>
+    : id === "chatgpt-self-built" ? <pre>messages: [<br />  {'{ role: "user",'}<br />{'    content: "Hello." }'}<br />]</pre>
+    : <span class="nv-art-word">notes.</span>}
+</div>

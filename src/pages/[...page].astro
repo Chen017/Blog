@@ -13,7 +13,8 @@ import GridLayout from "@layouts/grid.astro";
 
 export const getStaticPaths = (async ({ paginate }) => {
     const allBlogPosts = await getSortedPosts();
-    return paginate(allBlogPosts, { pageSize: PAGE_SIZE });
+    // The complete, unpaginated homepage is rendered by index.astro.
+    return paginate(allBlogPosts, { pageSize: PAGE_SIZE }).filter(route => route.params.page);
 }) satisfies GetStaticPaths;
 // https://github.com/withastro/astro/issues/6507#issuecomment-1489916992
 

@@ -1,4 +1,5 @@
 ---
+displayDescription: "Taking old notes somewhere new, with Python and an API."
 title: "Immigrate from markdown to memos efficiently"
 directoryTitle: "Markdown to Memos"
 published: 2026-02-14

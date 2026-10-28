@@ -6,7 +6,11 @@ import { bindPanelLifecycle } from "@utils/panel-lifecycle";
 import type { SearchResult } from "@/global";
 import { loadSearchIndex } from '@utils/search-index';
 
-let { icons }: { icons: Record<string, IconifyIcon> } = $props();
+let { icons, variant = 'default', titles = {} }: {
+    icons: Record<string, IconifyIcon>;
+    variant?: 'default' | 'voyage';
+    titles?: Record<string, string>;
+} = $props();
 let open = $state(false);
 let keyword = $state("");
 let results: SearchResult[] = $state([]);
@@ -73,12 +77,16 @@ $effect(() => {
 </script>
 
 <button id="search-switch" aria-label="Search" aria-expanded={open} aria-controls="search-panel"
-    onclick={toggle} class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90">
+    onclick={toggle} class={variant === 'voyage' ? 'nv-icon' : 'btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90'}>
     <Icon icon={icons["material-symbols:search"]} class="text-[1.25rem]" />
 </button>
 <section id="search-panel" aria-label="Site search" aria-hidden={!open} inert={!open}
     class="card-base float-panel search-panel absolute top-20 left-4 md:left-auto right-4 p-3 z-50"
+    class:voyage-search={variant === 'voyage'}
     class:float-panel-closed={!open}>
+    {#if variant === 'voyage'}
+        <div class="voyage-search-heading"><span>Find something to read.</span><button type="button" class="nv-icon" aria-label="Close search" onclick={() => { close(); document.getElementById('search-switch')?.focus(); }}><Icon icon={icons['material-symbols:close']} /></button></div>
+    {/if}
     <label class="search-field" for="search-input">
         <Icon icon={icons["material-symbols:search"]} class="text-xl shrink-0" />
         <input id="search-input" aria-label="Search" type="search" autocomplete="off" placeholder="Search posts" bind:value={keyword} />
@@ -99,7 +107,7 @@ $effect(() => {
     <div aria-busy={searching}>
         {#each results as item}
             <a href={item.url} class="search-result" onclick={close}>
-                <span class="search-result-title">{item.meta.title}</span>
+                <span class="search-result-title">{titles[item.url] || item.meta.title}</span>
                 <span class="search-result-excerpt">{@html item.excerpt}</span>
             </a>
         {/each}

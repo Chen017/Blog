@@ -1,0 +1,23 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
+import ImageWrapper from "@components/common/imageWrapper.astro";
+import { homePostCopy } from "@utils/home-post";
+import { getFileDirFromPath, getPostUrl } from "@utils/url";
+import EntryArt from "./EntryArt.astro";
+
+interface Props { entry: CollectionEntry<"posts">; index: number; }
+const { entry, index } = Astro.props;
+const copy = homePostCopy(entry.data);
+const published = entry.data.published!;
+const isoDate = published.toISOString().slice(0, 10);
+const label = published.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
+const categoryLabel = copy.category === "Recommended Projects" ? "Discoveries" : copy.category;
+---
+<article class="nv-entry post-card" data-life={copy.category === "Life"} data-category={copy.category} data-date={isoDate} data-pinned={String(entry.data.pinned)} data-original-order={index}>
+    {entry.data.cover ? <ImageWrapper src={entry.data.cover} basePath={getFileDirFromPath(entry.filePath || "")} alt="" responsive="card" class="nv-entry-cover" /> : <EntryArt id={entry.id} />}
+    <a class="nv-entry-link" href={getPostUrl(entry)}>
+        <div class="nv-entry-top"><span>{categoryLabel}</span><Icon name="mdi:arrow-top-right" aria-hidden="true" /></div>
+        <div class="nv-entry-copy"><h3>{copy.title}</h3>{copy.description && <p class="nv-entry-summary">{copy.description}</p>}<div class="nv-entry-meta"><time datetime={isoDate}>{label}</time>{entry.data.pinned && <span class="nv-pinned"><Icon name="mdi:pin-outline" aria-hidden="true" /> PINNED</span>}</div></div>
+    </a>
+</article>

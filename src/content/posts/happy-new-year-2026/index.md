@@ -1,4 +1,6 @@
 ---
+displayTitle: "Another Year, 2026"
+displayDescription: "A quiet New Year note, with the hope of a gentler year."
 title: "2026新年 New Year"
 directoryTitle: "2026 新年"
 published: 2026-02-16

@@ -1,4 +1,6 @@
 ---
+displayTitle: "It Is All the Same"
+displayDescription: "To experience, not suffer. To live, not survive."
 title: "其实是一样的"
 directoryTitle: "回头看"
 published: 2026-10-16

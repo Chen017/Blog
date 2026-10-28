@@ -20,14 +20,35 @@ for (const font of preloadedFonts) {
   assert.ok((await stat(resolve(output, href.slice(1)))).size < 100000, 'Do not eagerly preload the complete Chinese font');
 }
 assert.ok(!home.querySelector('#loading-overlay'), 'Content must not wait for a loading screen');
-assert.equal(home.querySelectorAll('astro-island[component-url*="statistics"]').length, 1, 'Only one statistics island per page');
-assert.ok(home.querySelector('#banner picture source[media]'), 'Use one responsive banner image');
+assert.equal(home.querySelectorAll('astro-island[component-url*="statistics"]').length, 0, 'The homepage keeps its article grid static');
+assert.ok(home.querySelector('.nv-sky picture source[srcset]'), 'Use a responsive starfield image');
+assert.ok(home.querySelector('.nv-sky svg circle'), 'Render sharp, resolution-independent stars');
 assert.equal(home.querySelector('table-of-contents'), null, 'The home page has no article TOC');
 assert.ok(!home.querySelectorAll('script').some(script => /initBannerCarousel|initFullscreenWallpaperCarousel/.test(script.textContent)), 'Single wallpapers must not ship carousel initialization');
 assert.ok(!home.querySelectorAll('script[src]').some(script => /\/toc(?:\.|Button\.)/.test(script.getAttribute('src'))), 'The home page must not request TOC scripts');
 await verifyCardImages(home, output);
-assert.ok(home.querySelector('[id^="profile-"] img[srcset]'), 'Optimize the author avatar');
-assert.ok(home.querySelector('nav[aria-label="Pagination"] button[disabled][aria-label="Previous Page"]'), 'Unavailable pagination uses a named disabled button');
+assert.ok(home.querySelector('img.nv-avatar[srcset]'), 'Optimize the author avatar');
+assert.equal(home.querySelector('nav[aria-label="Pagination"]'), null, 'All writing is available directly on the homepage');
+const sourcePosts = [];
+const { readdir } = await import('node:fs/promises');
+const { default: yaml } = await import('js-yaml');
+async function countPublicPosts(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = resolve(directory, entry.name);
+    if (entry.isDirectory()) await countPublicPosts(file);
+    else if (/^[^_].*\.mdx?$/.test(entry.name)) {
+      const source = await readFile(file, 'utf8');
+      const metadata = yaml.load(source.match(/^---\r?\n([\s\S]*?)\r?\n---/)[1]);
+      if (!metadata.draft) sourcePosts.push(metadata);
+    }
+  }
+}
+await countPublicPosts(resolve('src/content/posts'));
+assert.equal(home.querySelectorAll('.nv-entry').length, sourcePosts.length, 'Do not silently omit older posts from the homepage');
+assert.equal(home.querySelector('html').getAttribute('lang'), 'en');
+for (const heading of home.querySelectorAll('h1,h2,h3')) assert.ok(!/[\u3400-\u9fff]/.test(heading.textContent), 'Homepage headings must be English');
+assert.ok(!home.querySelector('link[href*="fonts.googleapis.com"]'), 'Self-host the homepage fonts');
+assert.ok(!home.querySelector('[data-password]'), 'Never serialize protected post credentials');
 assert.ok(!home.querySelector('a[href=""]'), 'Do not output empty navigation links');
 assert.ok(!home.querySelectorAll('script').some(script => script.textContent.includes('/pagefind/pagefind.js')), 'Do not initialize the search index before interaction');
 for (const stylesheet of home.querySelectorAll('link[rel="stylesheet"]')) {

@@ -48,6 +48,16 @@ collections:
         name: description
         widget: text
         required: false
+      - label: 首页英文标题
+        name: displayTitle
+        widget: string
+        required: false
+        hint: 可选；仅用于英文首页，留空使用原标题。
+      - label: 首页英文摘要
+        name: displayDescription
+        widget: text
+        required: false
+        hint: 可选；留空使用原摘要。
       - label: 分类
         name: category
         widget: string
@@ -192,6 +202,16 @@ collections:
         name: description
         widget: text
         required: false
+      - label: 首页英文标题
+        name: displayTitle
+        widget: string
+        required: false
+        hint: 可选；仅用于英文首页，留空使用原标题。
+      - label: 首页英文摘要
+        name: displayDescription
+        widget: text
+        required: false
+        hint: 可选；留空使用原摘要。
       - label: 分类
         name: category
         widget: string

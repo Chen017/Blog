@@ -47,6 +47,13 @@ export default defineConfig({
         remotePatterns: [{ protocol: "https", hostname: "raw.githubusercontent.com", pathname: "/Chen017/komari-emerald-suite/main/docs/ecosystem.png" }],
     },
     fonts: [
+        { name: "Voyage Sans", cssVariable: "--font-voyage-sans", provider: fontProviders.local(), fallbacks: ["Arial"], optimizedFallbacks: true,
+          options: { variants: [400, 500, 600].map(weight => ({ src: ["./src/assets/fonts/VoyageSans-Latin.woff2"], weight, style: "normal" })) } },
+        { name: "Instrument Serif", cssVariable: "--font-voyage-serif", provider: fontProviders.local(), fallbacks: ["Georgia"], optimizedFallbacks: true,
+          options: { variants: [
+            { src: ["./src/assets/fonts/InstrumentSerif-Latin.woff2"], weight: 400, style: "normal" },
+            { src: ["./src/assets/fonts/InstrumentSerif-Latin-Italic.woff2"], weight: 400, style: "italic" },
+          ] } },
         { name: "MiSans Latin", cssVariable: "--font-misans-latin", provider: fontProviders.local(), fallbacks: [], optimizedFallbacks: false,
           options: { variants: [
             { src: ["./src/assets/fonts/MiSansLatin-Regular.woff2"], weight: 400, style: "normal" },

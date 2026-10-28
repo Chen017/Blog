@@ -26,6 +26,8 @@ const postsCollection = defineCollection({
         published: optionalDateSchema,
         updated: optionalDateSchema,
         description: z.string().optional().default(""),
+        displayTitle: z.string().optional(),
+        displayDescription: z.string().optional(),
         cover: z.string().optional().default(""),
         coverInContent: z.boolean().optional().default(false),
         category: categorySchema,
