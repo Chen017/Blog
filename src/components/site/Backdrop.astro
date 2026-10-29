@@ -1,0 +1,17 @@
+---
+import { Picture } from "astro:assets";
+import wallpaper from "../../assets/banners/desktopWallpaper.jpg";
+let seed = 23291;
+const random = () => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646;
+const stars = Array.from({ length: 205 }, (_, index) => ({
+    x: Math.round(random() * 1600), y: Math.round(random() * 900),
+    r: index % 29 === 0 ? 1.65 : Number((0.4 + random() * 0.65).toFixed(2)),
+    opacity: Number((0.25 + random() * 0.65).toFixed(2)),
+    tint: index % 7 === 0 ? "#b9dbd7" : "#e2e5f4",
+}));
+---
+<div class="nv-sky" aria-hidden="true">
+    <Picture src={wallpaper} widths={[640, 960, 1280]} formats={["avif", "webp"]} quality={90} sizes="100vw" alt="" loading="eager" fetchpriority="high" class="nv-photograph" />
+    <div class="nv-atmosphere"></div>
+    <svg class="nv-stars" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">{stars.map(star => <circle cx={star.x} cy={star.y} r={star.r} fill={star.tint} opacity={star.opacity} />)}</svg>
+</div>

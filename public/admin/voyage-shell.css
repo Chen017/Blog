@@ -1,0 +1,9 @@
+/* The authoring canvas keeps its familiar neutral surface inside the night shell. */
+html { background: #080c17; }
+body { background: radial-gradient(ellipse at 50% 0, #24344b, #080c17 70%); }
+::selection { background: #b7d8d27a; color: #101a26; }
+.blog-tools { border-color: #a7bedb42; border-radius: 8px; }
+.blog-tools__insert { background: #345b5a; }
+.blog-tools__insert:hover { background: #264b4b; }
+.blog-tools input:focus, .blog-tools select:focus, .blog-tools textarea:focus { outline-color: #527e79; }
+@media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; scroll-behavior: auto !important; } }

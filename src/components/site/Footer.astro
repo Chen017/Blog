@@ -1,0 +1,10 @@
+---
+import { Icon } from "astro-icon/components";
+const home = Astro.url.pathname === "/";
+---
+<footer class="nv-footer">
+    <span>© {new Date().getUTCFullYear()} AI · Etalib’s Space</span>
+    <nav aria-label="More from this site"><a href="/archive/">Archive</a><a href="/skills/">Skills</a><a href="/rss/">RSS</a><a href="/atom/">Atom</a><a href="https://github.com/Chen017">GitHub</a></nav>
+    <div class="vs-credits"><a href="https://astro.build/">Astro</a><span> / </span><a href="https://github.com/Chen017/Blog">Theme</a><span> / </span><a href="https://github.com/Spr-Aachen/Twilight">Upstream</a><span> · </span><a href="https://hyperos.mi.com/font/">MiSans</a></div>
+    {home && <button type="button" data-replay disabled><Icon name="mdi:replay" aria-hidden="true" /> Replay the opening</button>}
+</footer>

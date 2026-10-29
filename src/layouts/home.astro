@@ -5,12 +5,14 @@ import { defaultFavicons } from "@constants/icon";
 import { url } from "@utils/url";
 import "@styles/voyage.css";
 
-const title = `${siteConfig.title} — Mathematics, Code & Life`;
-const description = "Notes on mathematics, code, and the rest of life. A personal blog by Eta Lib.";
+interface Props { title?: string; description?: string; lang?: string; article?: boolean; interior?: boolean; canonical?: string; postSlug?: string; }
+const { title: pageTitle, description = "Notes on mathematics, code, and the rest of life. A personal blog by Eta Lib.", lang = "en", article = false, interior = false, canonical, postSlug } = Astro.props;
+const title = pageTitle ? `${pageTitle} — ${siteConfig.title}` : `${siteConfig.title} — Mathematics, Code & Life`;
 const favicons = siteConfig.favicon.length ? siteConfig.favicon : defaultFavicons;
+const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlug}.png`, Astro.site).toString() : undefined;
 ---
 <!doctype html>
-<html lang="en" class="dark" data-theme="github-dark">
+<html lang={lang.replace("_", "-")} class="dark" data-theme="github-dark">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,15 +21,18 @@ const favicons = siteConfig.favicon.length ? siteConfig.favicon : defaultFavicon
         <title>{title}</title>
         <meta name="description" content={description} />
         <meta name="author" content={profileConfig.name} />
-        <link rel="canonical" href={new URL(url("/"), Astro.site)} />
-        <meta property="og:type" content="website" />
+        {Boolean(siteConfig.keywords?.length) && <meta name="keywords" content={siteConfig.keywords?.join(", ")} />}
+        <link rel="canonical" href={new URL(canonical || Astro.url.pathname, Astro.site)} />
+        <meta property="og:type" content={article ? "article" : "website"} />
         <meta property="og:site_name" content={siteConfig.title} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={Astro.url} />
+        {ogImage && <meta property="og:image" content={ogImage} />}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
+        {ogImage && <meta name="twitter:image" content={ogImage} />}
         <Font cssVariable="--font-voyage-sans" preload={[{ weight: 400, style: "normal" }]} />
         <Font cssVariable="--font-voyage-serif" preload={[{ weight: 400, style: "italic" }]} />
         {favicons.map(favicon => <link rel="icon" href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src} sizes={favicon.sizes} media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`} />)}
@@ -35,8 +40,13 @@ const favicons = siteConfig.favicon.length ? siteConfig.favicon : defaultFavicon
         <script is:inline>
             document.documentElement.classList.add('dark');
             document.documentElement.setAttribute('data-theme', 'github-dark');
+            try {
+                const paused = localStorage.getItem('etalib:motion') === 'off' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+                document.documentElement.dataset.motion = paused ? 'off' : 'on';
+            } catch { /* Rendering does not depend on storage. */ }
         </script>
         <script defer src="https://cloud.umami.is/script.js" data-website-id="6f7ec1f7-de68-4a99-9eaf-3e395237e061"></script>
+        <slot name="head" />
     </head>
-    <body class="voyage-home"><slot /></body>
+    <body class={interior ? "voyage-interior" : "voyage-home"}><slot /></body>
 </html>

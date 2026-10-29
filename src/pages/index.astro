@@ -1,39 +1,23 @@
 ---
-import { Image, Picture } from "astro:assets";
+import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import { getSortedPosts, getCategoryList } from "@utils/content";
-import { getPostUrl } from "@utils/url";
-import { homePostCopy } from "@utils/home-post";
-import { localIcons } from "@utils/local-icons";
+import Backdrop from "@components/site/Backdrop.astro";
+import Header from "@components/site/Header.astro";
+import Footer from "@components/site/Footer.astro";
 import HomeLayout from "@layouts/home.astro";
 import EntryCard from "@components/home/EntryCard.astro";
-import Search from "@components/navbar/search.svelte";
-import wallpaper from "../assets/banners/desktopWallpaper.jpg";
 import avatar from "../assets/images/avatar.jpg";
 
 const posts = await getSortedPosts();
 const categories = await getCategoryList();
-const searchTitles = Object.fromEntries(posts.map(post => [getPostUrl(post), homePostCopy(post.data).title]));
-const searchIcons = localIcons(["material-symbols:search", "material-symbols:close"]);
-let seed = 23291;
-const random = () => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646;
-const stars = Array.from({ length: 205 }, (_, index) => ({
-    x: Math.round(random() * 1600), y: Math.round(random() * 900),
-    r: index % 29 === 0 ? 1.65 : 0.4 + random() * 0.65,
-    opacity: 0.25 + random() * 0.65,
-    tint: index % 7 === 0 ? "#b9dbd7" : "#e2e5f4",
-}));
 ---
 <HomeLayout>
 <a class="nv-skip" href="#nv-writing">Skip to writing</a>
 <div id="voyage-afterhours" aria-label="Etalib's Space — After hours">
   <div class="nv-page" lang="en" data-motion="on">
-    <div class="nv-sky" aria-hidden="true"><Picture src={wallpaper} widths={[640, 960, 1280]} formats={["avif", "webp"]} quality={90} sizes="100vw" alt="" loading="eager" fetchpriority="high" class="nv-photograph" /><div class="nv-atmosphere"></div><svg class="nv-stars" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">{stars.map(star => <circle cx={star.x} cy={star.y} r={star.r} fill={star.tint} opacity={star.opacity} />)}</svg></div>
-    <header class="nv-header">
-      <a class="nv-brand" href="#nv-home"><Icon name="mdi:orbit" aria-hidden="true" /><span>Etalib’s Space</span></a>
-      <nav class="nv-nav" aria-label="Main navigation"><a href="#nv-home" aria-current="page" class="cursor-interaction">Home</a><a href="#nv-writing" class="cursor-interaction">Writing</a><a href="/friends/" class="cursor-interaction">Links</a><a href="/about/" class="cursor-interaction">About</a></nav>
-      <div class="nv-tools"><Search client:load icons={searchIcons} variant="voyage" titles={searchTitles} /><button class="nv-icon" type="button" data-motion-toggle disabled aria-label="Pause motion" aria-pressed="false"><span data-motion-pause><Icon name="mdi:pause" aria-hidden="true" /></span><span data-motion-play hidden><Icon name="mdi:play" aria-hidden="true" /></span></button></div>
-    </header>
+    <Backdrop />
+    <Header />
     <section class="nv-hero" id="nv-home" aria-label="Etalib's Space">
       <div class="nv-titleblock"><p class="nv-eyebrow">MATHEMATICS / CODE / LIFE</p><h1><span class="nv-title-first">Etalib’s</span><em>Space.</em></h1><a class="nv-quote" href="/posts/to-feel-not-fight/">To feel, not fight.<span class="nv-quote-rule" aria-hidden="true"></span></a></div>
       <aside class="nv-code" aria-label="A small note on curiosity"><span class="nv-margin-label">a little curiosity</span><code><span class="nv-code-key">while</span> (curious) &#123;<br>&nbsp;&nbsp;<span class="nv-code-call">explore</span>();<br>&#125;</code><span class="nv-code-annotation">there is always more.</span></aside>
@@ -49,7 +33,7 @@ const stars = Array.from({ length: 205 }, (_, index) => ({
       <div class="nv-grid">{posts.map((entry,index) => <EntryCard {entry} {index} />)}</div><p class="nv-end">{posts.length} of {posts.length} entries</p>
     </main>
     <section class="nv-signoff" aria-label="About the author"><a class="nv-person" href="/about/"><Image src={avatar} alt="Eta Lib.'s black cat avatar" width={44} height={44} widths={[44,88,132]} sizes="44px" format="webp" class="nv-avatar" loading="lazy" /><span><strong>Eta Lib.</strong><small>Mathematics, code, and the rest of life.</small></span><Icon name="mdi:arrow-top-right" aria-hidden="true" /></a><p>To love,<br><em>even the pain.</em></p><a class="nv-github" href="https://github.com/Chen017">GitHub <Icon name="mdi:arrow-top-right" aria-hidden="true" /></a></section>
-    <footer class="nv-footer"><span>© {new Date().getUTCFullYear()} AI · Etalib’s Space</span><div><a href="/archive/">Archive</a><span> / </span><a href="https://astro.build/">Astro</a><span> / </span><a href="https://github.com/Chen017/Blog">Theme</a><span> / </span><a href="https://github.com/Spr-Aachen/Twilight">Upstream</a></div><button type="button" data-replay disabled class="cursor-interaction"><Icon name="mdi:replay" aria-hidden="true" /> Replay the opening</button></footer>
+    <Footer />
 
   </div>
 </div>

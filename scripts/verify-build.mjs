@@ -60,6 +60,28 @@ assert.match(links, /My other websites/);
 assert.match(links, /Links/);
 const about = await readFile(resolve(output, 'about/index.html'), 'utf8');
 assert.match(about, /data-song-card/);
+assert.match(about, /Audio could not load\. Press play to retry\./, 'Cached Markdown must include the current music failure/retry behavior');
+const publicDocuments = (await readdir(output, { recursive: true })).filter(file => file.endsWith('.html') && !file.startsWith('admin'));
+for (const file of publicDocuments) {
+  const document = parse(await readFile(resolve(output,file),'utf8'));
+  assert.ok(document.querySelector('#voyage-afterhours .nv-header'), `${file}: shared Voyage navigation missing`);
+  assert.ok(document.querySelector('#voyage-afterhours .nv-footer'), `${file}: shared Voyage footer missing`);
+  assert.ok(document.querySelector('.nv-sky svg'), `${file}: shared starfield missing`);
+  assert.equal(document.querySelector('#navbar, #banner-wrapper, .page-content-shell'), null, `${file}: legacy shell remains`);
+  assert.ok(document.querySelector('[data-motion-toggle]'), `${file}: motion preference control missing`);
+  assert.ok(!document.querySelector('a[href=""]'), `${file}: empty navigation target`);
+  if (document.querySelector('.vs-article')) {
+    assert.ok(document.querySelector('main .vs-article-intro h1'), `${file}: article masthead must span the reading composition`);
+    assert.equal(document.querySelector('.vs-reading .vs-article-head'), null, `${file}: headline must not compete with the outline`);
+  }
+}
+const archive = parse(await readFile(resolve(output,'archive/index.html'),'utf8'));
+assert.equal(archive.querySelectorAll('.archive-entry').length, sourcePosts.length, 'Archive must preserve all public entries');
+assert.equal(archive.querySelectorAll('astro-island[component-url*="statistics"]').length,1,'Writing activity remains accessible on the archive');
+for (const format of ['rss','atom']) {
+  const page = parse(await readFile(resolve(output,`${format}/index.html`),'utf8'));
+  assert.ok(page.querySelector(`[data-copy-url$="/${format}.xml"]`), `${format}: feed copy action missing`);
+}
 for (const file of ['index.html', 'archive/index.html']) {
   const page = parse(await readFile(resolve(output, file), 'utf8'));
   for (const island of page.querySelectorAll('astro-island[props]')) {

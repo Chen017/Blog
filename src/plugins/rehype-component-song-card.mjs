@@ -266,7 +266,7 @@ export function SongCardComponent(properties, children) {
             { type: "text/javascript" },
             `
 (() => {
-  const SCRIPT_VERSION = "song-card-v5";
+  const SCRIPT_VERSION = "song-card-v6";
 
   const cleanups = window.__songCardCleanups || (window.__songCardCleanups = new Set());
   const initSongCards = () => {
@@ -315,6 +315,20 @@ export function SongCardComponent(properties, children) {
       const rawArtist = (card.dataset.songArtist || "").trim();
       if (titlelineEl && rawTitle && rawArtist) {
         titlelineEl.textContent = rawTitle + " - " + rawArtist;
+      }
+
+      if (coverImg) {
+        const artworkFailed = () => {
+          coverImg.hidden = true;
+          const wrap = coverImg.closest('.song-card__cover-wrap');
+          if (wrap) {
+            wrap.dataset.artworkError = "true";
+            wrap.setAttribute("role", "img");
+            wrap.setAttribute("aria-label", "Artwork unavailable for " + (rawTitle || "this song"));
+          }
+        };
+        coverImg.addEventListener("error", artworkFailed, { once: true });
+        if (coverImg.complete && coverImg.currentSrc && !coverImg.naturalWidth) artworkFailed();
       }
 
       const formatTime = (value) => {
@@ -418,10 +432,26 @@ export function SongCardComponent(properties, children) {
         toggle.setAttribute("aria-label", playing ? "Pause" : "Play");
       };
 
+      const playbackError = document.createElement("p");
+      playbackError.className = "song-playback-error";
+      playbackError.setAttribute("role", "status");
+      playbackError.hidden = true;
+      card.querySelector('.song-card__body')?.append(playbackError);
+      const playbackFailed = () => {
+        audioLoaded = false;
+        card.classList.remove("is-playing");
+        updateToggle();
+        stopLoop();
+        playbackError.textContent = "Audio could not load. Press play to retry.";
+        playbackError.hidden = false;
+      };
+      audio.addEventListener("error", playbackFailed);
+
       toggle.addEventListener("click", () => {
         if (audio.paused) {
+          playbackError.hidden = true;
           ensureAudioLoaded();
-          audio.play().catch(() => {});
+          audio.play().catch(playbackFailed);
         } else {
           audio.pause();
         }

@@ -1,14 +1,17 @@
-# MiSans fonts used by this website
+# Locally hosted fonts
 
-The Voyage homepage additionally uses locally hosted Latin subsets of DM Sans
+All public Voyage pages use locally hosted Latin subsets of DM Sans
 and Instrument Serif from Google Fonts, retrieved on 2026-10-29. Both are
 licensed under the SIL Open Font License; the original licenses are included
 as `DM-Sans-OFL.txt` and `Instrument-Serif-OFL.txt`. No third-party font request
-is made by the homepage. Article and archive pages retain MiSans.
+is made by these pages. DM Sans is used for the interface and reading;
+Instrument Serif supplies short display accents. Chinese text uses system fonts.
 
-This website uses MiSans Latin, created by Xiaomi and its font partners, for
-English, Arabic numerals, and English punctuation. Chinese text and punctuation
-use the device's system font.
+## Historical MiSans assets
+
+The previous theme used MiSans Latin, created by Xiaomi and its font partners,
+for English, Arabic numerals, and English punctuation. These original assets
+and their attribution remain available for compatibility.
 Font files are served by the blog itself. The fonts retain their original glyphs;
 no font subsetting, redrawing, or conversion was performed.
 
@@ -28,7 +31,8 @@ The existing Chinese file was compared byte for byte with the official archive.
 It remains at its original URL for compatibility, but is no longer declared in
 the website's font stack or requested by ordinary pages.
 
-Only the Latin Regular face is preloaded. Latin Semibold loads when used.
+The previous theme preloaded Latin Regular and loaded Latin Semibold when used.
+Voyage does not preload or request either MiSans face on ordinary public pages.
 The unmodified Latin fonts contain every printable ASCII character (U+0020-007E),
 including all digits and English punctuation, plus curly quotes, en/em dashes,
 and ellipses. They do not contain Chinese ideographs or Chinese punctuation.

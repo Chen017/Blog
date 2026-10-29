@@ -71,6 +71,10 @@ function initializeVoyage(root: HTMLElement) {
 	function syncMotion() {
 		const enabled = motionEnabled && !reduced.matches;
 		page.dataset.motion = enabled ? "on" : "off";
+		document.documentElement?.setAttribute(
+			"data-motion",
+			enabled ? "on" : "off",
+		);
 		motionButton.disabled = reduced.matches;
 		motionButton.setAttribute(
 			"aria-label",

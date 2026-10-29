@@ -1,35 +1,14 @@
 ---
-export const prerender = true;
-
-
 import { getEntry, render } from "astro:content";
-
-import { LinkPresets } from "@constants/link-presets";
-import { LinkPreset } from "@/types/config";
 import Markdown from "@components/common/markdown.astro";
 import GridLayout from "@layouts/grid.astro";
-import BackwardButton from "@components/backwardButton.astro";
-
-
-const pageTitle = LinkPresets[LinkPreset.About].name;
-const pageDescription = LinkPresets[LinkPreset.About].description;
-
-const aboutPost = await getEntry("spec", "about");
-
-if (!aboutPost) {
-    throw new Error("About page content not found");
-}
-
-const { Content, headings } = await render(aboutPost);
+const about = await getEntry("spec", "about");
+if (!about) throw new Error("About page content not found");
+const { Content, headings } = await render(about);
 ---
-
-<GridLayout title={pageTitle} description={pageDescription} headings={headings}>
-    <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
-        <div class="card-base z-10 px-9 py-6 relative w-full ">
-            <BackwardButton currentPath={Astro.url.pathname} />
-            <Markdown class="mt-2">
-                <Content />
-            </Markdown>
-        </div>
-    </div>
+<GridLayout title="About" description="Eta Lib. — mathematics, code, and the rest of life." {headings}>
+    <section class="vs-about">
+        <div class="vs-about-intro"><span class="vs-kicker">THE PERSON BEHIND THE PAGES</span><p>Mathematics, code, and the rest of life. A few things I chose to put here.</p></div>
+        <Markdown class="vs-about-content"><Content /></Markdown>
+    </section>
 </GridLayout>
