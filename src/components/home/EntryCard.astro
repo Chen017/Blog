@@ -16,7 +16,7 @@ const route = getPostUrl(entry);
 const cardId = `writing-${route.split("/").filter(Boolean).join("-")}`;
 const categoryLabel = copy.category === "Recommended Projects" ? "Discoveries" : copy.category;
 ---
-<article id={cardId} class="nv-entry post-card nv-card" data-entry-route={route} data-life={copy.category === "Life"} data-category={copy.category} data-date={isoDate} data-pinned={String(entry.data.pinned)} data-original-order={index}>
+<article id={cardId} class="nv-entry post-card nv-card" data-entry-route={route} data-life={copy.category === "Life"} data-title-length={copy.title.length > 65 ? "long" : "normal"} data-category={copy.category} data-date={isoDate} data-pinned={String(entry.data.pinned)} data-original-order={index}>
     {entry.data.cover ? <ImageWrapper src={entry.data.cover} basePath={getFileDirFromPath(entry.filePath || "")} alt="" responsive="card" class="nv-entry-cover" /> : <EntryArt id={entry.id} />}
     <a class="nv-entry-link" href={getPostUrl(entry)}>
         <div class="nv-entry-top"><span>{categoryLabel}</span><Icon name="mdi:arrow-top-right" aria-hidden="true" /></div>

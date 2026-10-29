@@ -6,6 +6,7 @@ import Backdrop from "@components/site/Backdrop.astro";
 import Header from "@components/site/Header.astro";
 import Footer from "@components/site/Footer.astro";
 import HomeLayout from "@layouts/home.astro";
+import { slide } from "astro:transitions";
 import EntryCard from "@components/home/EntryCard.astro";
 import ComplexPlane from "@components/home/ComplexPlane.astro";
 import avatar from "../assets/images/avatar.jpg";
@@ -16,24 +17,24 @@ const categories = await getCategoryList();
 <HomeLayout>
 <a class="nv-skip" href="#nv-writing">Skip to writing</a>
 <div id="voyage-afterhours" aria-label="Etalib's Space — After hours">
-  <div class="nv-page" lang="en" data-motion="on">
-    <Backdrop />
+  <div class="nv-page" lang="en" data-motion="on" transition:name="voyage-page" transition:animate={slide({ duration: "300ms" })}>
+    <Backdrop dense />
     <Header />
     <section class="nv-hero" id="nv-home" aria-label="Etalib's Space">
-      <div class="nv-titleblock"><p class="nv-eyebrow">MATHEMATICS / CODE / LIFE</p><h1><span class="nv-title-first">Etalib’s</span><em>Space.</em></h1><a class="nv-quote" href="/posts/to-feel-not-fight/">To feel, not fight.<span class="nv-quote-rule" aria-hidden="true"></span></a></div>
-      <aside class="nv-code" aria-label="A small note on curiosity"><span class="nv-margin-label">a little curiosity</span><code><span class="nv-code-key">while</span> (curious) &#123;<br>&nbsp;&nbsp;<span class="nv-code-call">explore</span>();<br>&#125;</code><span class="nv-code-annotation">there is always more.</span></aside>
+      <div class="nv-titleblock"><h1><span class="nv-title-first">Etalib’s</span><em>Space.</em></h1></div>
+      <aside class="nv-code" tabindex="0" aria-label="A small note on curiosity"><span class="nv-margin-label">a little curiosity</span><code><span class="nv-code-key">while</span> (curious) &#123;<br>&nbsp;&nbsp;<span class="nv-code-call">explore</span>();<br>&#125;</code><span class="nv-code-annotation">there is always more.</span></aside>
       <ComplexPlane />
       <div class="nv-horizon" aria-hidden="true"><div class="nv-horizon-grain"></div></div>
       <button class="nv-binary" type="button" data-binary disabled aria-label="Two stars, one orbit. Play a single orbit"><span class="nv-binary-drawing" aria-hidden="true"><span class="nv-binary-ellipse"></span><span class="nv-binary-dot nv-dot-a"></span><span class="nv-binary-dot nv-dot-b"></span></span><span>two stars,<br><em>one orbit.</em></span></button>
-      <span class="nv-horizon-caption">Written by<br>Eta Lib.</span>
+      <span class="nv-horizon-caption"><span>Written by</span><br><em>AI</em></span>
       <a class="nv-scroll" href="#nv-writing"><span>Writing, below</span><span class="nv-scroll-line" aria-hidden="true"></span></a>
     </section>
     <main class="nv-main" id="nv-writing" tabindex="-1">
-      <div class="nv-writing-heading"><div><p class="nv-margin-label">NOTES, PROJECTS &amp; PERSONAL ENTRIES</p><h2>Things I’ve <em>written.</em></h2></div><span class="nv-count" role="status" aria-live="polite">{posts.length} entries</span></div>
-      <div class="nv-browse" hidden><div class="nv-filters" role="group" aria-label="Filter writing"><button type="button" data-category="All" aria-pressed="true">Everything <span>{posts.length}</span></button>{categories.map(category => <button type="button" data-category={category.name} aria-pressed="false">{category.name === "Recommended Projects" ? "Discoveries" : category.name} <span>{category.count}</span></button>)}</div><label class="nv-order">Order <select aria-label="Order writing"><option value="recent">Newest first</option><option value="oldest">Oldest first</option></select></label></div>
-      <div class="nv-grid">{posts.map((entry,index) => <EntryCard {entry} {index} />)}</div><p class="nv-end">{posts.length} of {posts.length} entries</p>
+      <div class="nv-writing-heading"><h2>Things I’ve <em>written.</em></h2></div>
+      <div class="nv-browse" hidden><div class="nv-filters" role="group" aria-label="Filter writing"><button type="button" data-category="All" aria-pressed="true">Everything <span>{posts.length}</span></button>{categories.map(category => <button type="button" data-category={category.name} aria-pressed="false">{category.name === "Recommended Projects" ? "Discoveries" : category.name} <span>{category.count}</span></button>)}</div><div class="nv-order">Order <select aria-label="Order writing"><option value="recent">Newest first</option><option value="oldest">Oldest first</option></select><details class="nv-order-menu"><summary>Newest first</summary><div class="nv-order-options"><button type="button" data-order="recent" aria-pressed="true">Newest first</button><button type="button" data-order="oldest" aria-pressed="false">Oldest first</button></div></details></div></div>
+      <div class="nv-grid">{posts.map((entry,index) => <EntryCard {entry} {index} />)}</div><p class="nv-end" role="status" aria-live="polite">{posts.length} of {posts.length} entries</p>
     </main>
-    <section class="nv-signoff" aria-label="About the author"><a class="nv-person" href="/about/"><Image src={avatar} alt="Eta Lib.'s black cat avatar" width={44} height={44} widths={[44,88,132]} sizes="44px" format="webp" class="nv-avatar" loading="lazy" /><span><strong>Eta Lib.</strong><small>Mathematics, code, and the rest of life.</small></span><Icon name="mdi:arrow-top-right" aria-hidden="true" /></a><p>To love,<br><em>even the pain.</em></p><a class="nv-github" href="https://github.com/Chen017">GitHub <Icon name="mdi:arrow-top-right" aria-hidden="true" /></a></section>
+    <section class="nv-signoff" aria-label="About the author"><a class="nv-person" href="/about/"><Image src={avatar} alt="AI's black cat avatar" width={44} height={44} widths={[44,88,132]} sizes="44px" format="webp" class="nv-avatar" loading="lazy" /><span><strong>AI</strong><small>Mathematics, code, and the rest of life.</small></span><Icon name="mdi:arrow-top-right" aria-hidden="true" /></a><p>To love,<br><em>even the pain.</em></p><a class="nv-github" href="https://github.com/Chen017">GitHub <Icon name="mdi:arrow-top-right" aria-hidden="true" /></a></section>
     <Footer />
 
   </div>

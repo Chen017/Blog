@@ -78,6 +78,13 @@ collections:
         widget: boolean
         required: false
         default: false
+      - label: Text alignment
+        name: textAlign
+        widget: select
+        options: ["left", "center"]
+        default: "left"
+        required: false
+
       - label: 置顶
         name: pinned
         widget: boolean
@@ -232,6 +239,13 @@ collections:
         widget: boolean
         required: false
         default: false
+      - label: Text alignment
+        name: textAlign
+        widget: select
+        options: ["left", "center"]
+        default: "left"
+        required: false
+
       - label: 置顶
         name: pinned
         widget: boolean

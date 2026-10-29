@@ -59,7 +59,7 @@ uniform glowing panels, arbitrary gradients, and repeated pairs of hero CTAs.
 
 | Page | Main purpose | Composition |
 | --- | --- | --- |
-| Home | Introduce the person through their work and invite reading | Offset display type above a low planetary horizon and an operable complex plane. Preserve the approved original equal-sized image cards, overlay titles, writing heading, filters and spacing; do not add a selected-work section or change their layout. All published entries remain directly discoverable. |
+| Home | Introduce the person through their work and invite reading | Offset display type above a low planetary horizon and an operable complex plane. Preserve the approved original equal-width image cards with compact, consistent height, overlay titles, writing heading and filters; do not add a selected-work section or change their layout. All published entries remain directly discoverable. |
 | Article | Read and move through a text | A centered masthead spans the reading composition above the body/outline grid. Long titles use smaller type and balanced wrapping (about 42px maximum; 28–32px on phones), never an oversized five-line poster squeezed beside the outline. Body and outline begin together; the narrow outline stays sticky on wide screens and becomes an accessible panel on small screens. Clear metadata, a calm reading field and complete adjacent-entry titles support reading. |
 | Archive | Find a particular entry | Strong editorial heading, explicit category controls, chronological groups, complete titles and dates. A compact list belongs here rather than replacing the homepage's image cards. |
 | About | Meet the author through chosen material | Generous image presentation, a personal heading, original writing and music; no fabricated biography or personality claims. |
@@ -114,7 +114,7 @@ of component width. Preserve time-scale selection and accessible exact counts.
 Apple's principles of purposeful, continuous, responsive motion inform the
 behavior. These are **website-specific choices**, not claimed Apple presets or
 web equivalents of private native APIs. Prefer CSS, Web Animations, Astro's
-static rendering and native document transitions over a new animation framework.
+static rendering and its ClientRouter transitions over a new animation framework.
 
 | Trigger | Motion | Timing and reason |
 | --- | --- | --- |
@@ -122,21 +122,22 @@ static rendering and native document transitions over a new animation framework.
 | Hover/focus a reading card | Lift ≤6px, image scale ≤1.055, arrow shifts 4px | Surface about 260ms; image about 600ms. Suggest depth without tilting the text. |
 | Open/close a panel | Opacity with a small directional translation, no layout jump | 160–220ms, ease-out on entrance; keep focus and hit testing synchronized. |
 | Filter or sort entries | Surviving cards move from their previous positions; new entries settle locally | About 320ms, interruptible. Persist category, order and source position in the current history entry. Do not animate unrelated content. |
-| Open an entry and return | The selected title continues into the article masthead and returns to its source | Native cross-document transitions, about 380ms. Keep the shared header stable. Map only the selected title; never assign one identity to different articles. All links work without this enhancement. |
+| Open an entry and return | The selected title continues into the article masthead and returns to its source | Astro ClientRouter transitions, about 620ms with a smooth ease-out. Keep the shared header stable. Map only the selected title; never assign one identity to different articles. Restore the selection and scroll position; links work without this enhancement. |
 | Move to an adjacent entry | Short directional movement of the reading composition | About 260ms. Previous and next have opposite directions; direct visits do not slide. |
-| Explicitly replay the homepage opening | Display text settles and the horizon becomes clear | 900–1400ms; deliberate and finite. Never force this sequence on every visit. |
+| Navigate between Home, Writing, Links and About | Slide in the direction of the destination in the navigation | About 300ms, with the header stable. |
+| Open the homepage for the first time in a session | Display text settles and the horizon becomes clear | A 450ms anticipation, then a 1800–2300ms settle; text stays visible and the sequence is finite. Never force this sequence on every visit. |
 | Move a fine pointer over the hero | Photographic sky moves up to 16×10px; stars up to 10×6px in the opposite direction | About 550–700ms response, pointer sensitivity 1.25 with clamped limits. Text remains stable. No touch-pointer imitation. |
 | Activate the two-star ornament | One complete shared orbit | About 2400ms, then rest. The ornament does not run an endless loop. |
-| Explore the complex plane | Drag the point, use the native angle slider, or step by 45 degrees; projections and code follow the same angle | Direct manipulation is immediate; discrete steps follow a finite 360ms arc. Reduced motion updates instantly. Numeric output always describes the displayed point. |
+| Explore the complex plane | Hover or keyboard focus starts a slow orbit; touch plays one orbit; drag or use the angle slider; projections and code follow the same angle | Direct manipulation is immediate; discrete steps follow a finite 360ms arc. Reduced motion updates instantly. Numeric output always describes the displayed point. |
 | Copy a link/code or submit a form | Clear text feedback and a recoverable failure state | Feedback is explicit; motion is optional and never the only indication. |
 
 Use `cubic-bezier(.2,.8,.2,1)` for responsive local settling and
 `cubic-bezier(.16,.8,.2,1)` for slower decorative settling. Avoid overshoot on
-reading surfaces, simultaneous floating cards, flashing stars, cursor trails,
-automatic sound, long scroll hijacks, and continuous JavaScript animation loops.
+reading surfaces, simultaneous floating cards, rapid flashing, cursor trails,
+automatic sound and long scroll hijacks. The pointer-driven complex-plane loop runs only while engaged; stars twinkle gently in CSS. The reading rail is a keyboard-accessible vertical slider that seeks through the article.
 One short homepage opening may run on the first visit of a browser session; keep
 all content immediately visible, skip it on history return and reduced motion,
-and retain explicit replay. Scroll-linked decoration follows native scrolling
+without a replay control. Scroll-linked decoration follows native scrolling
 and never captures wheel or touch input.
 Parallax photography must overscan by at least its full travel on every screen
 width; use explicit 20px horizontal / 14px vertical overscan rather than a scale

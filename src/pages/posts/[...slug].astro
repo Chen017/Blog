@@ -1,6 +1,6 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
-import { profileConfig, siteConfig, postConfig } from "@/config";
+import { profileConfig, siteConfig } from "@/config";
 import { getSortedPosts } from "@utils/content";
 import { homePostCopy } from "@utils/home-post";
 import { getFileDirFromPath, getPostUrl, removeFileExtension } from "@utils/url";
@@ -72,12 +72,11 @@ const jsonLd = {
             <div class="vs-article-kicker"><a href={getCategoryUrl(entry.data.category)}>{copy.category}</a>{!shortNote && <span>{remarkPluginFrontmatter.minutes} min read</span>}</div>
             <h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title">{copy.title}</h1>
             {copy.description && !shortNote && <p class="vs-deck">{copy.description}</p>}
-            <div class="vs-article-meta"><span>{profileConfig.name}</span><time datetime={published}>{published}</time>{postConfig.showLastModified && updated && <span>Updated <time datetime={updated}>{updated}</time></span>}{!shortNote && <span>{remarkPluginFrontmatter.words} words</span>}</div>
+            <div class="vs-article-meta"><time datetime={published}>{published}</time>{!shortNote && <span>{remarkPluginFrontmatter.words} words</span>}</div>
         </header>
-    <article id="post-container" class="vs-article" data-kind={shortNote ? "note" : "essay"}>
+    <article id="post-container" class="vs-article" data-align={entry.data.textAlign} data-kind={shortNote ? "note" : "essay"}>
         {entry.data.cover && entry.data.coverInContent && <ImageWrapper id="post-cover" src={entry.data.cover} basePath={getFileDirFromPath(entry.filePath || "")} alt="" class="vs-inline-cover" loading="lazy" />}
         <PasswordProtection isEncrypted={entry.data.encrypted} password={entry.data.password}><Markdown class="markdown-content"><Content /></Markdown></PasswordProtection>
-        {postConfig.showLastModified && <p class="vs-updated">Last edited <time datetime={updated || published}>{updated || published}</time>.</p>}
     </article>
     <Comment post={entry} />
     <nav class="vs-adjacent" aria-label="Adjacent writing">

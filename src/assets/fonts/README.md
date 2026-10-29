@@ -39,3 +39,7 @@ and ellipses. They do not contain Chinese ideographs or Chinese punctuation.
 Removing the full Chinese font from the font stack avoids its 4.88 MB request;
 Chinese glyphs and line wrapping can consequently differ between devices.
 Code and math retain their dedicated fonts to preserve alignment and formulas.
+
+## Category title fonts
+
+Space Grotesk and Source Serif 4 Latin subsets are locally hosted from Google Fonts. Both use the SIL Open Font License; their original OFL files are included beside the fonts.

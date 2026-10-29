@@ -30,6 +30,7 @@ const postsCollection = defineCollection({
         displayDescription: z.string().optional(),
         cover: z.string().optional().default(""),
         coverInContent: z.boolean().optional().default(false),
+        textAlign: z.enum(["left", "center"]).optional().default("left"),
         category: categorySchema,
         lang: z.string().optional().default(""),
         pinned: z.boolean().optional().default(false),

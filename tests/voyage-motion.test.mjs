@@ -25,6 +25,9 @@ class ElementStub {
 	setAttribute(name, value) {
 		this.attributes[name] = value;
 	}
+	removeAttribute(name) {
+		delete this.attributes[name];
+	}
 	toggleAttribute(name, value) {
 		if (value) this.attributes[name] = "";
 		else delete this.attributes[name];
@@ -39,7 +42,7 @@ class ElementStub {
 
 test("system reduced motion governs animation and history return ignores the retired pause preference", async () => {
 	const raw = await readFile("src/scripts/voyage.ts", "utf8");
-	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("const root =")), {
+	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("let homeController")), {
 		mode: "transform",
 	});
 	const elements = new Map();
@@ -72,6 +75,7 @@ test("system reduced motion governs animation and history return ignores the ret
 		PAGE_BEFORE_REPLACE: "before-replace",
 		document: {
 			hidden: false,
+			documentElement: new ElementStub(),
 			getElementById: () => root,
 			addEventListener: (name, handler) => {
 				documentListeners[name] = handler;
@@ -90,7 +94,9 @@ test("system reduced motion governs animation and history return ignores the ret
 		},
 		ResizeObserver: class {
 			observe() {}
+			disconnect() {}
 		},
+		AbortController,
 		cancelAnimationFrame() {},
 		Event,
 		CustomEvent,
@@ -98,10 +104,8 @@ test("system reduced motion governs animation and history return ignores the ret
 	vm.runInContext(program, context);
 	const page = elements.get(".nv-page");
 	const orbit = elements.get("[data-binary]");
-	const replay = elements.get("[data-replay]");
 	assert.equal(page.dataset.motion, "off");
 	assert.equal(orbit.disabled, true);
-	assert.equal(replay.disabled, true);
 	elements
 		.get("[data-plane-angle]")
 		.listeners.input({ target: { value: "90" } });
@@ -112,7 +116,6 @@ test("system reduced motion governs animation and history return ignores the ret
 	media.change();
 	assert.equal(page.dataset.motion, "on");
 	assert.equal(orbit.disabled, false);
-	assert.equal(replay.disabled, false);
 	windowListeners.pagehide({ persisted: true });
 	assert.deepEqual(events, ["close-panels", "before-replace"]);
 	windowListeners.pageshow({ persisted: true });
@@ -121,5 +124,4 @@ test("system reduced motion governs animation and history return ignores the ret
 	media.change();
 	assert.equal(page.dataset.motion, "off");
 	assert.equal(orbit.disabled, true);
-	assert.equal(replay.disabled, true);
 });

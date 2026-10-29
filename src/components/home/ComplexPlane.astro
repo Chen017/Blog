@@ -17,6 +17,6 @@ import { Icon } from "astro-icon/components";
     <code class="nv-plane-code" hidden>const θ = <span data-code-angle>45</span> * Math.PI / 180;<br/>const z = &#123;<br/>&nbsp; re: <span data-code-real>0.707</span>,<br/>&nbsp; im: <span data-code-imag>0.707</span><br/>&#125;;</code>
   </div>
   <button type="button" class="nv-formula" data-angle disabled aria-label="Rotate the point on the complex plane"><span class="nv-expression">z = e<sup>iθ</sup></span><span class="nv-angle">θ = 45°</span></button>
-  <label class="nv-plane-control"><span>Drag to explore</span><input type="range" data-plane-angle min="0" max="360" step="1" value="45" disabled aria-label="Complex angle in degrees" /></label>
+  <label class="nv-plane-control"><span><span class="nv-hover-hint">Hover to explore</span><span class="nv-touch-hint">Tap formula to orbit</span></span><input type="range" data-plane-angle min="0" max="360" step="1" value="45" disabled aria-label="Complex angle in degrees" /></label>
   <div class="nv-plane-values" aria-hidden="true"><span>Re <output data-real>0.707</output></span><span>Im <output data-imag>0.707</output></span></div>
 </aside>

@@ -1,6 +1,7 @@
 ---
 import type { MarkdownHeading } from "astro";
 import VoyageDocument from "./home.astro";
+import { slide } from "astro:transitions";
 import Backdrop from "@components/site/Backdrop.astro";
 import Header from "@components/site/Header.astro";
 import Footer from "@components/site/Footer.astro";
@@ -22,11 +23,12 @@ const hasIntro = Astro.slots.has("intro");
 <VoyageDocument {title} {description} {lang} {canonical} {postSlug} article={setOGTypeArticle} interior>
     <slot slot="head" name="head" />
     <a class="nv-skip" href="#site-main">Skip to content</a>
-    <div id="voyage-afterhours"><div class="nv-page vs-interior" data-motion="on" data-route={Astro.url.pathname}>
+    <div id="voyage-afterhours"><div class="nv-page vs-interior" data-motion="on" data-route={Astro.url.pathname} transition:name="voyage-page" transition:animate={slide({ duration: "300ms" })}>
         <Backdrop /><Header />
         <main id="site-main" tabindex="-1">
             {hasIntro && <div class="vs-article-intro"><slot name="intro" /></div>}
             <div class:list={["vs-shell", { "vs-reading": hasOutline, "vs-article-layout": hasIntro, "vs-single-reading": hasIntro && !hasOutline }]}>
+                {hasIntro && <aside class="vs-reading-progress" aria-label="Reading progress"><span>READING</span><div class="vs-progress-track"><i data-progress-bar></i><input data-progress-input type="range" min="0" max="100" step="1" value="0" aria-label="Reading position" aria-valuetext="0%" disabled /></div><output data-progress-value>0%</output><a href="/#nv-writing">All writing ↗</a></aside>}
                 <div id="content-wrapper"><slot /></div>
                 {hasOutline && <aside class="vs-outline" aria-label="Article outline"><Toc depth={6} /></aside>}
             </div>

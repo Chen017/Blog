@@ -56,7 +56,7 @@ try {
   created.push(routeFile);
   for (const extension of ['md', 'mdx']) {
     const file = `src/content/posts/beta-regression-${extension}.${extension}`;
-    await writeFile(file, `---\ntitle: Beta regression ${extension}\npublished: 2026-01-01\ncategory: Beta\n---\n${body}`, { flag: 'wx' });
+    await writeFile(file, `---\ntitle: Beta regression ${extension}\npublished: 2026-01-01\ncategory: Beta\ntextAlign: ${extension === "md" ? "center" : "left"}\n---\n${body}`, { flag: 'wx' });
     created.push(file);
   }
   execFileSync(process.execPath, ['scripts/build-with-pagefind.cjs'], { stdio: 'inherit', env: { ...process.env, UMAMI_API_KEY: 'BUILD_ONLY_SECRET_CANARY_65291' } });
@@ -73,6 +73,8 @@ try {
   }
   for (const extension of ['md', 'mdx']) {
     const html = parse(await readFile(`dist/posts/beta-regression-${extension}/index.html`, 'utf8'));
+    assert.equal(html.querySelector('.vs-article').getAttribute('data-align'), extension === 'md' ? 'center' : 'left', `${extension}: alignment must follow frontmatter`);
+    assert.ok(!html.querySelector('.vs-updated'), `${extension}: no visible last-edited label`);
     for (const selector of ['.katex', '.mermaid[data-mermaid-code]', '[data-song-card]', 'spoiler', '.expressive-code', '.collapse-btn']) {
       assert.ok(html.querySelector(selector), `${extension}: missing ${selector}`);
     }

@@ -16,7 +16,7 @@ const links = [
 ];
 ---
 <header class="nv-header">
-    <a class="nv-brand" href={home ? "#nv-home" : "/"}><Icon name="mdi:orbit" aria-hidden="true" /><span>Etalib’s Space</span></a>
+    <a class="nv-brand" href={home ? "#nv-home" : "/"}><Icon name="mdi:orbit" aria-hidden="true" /><span>AI</span></a>
     <nav class="nv-nav" aria-label="Main navigation">{links.map(link => <a href={link.href} aria-current={link.active ? "page" : undefined}>{link.name}</a>)}</nav>
     <div class="nv-tools"><Search client:load {icons} variant="voyage" {titles} /></div>
 </header>

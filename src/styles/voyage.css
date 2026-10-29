@@ -1,20 +1,22 @@
 html { background: #080c17; color-scheme: dark; --voyage-cjk: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; --voyage-ease: cubic-bezier(.2,.8,.2,1); }
+/* Keep the viewport width identical across Astro transitions without an empty gutter. */
+html:root { overflow-y:scroll; scrollbar-gutter:auto; scrollbar-width:none; -ms-overflow-style:none; }
+body.voyage-interior { scrollbar-width:none; -ms-overflow-style:none; }
+html:root::-webkit-scrollbar, body.voyage-interior::-webkit-scrollbar { display:none; }
 body.voyage-home { margin: 0; background: #080c17; }
-@view-transition { navigation: auto; }
+@media (prefers-reduced-motion:no-preference) {
+  html[data-voyage-preparing] #voyage-afterhours :is(.vs-page-head h1,.vs-about-content h1,.nv-writing-heading h2,.nv-signoff > p):not([data-motion-ready]) { opacity:.55; translate:0 9px; }
+  html[data-voyage-preparing]:not([data-voyage-opening]) #voyage-afterhours .nv-titleblock h1:not([data-motion-ready]) em { opacity:.35; translate:0 8px; rotate:-2deg; }
+  html[data-voyage-opening] #voyage-afterhours :is(.nv-title-first,.nv-titleblock h1 em) { opacity:.45; filter:blur(3px); translate:0 12px; }
+  html[data-voyage-opening] #voyage-afterhours .nv-titleblock h1 em { translate:0 18px; }
+  html[data-voyage-opening] #voyage-afterhours .nv-horizon { opacity:.4; translate:0 15px; }
+}
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; animation-timing-function: ease-out; }
 ::view-transition-group(voyage-header) { animation-duration: 0s; }
-::view-transition-group(voyage-entry-title) { animation-duration: 380ms; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+::view-transition-group(voyage-entry-title) { animation-duration: 620ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
 ::view-transition-old(voyage-entry-title), ::view-transition-new(voyage-entry-title) { height: 100%; width: 100%; object-fit: contain; object-position: left center; mix-blend-mode: normal; }
-::view-transition-old(voyage-entry-title) { animation-duration: 130ms; }
-::view-transition-new(voyage-entry-title) { animation-duration: 260ms; }
-html[data-navigation="next"]::view-transition-old(voyage-reading) { animation: reading-away 260ms var(--voyage-ease) both; }
-html[data-navigation="next"]::view-transition-new(voyage-reading) { animation: reading-arrive 260ms var(--voyage-ease) both; }
-html[data-navigation="previous"]::view-transition-old(voyage-reading) { animation: reading-away-previous 260ms var(--voyage-ease) both; }
-html[data-navigation="previous"]::view-transition-new(voyage-reading) { animation: reading-arrive-previous 260ms var(--voyage-ease) both; }
-@keyframes reading-away { to { opacity: 0; translate: -24px 0; } }
-@keyframes reading-arrive { from { opacity: 0; translate: 24px 0; } }
-@keyframes reading-away-previous { to { opacity: 0; translate: 24px 0; } }
-@keyframes reading-arrive-previous { from { opacity: 0; translate: -24px 0; } }
+::view-transition-old(voyage-entry-title) { animation-duration: 420ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+::view-transition-new(voyage-entry-title) { animation-duration: 520ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
 html[data-motion="off"]::view-transition-group(*), html[data-motion="off"]::view-transition-old(*), html[data-motion="off"]::view-transition-new(*) { animation: none !important; }
 html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox__container * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 #voyage-afterhours{width:100%;background:transparent;container-type:inline-size}
@@ -52,9 +54,8 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours h1{font-weight:500;font-size:clamp(78px,13.4cqw,137px);line-height:.83;letter-spacing:-6.3px;text-shadow:0 3px 50px #d8dfff0b}
 #voyage-afterhours .nv-title-first{display:block;transform:translateX(-19px);font-weight:500;letter-spacing:-7px}
 #voyage-afterhours h1 em{font:italic 1.22em/.9 var(--font-voyage-serif),Georgia,serif;display:block;letter-spacing:-6px;color:#e6e2ee;transform:translateX(24px);margin-top:0}
-#voyage-afterhours .nv-quote{font:italic 20px/1.6 var(--font-voyage-serif),Georgia,serif;display:inline-flex;flex-direction:column;align-items:center;gap:7px;color:#c4c7d7;margin-top:27px;letter-spacing:.3px}
-#voyage-afterhours .nv-quote-rule{height:1px;width:22px;background:#c1d0dd43;transition:width 450ms,background 450ms}
-#voyage-afterhours .nv-titleblock :is(h1, .nv-eyebrow, .nv-quote) { position: relative; z-index: 3; }
+#voyage-afterhours .nv-titleblock h1 em { width:max-content; margin-inline:auto; }
+#voyage-afterhours .nv-titleblock :is(h1, .nv-eyebrow) { position: relative; z-index: 3; }
 /* Add neutral white light to the real backdrop. Keep the ancestors unisolated
    so each glyph inherits the sky directly beneath it, including moving scenery. */
 #voyage-afterhours .nv-titleblock h1 { text-shadow: none; }
@@ -67,13 +68,14 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
     #voyage-afterhours .nv-titleblock h1 { mix-blend-mode: normal; }
     #voyage-afterhours .nv-title-first, #voyage-afterhours .nv-titleblock h1 em { color: #e0e0e0; -webkit-text-stroke: 0; }
 }
-#voyage-afterhours .nv-quote:hover .nv-quote-rule{width:63px;background:#c1d0dd8c}
 #voyage-afterhours .nv-margin-label{font:10px/1.5 var(--font-voyage-sans),sans-serif;letter-spacing:1.8px;color:var(--nv-dim)}
 #voyage-afterhours .nv-code{position:absolute;z-index:3;left:43px;top:224px;transform:rotate(-5deg);color:#b2bdcf;max-width:170px}
 #voyage-afterhours .nv-code .nv-margin-label{display:block;font-size:10px;letter-spacing:.4px;color:#8393ad;margin-bottom:13px}
 #voyage-afterhours .nv-code code{display:block;font:11px/1.9 'SFMono-Regular',Consolas,monospace;letter-spacing:0;color:#b5b9cf}
 #voyage-afterhours .nv-code-key{color:#c1a4b8}
-#voyage-afterhours .nv-code-call{color:#a9cfc6}
+#voyage-afterhours .nv-code-call{display:inline-block;color:#a9cfc6}
+#voyage-afterhours .nv-touch-hint{display:none}
+@media (hover:none){#voyage-afterhours .nv-hover-hint{display:none}#voyage-afterhours .nv-touch-hint{display:inline}}
 #voyage-afterhours .nv-code-annotation{display:block;margin-top:11px;font:italic 14px/1.4 var(--font-voyage-serif),Georgia,serif;color:#92a3b9}
 #voyage-afterhours .nv-complex{position:absolute;z-index:4;right:40px;top:203px;width:160px;transform:rotate(4deg);color:#bdc9db}
 #voyage-afterhours .nv-plane-head{display:flex;align-items:center;justify-content:space-between;gap:4px;border-top:1px solid #aec9e72b;padding-top:6px;font:10px/1.3 var(--font-voyage-sans),sans-serif;letter-spacing:.15px}
@@ -99,7 +101,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-scroll-line{display:block;width:1px;height:57px;background:linear-gradient(#c5cbdd8c,transparent);position:relative}
 #voyage-afterhours .nv-scroll-line::before{content:'';position:absolute;left:-2px;top:0;width:5px;height:5px;background:#bac7d4;border-radius:50%;box-shadow:0 0 10px #cad6e73b;transition:translate 500ms}
 #voyage-afterhours .nv-scroll:hover .nv-scroll-line::before{translate:0 12px}
-#voyage-afterhours .nv-main{position:relative;padding:39px 40px 0;scroll-margin-top:25px;background:linear-gradient(var(--nv-bg),#080c17eb 180px,var(--nv-bg) 650px)}
+#voyage-afterhours .nv-main{position:relative;padding:39px 40px 0;scroll-margin-top:0;background:linear-gradient(var(--nv-bg),#080c17eb 180px,var(--nv-bg) 650px)}
 #voyage-afterhours .nv-writing-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:25px}
 #voyage-afterhours .nv-writing-heading .nv-margin-label{font-size:9px;letter-spacing:1.8px;margin-bottom:10px}
 #voyage-afterhours h2{font-size:32px;line-height:1.2;font-weight:400;letter-spacing:-1.2px}
@@ -173,7 +175,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 }
 @container(max-width:570px){
  #voyage-afterhours .nv-header{padding:19px 22px 16px;gap:12px;flex-wrap:wrap}#voyage-afterhours .nv-brand{font-size:12px;gap:9px}#voyage-afterhours .nv-brand svg{width:20px;height:20px}#voyage-afterhours .nv-tools{margin-left:auto}#voyage-afterhours .nv-nav{order:3;justify-content:center;width:100%;gap:31px;font-size:11px;margin-top:5px}#voyage-afterhours .nv-nav a{padding:8px 3px}
- #voyage-afterhours .nv-hero{min-height:680px}#voyage-afterhours .nv-titleblock{margin-top:37px;width:100%;padding:0 18px}#voyage-afterhours .nv-eyebrow{font-size:9px;letter-spacing:2.7px;margin-bottom:27px}#voyage-afterhours h1{font-size:clamp(78px,22cqw,119px);letter-spacing:-4px}#voyage-afterhours .nv-title-first{letter-spacing:-4.8px;transform:translateX(-9px)}#voyage-afterhours h1 em{letter-spacing:-4px;transform:translateX(12px)}#voyage-afterhours .nv-quote{font-size:20px;margin-top:25px}
+ #voyage-afterhours .nv-hero{min-height:680px}#voyage-afterhours .nv-titleblock{margin-top:37px;width:100%;padding:0 18px}#voyage-afterhours .nv-eyebrow{font-size:9px;letter-spacing:2.7px;margin-bottom:27px}#voyage-afterhours h1{font-size:clamp(78px,22cqw,119px);letter-spacing:-4px}#voyage-afterhours .nv-title-first{letter-spacing:-4.8px;transform:translateX(-9px)}#voyage-afterhours h1 em{letter-spacing:-4px;transform:translateX(12px)}
  #voyage-afterhours .nv-code{left:26px;top:334px;max-width:140px}#voyage-afterhours .nv-code code{font-size:10px}#voyage-afterhours .nv-code .nv-margin-label{font-size:9px}#voyage-afterhours .nv-code-annotation{font-size:13px}#voyage-afterhours .nv-complex{right:26px;top:314px;width:132px}#voyage-afterhours .nv-plane-head{font-size:9px}#voyage-afterhours .nv-plane-canvas,#voyage-afterhours .nv-plane{height:109px}#voyage-afterhours .nv-plane-code{font-size:9px}#voyage-afterhours .nv-formula{font-size:14px}#voyage-afterhours .nv-formula span{font-size:9px}#voyage-afterhours .nv-horizon{top:492px;width:168%;left:-34%;height:360px;transform:rotate(-8deg)}#voyage-afterhours .nv-binary{left:28px;bottom:94px;font-size:10px;gap:6px}#voyage-afterhours .nv-binary em{font-size:16px}#voyage-afterhours .nv-binary-drawing{width:50px}#voyage-afterhours .nv-horizon-caption{font-size:13px;right:25px;bottom:95px;max-width:100px;text-align:right}#voyage-afterhours .nv-scroll{bottom:3px}
  #voyage-afterhours .nv-main{padding:30px 22px 0}#voyage-afterhours .nv-writing-heading{align-items:center;gap:12px;margin-bottom:21px}#voyage-afterhours .nv-writing-heading .nv-margin-label{font-size:8px;letter-spacing:1.2px;max-width:190px}#voyage-afterhours h2{font-size:26px}#voyage-afterhours .nv-count{font-size:9px}#voyage-afterhours .nv-browse{align-items:flex-start;flex-direction:column;gap:14px;padding-top:9px;margin-bottom:22px}#voyage-afterhours .nv-filters{gap:17px;justify-content:space-between;width:100%}#voyage-afterhours .nv-filters button{font-size:10px}#voyage-afterhours .nv-filters button span{font-size:8px;margin-left:2px}#voyage-afterhours .nv-order{align-self:flex-end;font-size:10px}#voyage-afterhours .nv-order select{font-size:11px;padding:5px 6px}#voyage-afterhours .nv-grid{grid-template-columns:1fr;gap:17px}#voyage-afterhours .nv-entry{min-height:340px;border-radius:7px}#voyage-afterhours .nv-entry-link{padding:20px 23px 22px}#voyage-afterhours .nv-entry h3{font-size:24px;line-height:1.2}#voyage-afterhours .nv-entry[data-life=true] h3{font-size:39px;max-width:240px}#voyage-afterhours .nv-entry-summary{font-size:12px}#voyage-afterhours .nv-entry-top{font-size:10px}#voyage-afterhours .nv-entry-meta{font-size:10px}
  #voyage-afterhours .nv-signoff{margin:0 22px;padding:25px 0;flex-wrap:wrap;gap:22px}#voyage-afterhours .nv-person{width:100%}#voyage-afterhours .nv-person small{font-size:10px}#voyage-afterhours .nv-person>svg{margin-left:auto}#voyage-afterhours .nv-signoff>p{margin-left:57px}#voyage-afterhours .nv-github{margin-left:auto}#voyage-afterhours .nv-footer{margin:0 22px;justify-content:flex-start;gap:13px 22px;font-size:9px;padding:22px 0}#voyage-afterhours .nv-footer>span{width:100%}#voyage-afterhours .nv-footer button{margin-left:auto}#voyage-afterhours .nv-search{left:16px;right:16px;top:68px;padding:18px}#voyage-afterhours .nv-search input{font-size:16px}#voyage-afterhours .nv-search-head{font-size:24px}#voyage-afterhours .nv-result{align-items:flex-start}#voyage-afterhours .nv-result time{font-size:9px}
@@ -222,11 +224,13 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-footer button { min-height: 34px; }
 #voyage-afterhours .nv-footer nav { display: flex; flex-wrap: wrap; gap: 10px 18px; }
 #voyage-afterhours .nv-footer .vs-credits { color: #7f8da5; }
-#voyage-afterhours .voyage-search[aria-hidden="true"] { display: none; }
+#voyage-afterhours .voyage-search[aria-hidden="true"] { opacity:0; visibility:hidden; pointer-events:none; translate:0 -8px; scale:.985; transition:opacity 180ms var(--voyage-ease), translate 180ms var(--voyage-ease), scale 180ms var(--voyage-ease), visibility 0s 180ms !important; }
 #voyage-afterhours .voyage-search { position: absolute; z-index: 30; inset: 76px 38px auto auto; width: min(540px, calc(100vw - 44px)); max-height: min(75vh, 640px); overflow-y: auto; padding: 20px; border: 1px solid #b0c2dc3c; border-radius: 9px; background: #111a2b; color: #eef0f6; box-shadow: 0 25px 90px #0009; }
 #voyage-afterhours .voyage-search-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 15px; font: 27px/1.2 var(--font-voyage-serif), Georgia, serif; }
 #voyage-afterhours .voyage-search input { font: 16px/1.5 var(--font-voyage-sans), sans-serif; border: 0; background: transparent; }
 #voyage-afterhours .voyage-search .search-field { border: 1px solid #aabfd238; }
+#voyage-afterhours .voyage-search .search-field:focus-within { border-color:#b6d9d2; box-shadow:0 0 0 2px #b6d9d257; }
+#voyage-afterhours .voyage-search .search-field input:focus-visible { outline:none; }
 #voyage-afterhours .voyage-search .search-status { color: #b0bdd2; }
 #voyage-afterhours .voyage-search .search-result { display: flex; flex-direction: column; gap: 6px; border-radius: 4px; }
 #voyage-afterhours .voyage-search .search-result:hover { background: #ffffff0a; }
@@ -288,8 +292,8 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-horizon-caption { right: max(44px, calc((100vw - 1250px) / 2)); }
 #voyage-afterhours .nv-card[data-returned=true] { animation: card-return 1500ms ease-out; }
 @keyframes card-return { from { border-color: #abdcd1; box-shadow: 0 0 0 4px #abdcd114; } }
-#voyage-afterhours .voyage-search { transform-origin: top right; animation: panel-arrive 200ms var(--voyage-ease); }
-@keyframes panel-arrive { from { opacity: 0; translate: 0 -8px; scale: .985; } }
+#voyage-afterhours .voyage-search { transform-origin:top right; visibility:visible; opacity:1; translate:0 0; scale:1; transition:opacity 200ms var(--voyage-ease), translate 200ms var(--voyage-ease), scale 200ms var(--voyage-ease), visibility 0s !important; }
+@media (prefers-reduced-motion:reduce) { #voyage-afterhours .voyage-search, #voyage-afterhours .voyage-search[aria-hidden="true"] { transition:none !important; } }
 #voyage-afterhours .nv-signoff { padding-block: 52px; gap: 32px; }
 #voyage-afterhours .nv-avatar { width: 56px; height: 56px; }
 #voyage-afterhours .nv-person strong { font-size: 16px; letter-spacing: -.3px; }
@@ -302,28 +306,40 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-footer a:hover, #voyage-afterhours .nv-footer button:hover { color: #e7eceb; }
 #voyage-afterhours .nv-footer-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
 #voyage-afterhours .nv-footer-top { gap: 8px; }
+@container (min-width: 961px) {
+  #voyage-afterhours .nv-footer { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); }
+  #voyage-afterhours .nv-footer > span { grid-column:1; }
+  #voyage-afterhours .nv-footer .vs-credits { grid-column:2; }
+  #voyage-afterhours .nv-footer-tools { grid-column:3; justify-self:end; }
+}
+@container (max-width: 1200px) {
+  #voyage-afterhours .nv-complex { width: 175px; }
+  #voyage-afterhours .nv-plane-canvas, #voyage-afterhours .nv-plane { height:132px; }
+}
 @container (max-width: 1050px) {
   #voyage-afterhours .nv-hero h1 { font-size: 130px; }
-  #voyage-afterhours .nv-complex { width: 190px; right: 30px; top: 280px; }
+  #voyage-afterhours .nv-complex { right: 30px; top: 280px; }
   #voyage-afterhours .nv-code { left: 30px; top: 307px; max-width: 145px; }
 }
+@container (max-width: 1200px) { #voyage-afterhours .nv-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @container (max-width: 820px) {
   #voyage-afterhours .nv-hero { min-height: 800px; }
   #voyage-afterhours .nv-titleblock { margin-top: 40px; }
-  #voyage-afterhours .nv-complex { top: 370px; width: 220px; }
+  #voyage-afterhours .nv-complex { top: 370px; width: 175px; }
   #voyage-afterhours .nv-code { top: 425px; left: 40px; }
   #voyage-afterhours .nv-horizon { top: 630px; }
   #voyage-afterhours .nv-signoff { flex-wrap: wrap; }
   #voyage-afterhours .nv-signoff > p { margin-left: auto; }
 }
 @container (max-width: 570px) {
+  #voyage-afterhours .nv-grid { grid-template-columns:1fr; }
   #voyage-afterhours .nv-hero { min-height: 750px; }
   #voyage-afterhours .nv-titleblock { margin-top: 24px; }
   #voyage-afterhours .nv-hero h1 { font-size: clamp(78px, 21.8cqw, 119px); }
   #voyage-afterhours .nv-hero h1 em { font-size: 1.2em; }
   #voyage-afterhours .nv-code { display: none; }
-  #voyage-afterhours .nv-complex { top: 340px; right: 50%; width: 240px; transform: translateX(50%); }
-  #voyage-afterhours .nv-plane-canvas, #voyage-afterhours .nv-plane { height: 166px; }
+  #voyage-afterhours .nv-complex { top: 340px; right: 50%; width: min(190px, 55cqw); transform: translateX(50%); }
+  #voyage-afterhours .nv-plane-canvas, #voyage-afterhours .nv-plane { height: clamp(110px, 37cqw, 140px); }
   #voyage-afterhours .nv-horizon { top: 620px; }
   #voyage-afterhours .nv-binary { left: 25px; bottom: 64px; }
   #voyage-afterhours .nv-horizon-caption { right: 25px; bottom: 73px; }
@@ -343,4 +359,86 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
     .voyage-home #voyage-afterhours .nv-sky { animation: sky-recede linear both; animation-timeline: scroll(root); animation-range: 0px 760px; }
     @keyframes sky-recede { to { transform: translateY(-64px); opacity: .35; } }
   }
+}
+
+/* Category-specific title faces, locally hosted Latin subsets. */
+@font-face { font-family: "Voyage Technical"; src: url("../assets/fonts/SpaceGrotesk-Latin.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; }
+@font-face { font-family: "Voyage Discovery"; src: url("../assets/fonts/SourceSerif4-Latin.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; }
+#voyage-afterhours .nv-entry[data-category="Development"] h3 { font-family: "Voyage Technical", var(--voyage-cjk); letter-spacing: -.035em; }
+#voyage-afterhours .nv-entry[data-category="Recommended Projects"] h3 { font-family: "Voyage Discovery", var(--voyage-cjk); letter-spacing: -.02em; }
+#voyage-afterhours .nv-entry { height: 235px; min-height: 0; }
+#voyage-afterhours .nv-entry-copy { padding-top: 30px; }
+#voyage-afterhours .nv-entry-summary { display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; -webkit-line-clamp:2; }
+#voyage-afterhours .nv-entry[data-title-length="long"] h3 { font-size:16px; line-height:1.2; }
+#voyage-afterhours .nv-entry-meta { margin-top:12px; }
+#voyage-afterhours .nv-nav { font-size: 14px; }
+#voyage-afterhours .nv-count, #voyage-afterhours .nv-filters button, #voyage-afterhours .nv-order, #voyage-afterhours .nv-entry-top, #voyage-afterhours .nv-entry-meta, #voyage-afterhours .nv-pinned, #voyage-afterhours .nv-footer, #voyage-afterhours .nv-footer button { font-size: 13px; }
+#voyage-afterhours .nv-filters button span { font-size: 12px; }
+#voyage-afterhours .nv-order-menu { display:none; position:relative; }
+#voyage-afterhours .nv-order[data-enhanced] select { display:none; }
+#voyage-afterhours .nv-order[data-enhanced] .nv-order-menu { display:block; }
+#voyage-afterhours .nv-order-menu summary { cursor:pointer; list-style:none; min-height:44px; display:flex; align-items:center; gap:12px; padding:0 12px; border:1px solid #a7bedb44; border-radius:5px; color:#d9e4e6; background:#111a2b; }
+#voyage-afterhours .nv-order-menu summary::-webkit-details-marker { display:none; }
+#voyage-afterhours .nv-order-menu summary::after { content:""; display:block; flex:none; width:7px; height:7px; margin:0 2px 3px auto; border-right:1.5px solid #abdcd1; border-bottom:1.5px solid #abdcd1; transform:rotate(45deg); transition:transform 200ms, margin 200ms; }
+#voyage-afterhours .nv-order-menu[open] summary::after { transform:rotate(225deg); margin-top:3px; margin-bottom:0; }
+#voyage-afterhours .nv-order-options { position:absolute; right:0; top:calc(100% + 6px); z-index:12; min-width:160px; padding:5px; background:#111a2b; border:1px solid #a7bedb44; border-radius:6px; box-shadow:0 12px 30px #0008; }
+#voyage-afterhours .nv-order-options button { display:block; width:100%; min-height:42px; text-align:left; padding:8px 12px; border-radius:4px; }
+#voyage-afterhours .nv-order-options button:hover, #voyage-afterhours .nv-order-options button[aria-pressed=true] { background:#abdcd11c; color:#d9eee7; }
+#voyage-afterhours .nv-eyebrow span { position:relative; display:inline-block; transition:color 250ms, translate 250ms; }
+#voyage-afterhours .nv-eyebrow span::after { content:''; position:absolute; left:0; right:0; top:100%; height:10px; }
+#voyage-afterhours .nv-eyebrow span:hover { color:#d7f1e8; translate:0 -2px; }
+#voyage-afterhours .nv-tiny { border-radius:50%; transition:background 220ms, color 220ms; }
+#voyage-afterhours .nv-tiny:is(:hover,:focus-visible) { background:#abdcd126; color:#ddf8ef; }
+#voyage-afterhours .nv-tiny svg { transition:rotate 350ms var(--voyage-ease), scale 350ms var(--voyage-ease); }
+#voyage-afterhours .nv-tiny:is(:hover,:focus-visible) svg { rotate:-12deg; scale:1.12; }
+#voyage-afterhours .nv-horizon-caption :is(span,em) { display:inline-block; }
+#voyage-afterhours .nv-code :is(.nv-code-key,.nv-code-call,.nv-code-annotation) { transition:color 300ms, text-shadow 300ms, translate 300ms; }
+#voyage-afterhours .nv-code:is(:hover,:focus-visible) .nv-code-key { color:#eed5e6; text-shadow:0 0 14px #cfb2c999; }
+#voyage-afterhours .nv-code:is(:hover,:focus-visible) .nv-code-call { color:#d9fff2; text-shadow:0 0 14px #abdcd199; translate:2px 0; transition-delay:100ms; }
+#voyage-afterhours .nv-code:is(:hover,:focus-visible) .nv-code-annotation { color:#e4e2ee; translate:2px 0; transition-delay:200ms; }
+#voyage-afterhours :is(.nv-writing-heading h2,.nv-signoff > p) em { display:inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .voyage-home #voyage-afterhours .nv-twinkle { transform-box:fill-box; transform-origin:center; animation:star-twinkle var(--twinkle-duration) ease-in-out var(--twinkle-delay) infinite alternate; }
+  @keyframes star-twinkle { 0%, 15% { opacity:.16; scale:.75; } 80%, 100% { opacity:1; scale:1.35; } }
+  #voyage-afterhours :is(.nv-titleblock h1,.nv-writing-heading h2,.nv-signoff > p) em:hover { animation:voyage-letter-drift 1.15s cubic-bezier(.22,.8,.2,1) both; }
+  #voyage-afterhours .nv-brand:is(:hover,:focus-visible) svg { animation:voyage-orbit 850ms cubic-bezier(.22,.8,.2,1) both; }
+  #voyage-afterhours .nv-horizon-caption:hover :is(span,em) { animation:voyage-letter-drift 1.15s cubic-bezier(.22,.8,.2,1) both; }
+  @keyframes voyage-orbit { 0%,100% { rotate:0deg; } 55% { rotate:32deg; } }
+  @keyframes voyage-letter-drift { 0%,100% { translate:0 0; rotate:0deg; scale:1; } 32% { translate:0 -4px; rotate:-1deg; scale:1.015; } 64% { translate:0 1px; rotate:.4deg; scale:1; } }
+}
+@container (max-width:820px) { #voyage-afterhours .nv-entry { height:230px; } }
+@container (max-width:570px) { #voyage-afterhours .nv-entry { height:245px; } #voyage-afterhours .nv-entry-copy { padding-top:12px; } #voyage-afterhours .nv-entry h3 { font-size:20px; } #voyage-afterhours .nv-entry[data-title-length="long"] h3 { font-size:16px; } #voyage-afterhours .nv-entry[data-life=true] h3 { font-size:34px; } #voyage-afterhours .nv-nav { font-size:14px; gap:18px; } #voyage-afterhours .nv-filters button, #voyage-afterhours .nv-count { font-size:13px; } }
+
+#voyage-afterhours .nv-brand { font-size:14px; }
+#voyage-afterhours .nv-entry-summary { font-size:13px; line-height:1.5; }
+#voyage-afterhours .nv-code { translate:66.6667% 0; }
+#voyage-afterhours .nv-complex { translate:-16.6667% 0; }
+#voyage-afterhours .nv-titleblock { padding-top:46px; }
+#voyage-afterhours .nv-footer { display:flex; justify-content:center; }
+#voyage-afterhours .nv-footer .vs-credits { text-align:center; }
+@container (max-width:570px) { #voyage-afterhours .nv-titleblock { padding-top:42px; } }
+
+/* Keep the sky, figure and horizon together as the desktop opening moves up. */
+@container (min-width:821px) {
+  #voyage-afterhours .nv-page { --nv-short-lift:clamp(0px, calc(520px - 65svh), 54px); --nv-lower-lift:clamp(0px, calc(680px - 100svh), 65px); }
+  #voyage-afterhours .nv-hero { min-height:calc(714px - var(--nv-short-lift) - var(--nv-lower-lift)); }
+  #voyage-afterhours .nv-titleblock { padding-top:0; margin-top:calc(62px + clamp(12px, 100svh - 620px, 36px) - var(--nv-short-lift)); }
+  #voyage-afterhours .nv-code { translate:66.6667% calc(-46px - var(--nv-short-lift)); }
+  #voyage-afterhours .nv-complex { translate:-16.6667% calc(-46px - var(--nv-short-lift) - var(--nv-lower-lift)); }
+  #voyage-afterhours .nv-horizon { top:calc(497px - var(--nv-short-lift) - var(--nv-lower-lift)); }
+  #voyage-afterhours .nv-photograph { top:calc(-60px - var(--nv-short-lift) - var(--nv-lower-lift)); }
+}
+@container (max-width:820px) and (min-width:571px) {
+  #voyage-afterhours .nv-titleblock { margin-top:64px; }
+  #voyage-afterhours .nv-hero { min-height:750px; }
+  #voyage-afterhours .nv-complex { top:365px; right:20px; width:145px; }
+  #voyage-afterhours .nv-plane-canvas, #voyage-afterhours .nv-plane { height:100px; }
+  #voyage-afterhours .nv-code { top:390px; }
+  #voyage-afterhours .nv-horizon { top:580px; }
+}
+@container (max-width:570px) {
+  #voyage-afterhours .nv-titleblock { padding-top:66px; }
+  #voyage-afterhours .nv-hero { min-height:clamp(490px, calc(100svh - 150px), 640px); }
+  #voyage-afterhours .nv-complex, #voyage-afterhours .nv-code { display:none; }
+  #voyage-afterhours .nv-horizon { top:calc(100% - 220px); }
 }

@@ -1,68 +1,55 @@
-<!-- This classic head script must register before the first rendering opportunity.
-     Navigation stays native; no fetch router, intercepted links or loading gate. -->
+<!-- Coordinate the selected title with Astro's page-transition lifecycle. -->
 <script is:inline>
 (() => {
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const read = key => { try { return JSON.parse(sessionStorage.getItem(key) || 'null'); } catch { return null; } };
-  const write = (key, value) => { try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {} };
+  if (window.__voyageNavigationMotion) return;
+  window.__voyageNavigationMotion = true;
+  const read = () => { try { return JSON.parse(sessionStorage.getItem('voyage:source') || 'null'); } catch { return null; } };
+  const write = value => { try { sessionStorage.setItem('voyage:source', JSON.stringify(value)); } catch {} };
   const path = value => { try { return new URL(value, location.href).pathname; } catch { return ''; } };
-  const isPost = value => value.startsWith('/posts/');
-  let active;
-
+  const post = value => value.startsWith('/posts/');
+  const tabs = ['/', '/archive/', '/friends/', '/about/'];
+  let selected;
+  let generation = 0;
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target.closest?.('a[href]');
-    if (!link || link.target || link.hasAttribute('download')) return;
-    const target = new URL(link.href, location.href);
-    if (target.origin !== location.origin || target.pathname === location.pathname) return;
-    const card = link.closest('[data-entry-route]');
-    if (card) write('voyage:source', { post: target.pathname, from: location.pathname, card: card.id });
-    write('voyage:navigation', { from: location.pathname, to: target.pathname, direction: link.dataset.direction || '' });
+    const card = link?.closest('[data-entry-route]');
+    if (!card || link.target || link.hasAttribute('download')) return;
+    const destination = new URL(link.href, location.href);
+    if (destination.origin === location.origin) write({ post: destination.pathname, current: destination.pathname, from: location.pathname, card: card.id, originIndex: history.state?.index });
+  }, true);
+  document.addEventListener('astro:before-preparation', event => {
+    generation++;
+    document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
+    const from = path(event.from), to = path(event.to);
+    const link = event.sourceElement?.closest?.('a[href]');
+    const card = link?.closest('[data-entry-route]');
+    if (card && !post(from) && post(to)) write({ post: to, current: to, from, card: card.id, originIndex: history.state?.index });
+    let source = read();
+    if (source && post(from) && post(to) && source.current === from) { source.current = to; write(source); }
+    const fromTab = tabs.indexOf(from), toTab = tabs.indexOf(to);
+    if (fromTab >= 0 && toTab >= 0 && fromTab !== toTab) event.direction = toTab < fromTab ? 'back' : 'forward';
+    else if (post(from) && post(to) && link?.dataset.direction) event.direction = link.dataset.direction === 'previous' ? 'back' : 'forward';
+    selected = source && ((post(to) && !post(from) && source.post === to && source.from === from) || (post(from) && !post(to) && source.post === from && source.from === to)) ? source : null;
+    if (!selected) return;
+    const title = post(from) ? document.querySelector('.vs-article-head h1') : document.getElementById(source.card)?.querySelector('[data-entry-title]');
+    if (title) title.style.viewTransitionName = 'voyage-entry-title';
   });
-
-  const prepare = (event, outgoing) => {
+  document.addEventListener('astro:before-swap', event => {
+    if (!selected) return;
+    const incoming = event.newDocument;
+    const title = post(path(event.to)) ? incoming.querySelector('.vs-article-head h1') : incoming.getElementById(selected.card)?.querySelector('[data-entry-title]');
+    if (title) title.style.viewTransitionName = 'voyage-entry-title';
     const transition = event.viewTransition;
-    if (!transition) return;
-    // On the outgoing document, ready normally rejects as the page is hidden.
-    // Interrupted navigations must also settle without an unhandled rejection.
-    void transition.ready.catch(() => {});
-    active = transition;
-    if (reduced.matches) { transition.skipTransition(); return; }
-    const activation = outgoing ? event.activation : Reflect.get(window, 'navigation')?.activation;
-    if (!activation?.entry || (!outgoing && !activation.from)) return;
-    const from = outgoing ? location.pathname : path(activation.from.url);
-    const to = outgoing ? path(activation.entry.url) : location.pathname;
-    const names = [];
-    const name = (element, value) => {
-      if (!element) return;
-      element.style.viewTransitionName = value;
-      names.push(element);
-    };
-    if (!outgoing) document.dispatchEvent(new Event('voyage:restore'));
-    if (isPost(from) !== isPost(to)) {
-      const post = isPost(from) ? from : to;
-      const source = read('voyage:source');
-      let card = source?.post === post ? document.getElementById(source.card) : null;
-      if (!card || card.hidden) card = Array.from(document.querySelectorAll('[data-entry-route]')).find(item => item.dataset.entryRoute === post && !item.hidden);
-      const title = isPost(location.pathname) ? document.querySelector('.vs-article-head h1') : card?.querySelector('[data-entry-title]');
-      const bounds = title?.getBoundingClientRect();
-      if (bounds && bounds.bottom > 0 && bounds.top < innerHeight) name(title, 'voyage-entry-title');
-    } else if (isPost(from) && isPost(to)) {
-      const pending = read('voyage:navigation');
-      if (pending?.from === from && pending?.to === to && ['next', 'previous'].includes(pending.direction)) {
-        document.documentElement.dataset.navigation = pending.direction;
-        name(document.querySelector('#site-main'), 'voyage-reading');
-      }
-    }
+    const current = generation;
     const cleanup = () => {
-      names.forEach(element => element.style.removeProperty('view-transition-name'));
-      delete document.documentElement.dataset.navigation;
-      if (active === transition) active = undefined;
+      if (current !== generation) return;
+      document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     };
-    void transition.finished.then(cleanup, cleanup);
-  };
-  window.addEventListener('pageswap', event => prepare(event, true));
-  window.addEventListener('pagereveal', event => prepare(event, false));
-  reduced.addEventListener('change', () => { if (reduced.matches) active?.skipTransition(); });
+    if (transition) void transition.finished.then(cleanup, cleanup); else cleanup();
+  });
+  document.addEventListener('astro:page-load', () => {
+    if (!post(location.pathname)) { try { sessionStorage.removeItem('voyage:source'); } catch {} }
+  });
 })();
 </script>

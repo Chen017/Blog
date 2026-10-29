@@ -5,6 +5,7 @@ import { defaultFavicons } from "@constants/icon";
 import { url } from "@utils/url";
 import "@styles/voyage.css";
 import NavigationMotion from "@components/site/NavigationMotion.astro";
+import { ClientRouter } from "astro:transitions";
 
 interface Props { title?: string; description?: string; lang?: string; article?: boolean; interior?: boolean; canonical?: string; postSlug?: string; }
 const { title: pageTitle, description = "Notes on mathematics, code, and the rest of life. A personal blog by Eta Lib.", lang = "en", article = false, interior = false, canonical, postSlug } = Astro.props;
@@ -20,6 +21,7 @@ const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlu
         <meta name="generator" content={Astro.generator} />
         <meta name="theme-color" content="#080c17" />
         <NavigationMotion />
+        <ClientRouter />
         <title>{title}</title>
         <meta name="description" content={description} />
         <meta name="author" content={profileConfig.name} />
@@ -44,6 +46,13 @@ const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlu
             try {
                 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
                 document.documentElement.dataset.motion = reduced ? 'off' : 'on';
+                if (!reduced) {
+                    document.documentElement.setAttribute('data-voyage-preparing', '');
+                    try {
+                        if (location.pathname === '/' && !location.hash && !history.state?.voyage && !sessionStorage.getItem('voyage:opened')) document.documentElement.setAttribute('data-voyage-opening', '');
+                    } catch { /* Keep the opening visible if storage is unavailable. */ }
+                    setTimeout(() => { if (!document.documentElement.hasAttribute('data-voyage-observing')) document.documentElement.removeAttribute('data-voyage-preparing'); document.documentElement.removeAttribute('data-voyage-opening'); }, 5000);
+                }
             } catch { /* CSS also respects the system preference. */ }
         </script>
         <script defer src="https://cloud.umami.is/script.js" data-website-id="6f7ec1f7-de68-4a99-9eaf-3e395237e061"></script>

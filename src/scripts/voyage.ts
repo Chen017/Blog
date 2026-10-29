@@ -1,3 +1,4 @@
+import "./heading-motion";
 import {
 	complexPoint,
 	pointerAngle,
@@ -10,10 +11,20 @@ import {
 	PAGE_BEFORE_REPLACE,
 } from "../utils/page-lifecycle";
 
-const root = document.getElementById("voyage-afterhours");
-if (root) initializeVoyage(root);
+let homeController: AbortController | undefined;
+function initializeCurrentVoyage() {
+	const root = document.getElementById("voyage-afterhours");
+	if (!root?.querySelector(".nv-hero") || root.dataset.homeInitialized === "true") return;
+	root.dataset.homeInitialized = "true";
+	homeController?.abort();
+	homeController = new AbortController();
+	initializeVoyage(root, homeController.signal);
+}
+document.addEventListener("astro:before-swap", () => homeController?.abort());
+document.addEventListener("astro:after-swap", initializeCurrentVoyage);
+initializeCurrentVoyage();
 
-function initializeVoyage(root: HTMLElement) {
+function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 	const get = <T extends Element = HTMLElement>(selector: string): T => {
 		const element = root.querySelector<T>(selector);
 		if (!element) throw new Error(`Missing homepage element: ${selector}`);
@@ -27,7 +38,6 @@ function initializeVoyage(root: HTMLElement) {
 		root.querySelectorAll<HTMLButtonElement>("button[data-category]"),
 	);
 	const binaryButton = get<HTMLButtonElement>("[data-binary]");
-	const replayButton = get<HTMLButtonElement>("[data-replay]");
 	const angleButton = get<HTMLButtonElement>("[data-angle]");
 	const planeButton = get<HTMLButtonElement>("[data-plane-toggle]");
 	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -35,6 +45,7 @@ function initializeVoyage(root: HTMLElement) {
 	let angle = 45;
 	let displayAngle = 45;
 	let planeFrame = 0;
+	let autoPlaneFrame = 0;
 	let draggedPointer: number | null = null;
 	let showCode = false;
 	let orbitPlaying = false;
@@ -66,6 +77,8 @@ function initializeVoyage(root: HTMLElement) {
 		pointerFrame = 0;
 		cancelAnimationFrame(planeFrame);
 		planeFrame = 0;
+		cancelAnimationFrame(autoPlaneFrame);
+		autoPlaneFrame = 0;
 		displayAngle = angle;
 		drawPlane();
 		page.style.setProperty("--nv-px", "0");
@@ -80,7 +93,6 @@ function initializeVoyage(root: HTMLElement) {
 			enabled ? "on" : "off",
 		);
 		binaryButton.disabled = !enabled;
-		replayButton.disabled = !enabled;
 		if (!enabled || document.hidden) stopMotion();
 	}
 
@@ -103,7 +115,7 @@ function initializeVoyage(root: HTMLElement) {
 		}
 	}
 
-	function updateEntries(motion = true) {
+	function updateEntries(motion = true, persist = true) {
 		const before = new Map(
 			entries
 				.filter((entry) => !entry.hidden)
@@ -159,10 +171,8 @@ function initializeVoyage(root: HTMLElement) {
 				String(button.dataset.category === category),
 			);
 		}
-		get(".nv-count").textContent =
-			`${count} ${count === 1 ? "entry" : "entries"}`;
 		get(".nv-end").textContent = `${count} of ${count} entries`;
-		saveState();
+		if (persist) saveState();
 	}
 
 	function restoreState() {
@@ -176,7 +186,7 @@ function initializeVoyage(root: HTMLElement) {
 				: "All";
 			get<HTMLSelectElement>(".nv-order select").value =
 				state.order === "oldest" ? "oldest" : "recent";
-			updateEntries(false);
+			updateEntries(false, false);
 		} catch {
 			/* Native links and default ordering remain available. */
 		}
@@ -275,6 +285,22 @@ function initializeVoyage(root: HTMLElement) {
 		planeFrame = requestAnimationFrame(frame);
 	}
 
+	function stopPlane() { cancelAnimationFrame(autoPlaneFrame); autoPlaneFrame = 0; }
+	function startPlane(oneOrbit = false) {
+		if (autoPlaneFrame || !canMove()) return;
+		cancelAnimationFrame(planeFrame);
+		const startAngle = displayAngle, started = performance.now();
+		const frame = (now: number) => {
+			if (!canMove()) { stopPlane(); return; }
+			const elapsed = now - started;
+			angle = displayAngle = (startAngle + elapsed * 360 / 8000) % 360;
+			drawPlane();
+			if (oneOrbit && elapsed >= 8000) { angle = displayAngle = startAngle; drawPlane(); stopPlane(); return; }
+			autoPlaneFrame = requestAnimationFrame(frame);
+		};
+		autoPlaneFrame = requestAnimationFrame(frame);
+	}
+
 	function orbit() {
 		if (orbitPlaying || !canMove()) return;
 		orbitPlaying = true;
@@ -307,25 +333,24 @@ function initializeVoyage(root: HTMLElement) {
 			});
 	}
 
-	function replay(scroll = true) {
+	function playOpening() {
 		stopMotion();
-		if (scroll) window.scrollTo({ top: 0, behavior: "instant" });
 		const ease = "cubic-bezier(.16,.8,.2,1)";
 		animate(
 			get(".nv-title-first"),
 			[
-				{ opacity: 0.2, filter: "blur(4px)", translate: "0 12px" },
+				{ opacity: 0.45, filter: "blur(3px)", translate: "0 12px" },
 				{ opacity: 1, filter: "blur(0)", translate: "0 0" },
 			],
-			{ duration: 900, easing: ease },
+			{ duration: 1800, delay: 450, fill: "both", easing: ease },
 		);
 		animate(
 			get("h1 em"),
 			[
-				{ opacity: 0.2, filter: "blur(4px)", translate: "0 18px" },
+				{ opacity: 0.45, filter: "blur(3px)", translate: "0 18px" },
 				{ opacity: 1, filter: "blur(0)", translate: "0 0" },
 			],
-			{ duration: 1100, delay: 80, easing: ease },
+			{ duration: 2100, delay: 550, fill: "both", easing: ease },
 		);
 		animate(
 			get(".nv-horizon"),
@@ -333,7 +358,7 @@ function initializeVoyage(root: HTMLElement) {
 				{ opacity: 0.4, translate: "0 15px" },
 				{ opacity: 1, translate: "0 0" },
 			],
-			{ duration: 1400, easing: ease },
+			{ duration: 2300, delay: 450, fill: "both", easing: ease },
 		);
 	}
 
@@ -358,7 +383,8 @@ function initializeVoyage(root: HTMLElement) {
 		drawPlane();
 	});
 	angleButton.addEventListener("click", () => {
-		setAngle((angle + 45) % 360, true);
+		if (window.matchMedia("(hover: none)").matches && canMove()) startPlane(true);
+		else { stopPlane(); setAngle((angle + 45) % 360, true); }
 		angleButton.setAttribute(
 			"aria-label",
 			`Rotate the point; current angle ${angle} degrees`,
@@ -367,6 +393,7 @@ function initializeVoyage(root: HTMLElement) {
 	get<HTMLInputElement>("[data-plane-angle]").addEventListener(
 		"input",
 		(event) => {
+			stopPlane();
 			setAngle(Number((event.target as HTMLInputElement).value));
 		},
 	);
@@ -384,6 +411,7 @@ function initializeVoyage(root: HTMLElement) {
 	};
 	planeCanvas.addEventListener("pointerdown", (event) => {
 		if (showCode || !event.isPrimary || event.button !== 0) return;
+		stopPlane();
 		draggedPointer = event.pointerId;
 		planeCanvas.setPointerCapture(event.pointerId);
 		dragAngle(event);
@@ -397,10 +425,14 @@ function initializeVoyage(root: HTMLElement) {
 	planeCanvas.addEventListener("pointerup", endDrag);
 	planeCanvas.addEventListener("pointercancel", endDrag);
 	planeCanvas.addEventListener("lostpointercapture", endDrag);
+	const complex = get<HTMLElement>(".nv-complex");
+	complex.addEventListener("pointerenter", event => { if (event.pointerType !== "touch") startPlane(); });
+	complex.addEventListener("pointerleave", stopPlane);
+	complex.addEventListener("focusin", () => { if (window.matchMedia("(hover: hover)").matches) startPlane(); });
+	complex.addEventListener("focusout", event => { if (!complex.contains(event.relatedTarget as Node | null)) stopPlane(); });
 	binaryButton.addEventListener("pointerenter", orbit);
 	binaryButton.addEventListener("focus", orbit);
 	binaryButton.addEventListener("click", orbit);
-	replayButton.addEventListener("click", () => replay());
 	hero.addEventListener("pointermove", (event) => {
 		if (!canMove() || event.pointerType === "touch") return;
 		const bounds = hero.getBoundingClientRect();
@@ -440,6 +472,7 @@ function initializeVoyage(root: HTMLElement) {
 					"",
 				);
 			} catch {}
+			saveState();
 		}
 		const anchor = (event.target as Element).closest<HTMLAnchorElement>(
 			'a[href^="#"]',
@@ -465,8 +498,8 @@ function initializeVoyage(root: HTMLElement) {
 			target.focus({ preventScroll: true });
 		}
 	});
-	reduced.addEventListener("change", syncMotion);
-	document.addEventListener("visibilitychange", syncMotion);
+	reduced.addEventListener("change", syncMotion, {signal});
+	document.addEventListener("visibilitychange", syncMotion, {signal});
 	window.addEventListener("pagehide", (event) => {
 		saveState();
 		stopMotion();
@@ -476,36 +509,41 @@ function initializeVoyage(root: HTMLElement) {
 				detail: { persisted: event.persisted },
 			}),
 		);
-	});
+	}, {signal});
 	window.addEventListener("pageshow", (event) => {
 		if (event.persisted) {
 			restoreState();
 			syncMotion();
 			announcePageReady();
 		}
-	});
-	document.addEventListener("voyage:restore", restoreState);
+	}, {signal});
 	const observer = new ResizeObserver(drawPlane);
 	observer.observe(get(".nv-plane-canvas"));
+	signal.addEventListener("abort", () => { saveState(); stopMotion(); observer.disconnect(); });
 	angleButton.disabled = false;
 	planeButton.disabled = false;
 	get<HTMLInputElement>("[data-plane-angle]").disabled = false;
 	get<HTMLElement>(".nv-browse").hidden = false;
+	const order = get<HTMLElement>(".nv-order");
+	const menu = order.querySelector<HTMLDetailsElement>("details");
+	const select = get<HTMLSelectElement>(".nv-order select");
+	if (menu) {
+		order.dataset.enhanced = "true";
+		const summary = menu.querySelector<HTMLElement>("summary")!;
+		const refresh = () => { summary.textContent = select.selectedOptions[0]?.textContent || "Newest first"; menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.order === select.value))); };
+		menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(button => button.addEventListener("click", () => { select.value = button.dataset.order || "recent"; select.dispatchEvent(new Event("change")); menu.open = false; refresh(); summary.focus(); }));
+		menu.addEventListener("keydown", event => { if (event.key === "Escape" && menu.open) { menu.open = false; summary.focus(); } });
+		document.addEventListener("click", event => { if (!menu.contains(event.target as Node)) menu.open = false; }, {signal});
+		select.addEventListener("change", refresh);
+		addEventListener("pageshow", refresh, {signal});
+		refresh();
+	}
+
 	syncMotion();
 	drawPlane();
 	const saved = typeof history !== "undefined" ? history.state?.voyage : null;
 	restoreState();
-	if (
-		saved &&
-		typeof performance !== "undefined" &&
-		performance
-			.getEntriesByType("navigation")
-			.some(
-				(entry) =>
-					(entry as PerformanceNavigationTiming).type === "back_forward",
-			)
-	) {
-		requestAnimationFrame(() => {
+	if (saved) {
 			window.scrollTo({
 				top: Number.isFinite(saved.scroll) ? saved.scroll : 0,
 				behavior: "instant",
@@ -518,7 +556,6 @@ function initializeVoyage(root: HTMLElement) {
 						.querySelector<HTMLAnchorElement>("a")
 						?.focus({ preventScroll: true });
 			}
-		});
 	}
 	try {
 		if (
@@ -528,10 +565,11 @@ function initializeVoyage(root: HTMLElement) {
 			canMove()
 		) {
 			sessionStorage.setItem("voyage:opened", "true");
-			replay(false);
+			playOpening();
 		}
 	} catch {
 		/* A blocked storage area simply skips the opening. */
 	}
+	document.documentElement.removeAttribute("data-voyage-opening");
 	announcePageReady();
 }

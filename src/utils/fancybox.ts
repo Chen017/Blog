@@ -8,11 +8,14 @@ let generation = 0;
 let stylesReady: Promise<unknown> | undefined;
 
 function loadStyles() {
-	if (stylesReady) return stylesReady;
+	const urls = [fancyboxStyleUrl, customStyleUrl];
+	const existing = (href: string) => Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).some(link => link.href === new URL(href, location.href).href);
+	if (stylesReady && urls.every(existing)) return stylesReady;
 	stylesReady = Promise.all(
-		[fancyboxStyleUrl, customStyleUrl].map(
+		urls.map(
 			(href) =>
 				new Promise<void>((resolve, reject) => {
+					if (existing(href)) { resolve(); return; }
 					const link = document.createElement("link");
 					link.rel = "stylesheet";
 					link.href = href;
