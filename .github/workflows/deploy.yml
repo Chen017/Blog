@@ -32,6 +32,7 @@ jobs:
           pnpm type-check
           pnpm test:markdown
           pnpm build
+          git archive --format=tar --output=site-source.tar HEAD
 
       - name: Copy files via SCP
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
@@ -40,7 +41,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSH_KEY }}
-          source: "."
+          source: "site-source.tar"
           target: "/root/Blog-incoming/${{ github.run_id }}-${{ github.run_attempt }}"
           command_timeout: 10m
 
@@ -68,6 +69,9 @@ jobs:
               fi
             fi
             incoming="/root/Blog-incoming/${{ github.run_id }}-${{ github.run_attempt }}"
+            test -f "$incoming/site-source.tar"
+            tar -xf "$incoming/site-source.tar" -C "$incoming"
+            rm -f -- "$incoming/site-source.tar"
             test -f "$incoming/package.json"
             mkdir -p /root/Blog
             rsync -a --delete --exclude='.env' --exclude='.git/' --exclude='node_modules/' --exclude='.astro/' --exclude='dist/' --exclude='audit/' "$incoming/" /root/Blog/
