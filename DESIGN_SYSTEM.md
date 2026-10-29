@@ -1,7 +1,7 @@
 # Voyage — design language
 
 This is the design contract for Etalib’s Space. Apply it to **every public page**,
-including articles, archive, About, Links, Skills, feeds, pagination, and errors.
+including articles, archive, About, Links, Skills, pagination, and errors.
 The homepage is the visual reference, not an isolated theme. Changes to this
 contract must be intentional and reflected in shared components first.
 
@@ -65,7 +65,6 @@ uniform glowing panels, arbitrary gradients, and repeated pairs of hero CTAs.
 | About | Meet the author through chosen material | Generous image presentation, a personal heading, original writing and music; no fabricated biography or personality claims. |
 | Links | Choose a destination | Distinct, legible destination cards with real images, descriptions and clearly external links. Stable order unless the author explicitly chooses otherwise. |
 | Skills | Understand actual experience | Group real skills and levels, show factual duration, keep one restrained visual system. Do not turn self-reported levels into invented precision or competitive scores. |
-| Feeds | Subscribe | A visible feed URL, one copy action with honest feedback, explanation and recent entries. RSS/Atom XML behavior stays intact. |
 | Error | Recover | Quiet planetary/typographic composition, a clear explanation, a direct route home or to the archive. Do not animate an error into a spectacle. |
 | Writing room | Author and edit | A branded night frame around a neutral editing canvas. Retain the established authoring language and controls; do not override generated third-party component selectors. |
 
@@ -92,7 +91,7 @@ of component width. Preserve time-scale selection and accessible exact counts.
 ## Choosing interface patterns
 
 - Use a normal link for navigation and a native button for an action.
-- Use underlined text filters for categories; a native select for ordering.
+- Use underlined text filters for categories and a themed, keyboard-accessible menu for activity periods.
 - Use cinematic image cards to browse writing visually; use chronological rows
   to locate entries by date. Neither should truncate essential titles.
 - Use a raised, opaque panel for search, menus, or transient controls. Reserve
@@ -107,7 +106,7 @@ of component width. Preserve time-scale selection and accessible exact counts.
   `.voyage-viewer`; Fancybox v6 uses `--f-*` tokens and `Carousel.Toolbar` /
   `Carousel.Thumbs` options. Old v5 selectors/options do not theme these controls.
 - Touch targets should be at least 44×44px, even when the visible icon is smaller.
-- Code copy, image viewing, songs, diagrams, encrypted content, aliases and feeds
+- Code copy, image viewing, songs, diagrams, encrypted content and aliases
   are site capabilities, not decorative details. A redesign must preserve them.
 
 ## Motion vocabulary
@@ -165,3 +164,5 @@ Run unit, Markdown/MDX integration, type and production-build checks; validate
 all routes and internal links. Verify the deployed page, not just the source or
 the workflow status. A page is complete only when its presentation **and** its
 existing functions conform to this document.
+
+Decorative animations start on pointer hover and keyboard focus, with click retained for touch. Audio playback always requires an explicit play action. RSS and Atom are retired; do not add feed routes or links.

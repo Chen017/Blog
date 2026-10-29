@@ -5,7 +5,7 @@ import { parse } from 'node-html-parser';
 import { verifyCardImages } from './lib/verify-card-images.mjs';
 
 const output = resolve('dist');
-for (const file of ['index.html', 'archive/index.html', 'friends/index.html', 'about/index.html', 'skills/index.html', 'admin/index.html', 'admin/config.yml', 'admin/editor.js', '404.html', 'rss.xml', 'atom.xml', 'sitemap-index.xml', 'pagefind/pagefind.js', 'pagefind/pagefind-entry.json']) {
+for (const file of ['index.html', 'archive/index.html', 'friends/index.html', 'about/index.html', 'skills/index.html', 'admin/index.html', 'admin/config.yml', 'admin/editor.js', '404.html', 'sitemap-index.xml', 'pagefind/pagefind.js', 'pagefind/pagefind-entry.json']) {
   await access(resolve(output, file));
 }
 const home = parse(await readFile(resolve(output, 'index.html'), 'utf8'));
@@ -77,10 +77,6 @@ for (const file of publicDocuments) {
 const archive = parse(await readFile(resolve(output,'archive/index.html'),'utf8'));
 assert.equal(archive.querySelectorAll('.archive-entry').length, sourcePosts.length, 'Archive must preserve all public entries');
 assert.equal(archive.querySelectorAll('astro-island[component-url*="statistics"]').length,1,'Writing activity remains accessible on the archive');
-for (const format of ['rss','atom']) {
-  const page = parse(await readFile(resolve(output,`${format}/index.html`),'utf8'));
-  assert.ok(page.querySelector(`[data-copy-url$="/${format}.xml"]`), `${format}: feed copy action missing`);
-}
 for (const file of ['index.html', 'archive/index.html']) {
   const page = parse(await readFile(resolve(output, file), 'utf8'));
   for (const island of page.querySelectorAll('astro-island[props]')) {
@@ -90,11 +86,9 @@ for (const file of ['index.html', 'archive/index.html']) {
     }
   }
 }
-assert.match(await readFile(resolve(output, 'rss.xml'), 'utf8'), /<rss[\s>]/);
-assert.match(await readFile(resolve(output, 'atom.xml'), 'utf8'), /<feed[\s>]/);
-console.log('Static output, search assets, feeds and personal customizations verified.');
+console.log('Static output, search assets and personal customizations verified.');
 
-for (const removed of ['albums/index.html','anime/index.html','diary/index.html','projects/index.html','timeline/index.html','exhibition/index.html','pio','assets/music','FooterConfig.html']) {
+for (const removed of ['rss.xml','atom.xml','rss/index.html','atom/index.html','albums/index.html','anime/index.html','diary/index.html','projects/index.html','timeline/index.html','exhibition/index.html','pio','assets/music','FooterConfig.html']) {
   await assert.rejects(access(resolve(output, removed)), { code: 'ENOENT' }, `Removed feature still generated: ${removed}`);
 }
 const admin = await readFile(resolve(output,'admin/index.html'),'utf8');

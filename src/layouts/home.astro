@@ -36,7 +36,6 @@ const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlu
         <Font cssVariable="--font-voyage-sans" preload={[{ weight: 400, style: "normal" }]} />
         <Font cssVariable="--font-voyage-serif" preload={[{ weight: 400, style: "italic" }]} />
         {favicons.map(favicon => <link rel="icon" href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src} sizes={favicon.sizes} media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`} />)}
-        <link rel="alternate" type="application/rss+xml" title={siteConfig.title} href={new URL(url("/rss.xml"), Astro.site)} />
         <script is:inline>
             document.documentElement.classList.add('dark');
             document.documentElement.setAttribute('data-theme', 'github-dark');

@@ -245,6 +245,8 @@ function initializeVoyage(root: HTMLElement) {
 		);
 		drawPlane();
 	});
+	binaryButton.addEventListener("pointerenter", orbit);
+	binaryButton.addEventListener("focus", orbit);
 	binaryButton.addEventListener("click", orbit);
 	replayButton.addEventListener("click", replay);
 	hero.addEventListener("pointermove", (event) => {

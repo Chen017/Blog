@@ -71,14 +71,6 @@ try {
     assert.ok(!text.includes('BUILD_ONLY_SECRET_CANARY_65291'), `${file}: build credentials leaked into public output`);
     assert.ok(!text.includes('data-umami-api-key'), `${file}: analytics credential attribute in public output`);
   }
-  for (const feedFile of ['rss.xml', 'atom.xml']) {
-    const feed = await readFile(`dist/${feedFile}`, 'utf8');
-    assert.ok(!feed.includes('PRIVATE_REGRESSION_BODY_78521'));
-    assert.ok(!feed.includes('import saltImg1 from'));
-    assert.ok(!feed.includes('src={saltImg1.src}'));
-    assert.ok(feed.includes('https://www.etalib.space/_astro/'), 'Feed images must have public absolute URLs');
-    assert.ok(!feed.includes('../to-feel-not-fight/image.png'), 'Parent-directory images must be resolved');
-  }
   for (const extension of ['md', 'mdx']) {
     const html = parse(await readFile(`dist/posts/beta-regression-${extension}/index.html`, 'utf8'));
     for (const selector of ['.katex', '.mermaid[data-mermaid-code]', '[data-song-card]', 'spoiler', '.expressive-code', '.collapse-btn']) {
