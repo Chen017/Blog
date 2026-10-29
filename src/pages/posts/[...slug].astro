@@ -67,7 +67,7 @@ const jsonLd = {
 <GridLayout title={copy.title} description={copy.description} lang={entry.data.lang || "en"} canonical={getPostUrl(entry)} setOGTypeArticle postSlug={entry.id} dynamicOutline={entry.data.encrypted} headings={entry.data.encrypted ? [] : headings}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\u003c')} />
         <header slot="intro" class="vs-article-head" data-title-length={copy.title.length > 85 ? "long" : "short"}>
-            <a class="vs-back" href="/archive/">← All writing</a>
+            <a class="vs-back" href="/#nv-writing">← All writing</a>
             <div class="vs-article-kicker"><a href={getCategoryUrl(entry.data.category)}>{copy.category}</a><span>{remarkPluginFrontmatter.minutes} min read</span></div>
             <h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title">{copy.title}</h1>
             {copy.description && <p class="vs-deck">{copy.description}</p>}

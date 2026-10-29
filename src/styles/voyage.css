@@ -189,6 +189,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 .nv-skip { position: absolute; z-index: 100; left: 1rem; top: 1rem; padding: .65rem 1rem; background: #e1e9e7; color: #080c17; font: 14px/1.5 system-ui, sans-serif; transform: translateY(-200%); }
 .nv-skip:focus { transform: translateY(0); }
 #voyage-afterhours :where(a, button, select, input):focus-visible { outline: 2px solid #b6d9d2; outline-offset: 4px; }
+#voyage-afterhours .nv-main:focus, #voyage-afterhours #site-main:focus { outline: none; }
 #voyage-afterhours button, #voyage-afterhours select { cursor: pointer; }
 #voyage-afterhours button:disabled { cursor: default; }
 #voyage-afterhours .nv-page { --nv-sky: 1.6; --nv-depth: 2; }

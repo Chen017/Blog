@@ -74,6 +74,8 @@ link behavior must be shared across pages. The article body must not inherit
 the homepage's oversized display type or cinematic card overlays.
 Articles without section headings use a centered single reading column; never
 reserve an empty outline column simply because the page is an article.
+The article's "All writing" link returns to the homepage's full writing section
+at `/#nv-writing`. The chronological archive remains a separate destination.
 
 ## Choosing interface patterns
 
