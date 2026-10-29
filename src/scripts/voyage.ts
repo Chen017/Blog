@@ -1,9 +1,4 @@
 import "./heading-motion";
-import {
-	complexPoint,
-	pointerAngle,
-	shortestAngle,
-} from "../utils/complex-plane";
 import { compareHomeEntries } from "../utils/home-post";
 import {
 	announcePageReady,
@@ -38,16 +33,11 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		root.querySelectorAll<HTMLButtonElement>("button[data-category]"),
 	);
 	const binaryButton = get<HTMLButtonElement>("[data-binary]");
-	const angleButton = get<HTMLButtonElement>("[data-angle]");
-	const planeButton = get<HTMLButtonElement>("[data-plane-toggle]");
+	const graph = get<HTMLButtonElement>(".nv-graph-trigger");
 	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 	let category = "All";
-	let angle = 45;
-	let displayAngle = 45;
-	let planeFrame = 0;
-	let autoPlaneFrame = 0;
-	let draggedPointer: number | null = null;
-	let showCode = false;
+	let graphAnimations: Animation[] = [];
+	let graphGeneration = 0;
 	let orbitPlaying = false;
 	let pointerFrame = 0;
 	let pointerX = 0;
@@ -75,12 +65,7 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		orbitPlaying = false;
 		cancelAnimationFrame(pointerFrame);
 		pointerFrame = 0;
-		cancelAnimationFrame(planeFrame);
-		planeFrame = 0;
-		cancelAnimationFrame(autoPlaneFrame);
-		autoPlaneFrame = 0;
-		displayAngle = angle;
-		drawPlane();
+		stopGraph();
 		page.style.setProperty("--nv-px", "0");
 		page.style.setProperty("--nv-py", "0");
 	}
@@ -192,113 +177,28 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		}
 	}
 
-	function drawPlane() {
-		const svg = get<SVGSVGElement>(".nv-plane");
-		const canvas = get<HTMLElement>(".nv-plane-canvas");
-		const w = canvas.clientWidth;
-		const h = canvas.clientHeight;
-		const cx = w * 0.47;
-		const cy = h * 0.5;
-		const radius = Math.min(w * 0.28, h * 0.38);
-		const { x, y, real, imaginary } = complexPoint(
-			displayAngle,
-			cx,
-			cy,
-			radius,
-		);
-		svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-		const lines = svg.querySelectorAll("line");
-		const set = (element: Element, attributes: Record<string, number>) => {
-			for (const [name, value] of Object.entries(attributes))
-				element.setAttribute(name, String(value));
-		};
-		set(lines[0], {
-			x1: cx - radius - 12,
-			y1: cy,
-			x2: cx + radius + 18,
-			y2: cy,
-		});
-		set(lines[1], {
-			x1: cx,
-			y1: cy - radius - 10,
-			x2: cx,
-			y2: cy + radius + 10,
-		});
-		set(get(".nv-plane circle"), { cx, cy, r: radius });
-		set(get("[data-radius]"), { x1: cx, y1: cy, x2: x, y2: y });
-		set(get("[data-point]"), { cx: x, cy: y });
-		set(get("[data-real-projection]"), { x1: x, y1: y, x2: x, y2: cy });
-		set(get("[data-imag-projection]"), { x1: cx, y1: y, x2: x, y2: y });
-		const normalized = ((displayAngle % 360) + 360) % 360;
-		const phase = complexPoint(normalized, cx, cy, 20);
-		get("[data-phase]").setAttribute(
-			"d",
-			normalized < 0.1
-				? ""
-				: `M ${cx + 20} ${cy} A 20 20 0 ${normalized > 180 ? 1 : 0} 0 ${phase.x} ${phase.y}`,
-		);
-		const formatted = (value: number) =>
-			Math.abs(value) < 0.0005 ? "0.000" : value.toFixed(3);
-		get("[data-real]").textContent = get("[data-code-real]").textContent =
-			formatted(real);
-		get("[data-imag]").textContent = get("[data-code-imag]").textContent =
-			formatted(imaginary);
-		const degrees = Math.round(displayAngle === 360 ? 360 : normalized);
-		get("[data-code-angle]").textContent = String(degrees);
-		get(".nv-angle").textContent = `θ = ${degrees}°`;
-		get<HTMLInputElement>("[data-plane-angle]").value = String(degrees);
-		get<HTMLInputElement>("[data-plane-angle]").setAttribute(
-			"aria-valuetext",
-			`${degrees} degrees; real ${formatted(real)}, imaginary ${formatted(imaginary)}`,
-		);
-		const labels = svg.querySelectorAll("text");
-		set(labels[0], { x: cx + radius + 11, y: cy + 15 });
-		set(labels[1], { x: cx + 7, y: cy - radius - 3 });
-		svg.setAttribute(
-			"aria-label",
-			`Complex unit circle with a point at ${degrees} degrees`,
-		);
+	function stopGraph() {
+		graphGeneration++;
+		for (const animation of graphAnimations) animation.cancel();
+		graphAnimations = [];
 	}
 
-	function setAngle(next: number, smooth = false) {
-		cancelAnimationFrame(planeFrame);
-		angle = next;
-		if (!smooth || !canMove()) {
-			displayAngle = angle;
-			drawPlane();
-			return;
-		}
-		const from = displayAngle;
-		const distance = shortestAngle(from, angle);
-		const started = performance.now();
-		const frame = (now: number) => {
-			const progress = Math.min(1, (now - started) / 360);
-			displayAngle = from + distance * (1 - (1 - progress) ** 3);
-			drawPlane();
-			if (progress < 1 && canMove()) planeFrame = requestAnimationFrame(frame);
-			else {
-				planeFrame = 0;
-				displayAngle = angle;
-				drawPlane();
+	function playGraph() {
+		if (!canMove() || graphAnimations.length) return;
+		const generation = ++graphGeneration;
+		const strokes = graph.querySelectorAll<SVGLineElement>(".nv-graph-attempt");
+		graphAnimations = Array.from(strokes, (stroke, index) => animate(stroke, [
+			{ strokeDashoffset: "1", opacity: 0, offset: 0 },
+			{ strokeDashoffset: ".14", opacity: 0.9, offset: .48 },
+			{ strokeDashoffset: ".14", opacity: 0.9, offset: .62 },
+			{ strokeDashoffset: "1", opacity: 0, offset: 1 },
+		], { duration: 1250, delay: index * 1400, fill: "both", easing: "cubic-bezier(.4,0,.2,1)" })).filter((item): item is Animation => Boolean(item));
+		void Promise.allSettled(graphAnimations.map(animation => animation.finished)).then(() => {
+			if (generation === graphGeneration) {
+				for (const animation of graphAnimations) animation.cancel();
+				graphAnimations = [];
 			}
-		};
-		planeFrame = requestAnimationFrame(frame);
-	}
-
-	function stopPlane() { cancelAnimationFrame(autoPlaneFrame); autoPlaneFrame = 0; }
-	function startPlane(oneOrbit = false) {
-		if (autoPlaneFrame || !canMove()) return;
-		cancelAnimationFrame(planeFrame);
-		const startAngle = displayAngle, started = performance.now();
-		const frame = (now: number) => {
-			if (!canMove()) { stopPlane(); return; }
-			const elapsed = now - started;
-			angle = displayAngle = (startAngle + elapsed * 360 / 8000) % 360;
-			drawPlane();
-			if (oneOrbit && elapsed >= 8000) { angle = displayAngle = startAngle; drawPlane(); stopPlane(); return; }
-			autoPlaneFrame = requestAnimationFrame(frame);
-		};
-		autoPlaneFrame = requestAnimationFrame(frame);
+		});
 	}
 
 	function orbit() {
@@ -371,65 +271,11 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 	get<HTMLSelectElement>(".nv-order select").addEventListener("change", () =>
 		updateEntries(),
 	);
-	planeButton.addEventListener("click", () => {
-		showCode = !showCode;
-		get(".nv-plane").toggleAttribute("hidden", showCode);
-		get<HTMLElement>(".nv-plane-code").hidden = !showCode;
-		planeButton.setAttribute("aria-pressed", String(showCode));
-		planeButton.setAttribute(
-			"aria-label",
-			showCode ? "Show the complex plane" : "Show formula as code",
-		);
-		drawPlane();
-	});
-	angleButton.addEventListener("click", () => {
-		if (window.matchMedia("(hover: none)").matches && canMove()) startPlane(true);
-		else { stopPlane(); setAngle((angle + 45) % 360, true); }
-		angleButton.setAttribute(
-			"aria-label",
-			`Rotate the point; current angle ${angle} degrees`,
-		);
-	});
-	get<HTMLInputElement>("[data-plane-angle]").addEventListener(
-		"input",
-		(event) => {
-			stopPlane();
-			setAngle(Number((event.target as HTMLInputElement).value));
-		},
-	);
-	const planeCanvas = get<HTMLElement>(".nv-plane-canvas");
-	const dragAngle = (event: PointerEvent) => {
-		const bounds = planeCanvas.getBoundingClientRect();
-		setAngle(
-			pointerAngle(
-				event.clientX - bounds.left,
-				event.clientY - bounds.top,
-				bounds.width * 0.47,
-				bounds.height * 0.5,
-			),
-		);
-	};
-	planeCanvas.addEventListener("pointerdown", (event) => {
-		if (showCode || !event.isPrimary || event.button !== 0) return;
-		stopPlane();
-		draggedPointer = event.pointerId;
-		planeCanvas.setPointerCapture(event.pointerId);
-		dragAngle(event);
-	});
-	planeCanvas.addEventListener("pointermove", (event) => {
-		if (event.pointerId === draggedPointer) dragAngle(event);
-	});
-	const endDrag = () => {
-		draggedPointer = null;
-	};
-	planeCanvas.addEventListener("pointerup", endDrag);
-	planeCanvas.addEventListener("pointercancel", endDrag);
-	planeCanvas.addEventListener("lostpointercapture", endDrag);
-	const complex = get<HTMLElement>(".nv-complex");
-	complex.addEventListener("pointerenter", event => { if (event.pointerType !== "touch") startPlane(); });
-	complex.addEventListener("pointerleave", stopPlane);
-	complex.addEventListener("focusin", () => { if (window.matchMedia("(hover: hover)").matches) startPlane(); });
-	complex.addEventListener("focusout", event => { if (!complex.contains(event.relatedTarget as Node | null)) stopPlane(); });
+	graph.addEventListener("pointerenter", event => { if (event.pointerType !== "touch") playGraph(); });
+	graph.addEventListener("pointerleave", stopGraph);
+	graph.addEventListener("focus", playGraph);
+	graph.addEventListener("blur", stopGraph);
+	graph.addEventListener("click", playGraph);
 	binaryButton.addEventListener("pointerenter", orbit);
 	binaryButton.addEventListener("focus", orbit);
 	binaryButton.addEventListener("click", orbit);
@@ -517,12 +363,7 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 			announcePageReady();
 		}
 	}, {signal});
-	const observer = new ResizeObserver(drawPlane);
-	observer.observe(get(".nv-plane-canvas"));
-	signal.addEventListener("abort", () => { saveState(); stopMotion(); observer.disconnect(); });
-	angleButton.disabled = false;
-	planeButton.disabled = false;
-	get<HTMLInputElement>("[data-plane-angle]").disabled = false;
+	signal.addEventListener("abort", () => { saveState(); stopMotion(); });
 	get<HTMLElement>(".nv-browse").hidden = false;
 	const order = get<HTMLElement>(".nv-order");
 	const menu = order.querySelector<HTMLDetailsElement>("details");
@@ -540,7 +381,6 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 	}
 
 	syncMotion();
-	drawPlane();
 	const saved = typeof history !== "undefined" ? history.state?.voyage : null;
 	restoreState();
 	if (saved) {

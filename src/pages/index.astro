@@ -8,7 +8,7 @@ import Footer from "@components/site/Footer.astro";
 import HomeLayout from "@layouts/home.astro";
 import { slide } from "astro:transitions";
 import EntryCard from "@components/home/EntryCard.astro";
-import ComplexPlane from "@components/home/ComplexPlane.astro";
+import ConnectionGraph from "@components/home/ConnectionGraph.astro";
 import avatar from "../assets/images/avatar.jpg";
 
 const posts = await getSortedPosts();
@@ -22,8 +22,8 @@ const categories = await getCategoryList();
     <Header />
     <section class="nv-hero" id="nv-home" aria-label="Etalib's Space">
       <div class="nv-titleblock"><h1><span class="nv-title-first">Etalib’s</span><em>Space.</em></h1></div>
-      <aside class="nv-code" tabindex="0" aria-label="A small note on curiosity"><span class="nv-margin-label">a little curiosity</span><code><span class="nv-code-key">while</span> (curious) &#123;<br>&nbsp;&nbsp;<span class="nv-code-call">explore</span>();<br>&#125;</code><span class="nv-code-annotation">there is always more.</span></aside>
-      <ComplexPlane />
+      <aside class="nv-code" tabindex="0" aria-label="A need for safety and order"><span class="nv-margin-label">a need for safety</span><code><span class="nv-code-key">for</span> state in execution:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="nv-code-key">assert</span> <span class="nv-code-call">safe</span>(state)</code><span class="nv-code-annotation">a little order, a little peace.</span></aside>
+      <ConnectionGraph />
       <div class="nv-horizon" aria-hidden="true"><div class="nv-horizon-grain"></div></div>
       <button class="nv-binary" type="button" data-binary disabled aria-label="Two stars, one orbit. Play a single orbit"><span class="nv-binary-drawing" aria-hidden="true"><span class="nv-binary-ellipse"></span><span class="nv-binary-dot nv-dot-a"></span><span class="nv-binary-dot nv-dot-b"></span></span><span>two stars,<br><em>one orbit.</em></span></button>
       <span class="nv-horizon-caption"><span>Written by</span><br><em>AI</em></span>

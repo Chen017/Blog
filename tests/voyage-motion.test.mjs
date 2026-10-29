@@ -3,11 +3,6 @@ import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import test from "node:test";
 import vm from "node:vm";
-import {
-	complexPoint,
-	pointerAngle,
-	shortestAngle,
-} from "../src/utils/complex-plane.ts";
 import { compareHomeEntries } from "../src/utils/home-post.ts";
 
 class ElementStub {
@@ -18,6 +13,7 @@ class ElementStub {
 		this.style = { setProperty() {} };
 		this.clientWidth = 160;
 		this.clientHeight = 119;
+		this.animations = [];
 	}
 	addEventListener(name, handler) {
 		this.listeners[name] = handler;
@@ -38,6 +34,11 @@ class ElementStub {
 	querySelector() {
 		return null;
 	}
+	animate(keyframes, options) {
+		const animation = { keyframes, options, cancelled: false, finished: new Promise(() => {}), cancel() { this.cancelled = true; } };
+		this.animations.push(animation);
+		return animation;
+	}
 }
 
 test("system reduced motion governs animation and history return ignores the retired pause preference", async () => {
@@ -51,10 +52,8 @@ test("system reduced motion governs animation and history return ignores the ret
 		if (!elements.has(selector)) elements.set(selector, new ElementStub());
 		return elements.get(selector);
 	};
-	const lines = [new ElementStub(), new ElementStub()];
-	const labels = [new ElementStub(), new ElementStub()];
-	root.querySelector(".nv-plane").querySelectorAll = (selector) =>
-		selector === "line" ? lines : labels;
+	const strokes = [new ElementStub(), new ElementStub(), new ElementStub()];
+	root.querySelector(".nv-graph-trigger").querySelectorAll = () => strokes;
 	const media = {
 		matches: true,
 		addEventListener(_, handler) {
@@ -67,9 +66,6 @@ test("system reduced motion governs animation and history return ignores the ret
 	const events = [];
 	const context = vm.createContext({
 		compareHomeEntries,
-		complexPoint,
-		pointerAngle,
-		shortestAngle,
 		announcePageReady() {},
 		CLOSE_PANELS: "close-panels",
 		PAGE_BEFORE_REPLACE: "before-replace",
@@ -106,16 +102,17 @@ test("system reduced motion governs animation and history return ignores the ret
 	const orbit = elements.get("[data-binary]");
 	assert.equal(page.dataset.motion, "off");
 	assert.equal(orbit.disabled, true);
-	elements
-		.get("[data-plane-angle]")
-		.listeners.input({ target: { value: "90" } });
-	assert.equal(elements.get("[data-real]").textContent, "0.000");
-	assert.equal(elements.get("[data-imag]").textContent, "1.000");
-	assert.equal(elements.get(".nv-angle").textContent, "θ = 90°");
+	const graph = elements.get(".nv-graph-trigger");
+	graph.listeners.focus();
+	assert.equal(strokes[0].animations.length, 0, "reduced motion leaves the graph static");
 	media.matches = false;
 	media.change();
 	assert.equal(page.dataset.motion, "on");
 	assert.equal(orbit.disabled, false);
+	graph.listeners.focus();
+	assert.deepEqual(strokes.map(stroke => stroke.animations[0].options.delay), [0, 1400, 2800]);
+	graph.listeners.pointerleave();
+	assert.ok(strokes.every(stroke => stroke.animations[0].cancelled), "leaving cancels all attempts");
 	windowListeners.pagehide({ persisted: true });
 	assert.deepEqual(events, ["close-panels", "before-replace"]);
 	windowListeners.pageshow({ persisted: true });
