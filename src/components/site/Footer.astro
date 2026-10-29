@@ -1,3 +1,9 @@
+---
+import { umamiConfig } from '@/config';
+import { getUmamiStats } from '@utils/umami-server';
+const stats = umamiConfig.enabled ? await getUmamiStats() : null;
+---
 <footer class="nv-footer">
     <div class="vs-credits"><a href="https://astro.build/">Astro</a><span> / </span><a href="https://github.com/Chen017/Blog">Theme</a></div>
+    {umamiConfig.enabled && <span class="vs-credits">{stats ? stats.pageviews.toLocaleString('en') + ' views' : 'Statistics unavailable'}</span>}
 </footer>

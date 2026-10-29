@@ -8,6 +8,7 @@ category: "Recommended Projects"
 draft: false
 cover: "music-2025-02-28-092610.png"
 ---
+import { Image } from 'astro:assets';
 import saltImg1 from './Screenshot_2025-02-24-20-00-19-46_e53b20ddbf74fed48fbb876ec4945b7f.jpg';
 import saltImg2 from './Screenshot_2025-02-24-20-00-22-41_e53b20ddbf74fed48fbb876ec4945b7f.jpg';
 import saltImg3 from './Screenshot_2025-02-24-20-00-33-35_e53b20ddbf74fed48fbb876ec4945b7f.jpg';
@@ -31,11 +32,11 @@ In this article i will show several music software that has a elegant and wonder
 [Link](https://moriafly.com/program/salt-player.html)
 
 <div class="grid grid-cols-2 gap-3 max-w-xl">
-  <img src={saltImg1.src} alt="Salt Player 1" class="rounded-lg shadow-sm" />
-  <img src={saltImg2.src} alt="Salt Player 2" class="rounded-lg shadow-sm" />
+  <Image src={saltImg1} data-src={saltImg1.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" alt="Salt Player 1" class="rounded-lg shadow-sm" />
+  <Image src={saltImg2} data-src={saltImg2.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" alt="Salt Player 2" class="rounded-lg shadow-sm" />
 </div>
 <div class="max-w-xl mt-3">
-  <img src={saltImg3.src} alt="Salt Player 3" class="rounded-lg shadow-sm" />
+  <Image src={saltImg3} data-src={saltImg3.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" alt="Salt Player 3" class="rounded-lg shadow-sm" />
 </div>
 
 ### ConePlayer
@@ -43,15 +44,15 @@ In this article i will show several music software that has a elegant and wonder
 [Link](https://coneplayer.trantor.ink/#/)
 
 <div class="grid grid-cols-2 gap-3 max-w-xl">
-  <img src={coneImg1.src} alt="ConePlayer 1" class="rounded-lg shadow-sm" />
-  <img src={coneImg2.src} alt="ConePlayer 2" class="rounded-lg shadow-sm" />
+  <Image src={coneImg1} data-src={coneImg1.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" alt="ConePlayer 1" class="rounded-lg shadow-sm" />
+  <Image src={coneImg2} data-src={coneImg2.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" alt="ConePlayer 2" class="rounded-lg shadow-sm" />
 </div>
 
 ### Accompanist Lyrics UI (Beta)
 
 [Link](https://github.com/6xingyv/accompanist-lyrics-ui)
 
-<img src={accompanistImg.src} style="width: 100%;" />
+<Image src={accompanistImg} data-src={accompanistImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />
 
 ## Windows
 
@@ -59,13 +60,13 @@ In this article i will show several music software that has a elegant and wonder
 
 Similar to **Salt Player for Androids**. [Link](https://moriafly.com/program/spw.html)
 
-<img src={spwImg.src} style="width: 100%;" />
+<Image src={spwImg} data-src={spwImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />
 
 ### AMLL Player (Beta)
 
 [Link](https://github.com/Steve-xmh/applemusic-like-lyrics)
 
-<img src={amllImg.src} style="width: 100%;" />
+<Image src={amllImg} data-src={amllImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />
 
 # Cloud (Support S3/Webdav/Navidrome)
 
@@ -79,13 +80,13 @@ Support **Webdav**. It's total similar or same with **Salt Player**. [Link](http
 
 Support **Navidrome**. [Link](https://github.com/dddevid/Musly)
 
-<img src={muslyImg.src} style="width: 100%;" />
+<Image src={muslyImg} data-src={muslyImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />
 
 ### Castafiore
 
 Support **Navidrome**. [Link](https://github.com/sawyerf/Castafiore)
 
-<img src={castafioreImg.src} style="width: 100%;" />
+<Image src={castafioreImg} data-src={castafioreImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />
 
 ###
 ## Windows
@@ -94,11 +95,11 @@ Support **Navidrome**. [Link](https://github.com/sawyerf/Castafiore)
 
 Support **Navidrome**. [Link](https://github.com/jeffvli/feishin)
 
-<img src={feishinImg.src} style="width: 100%;" />
+<Image src={feishinImg} data-src={feishinImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />
 
 ### Musly
 
 Support **Navidrome** and have windows version. The interface should be consistent with Android's
 Link: [Musly](https://github.com/dddevid/Musly)
 
-<img src={muslyImg.src} style="width: 100%;" />
+<Image src={muslyImg} data-src={muslyImg.src} widths={[320, 640, 1280]} sizes="(max-width: 768px) 100vw, 704px" format="webp" quality={85} inferSize loading="lazy" style="width: 100%;"  alt="" />

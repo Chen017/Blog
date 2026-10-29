@@ -20,6 +20,7 @@
   }, true);
   document.addEventListener('astro:before-preparation', event => {
     generation++;
+    document.documentElement.removeAttribute("data-voyage-entry-transition");
     document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     const from = path(event.from), to = path(event.to);
     const link = event.sourceElement?.closest?.('a[href]');
@@ -32,18 +33,21 @@
     else if (post(from) && post(to) && link?.dataset.direction) event.direction = link.dataset.direction === 'previous' ? 'back' : 'forward';
     selected = source && ((post(to) && !post(from) && source.post === to && source.from === from) || (post(from) && !post(to) && source.post === from && source.from === to)) ? source : null;
     if (!selected) return;
+    document.documentElement.setAttribute("data-voyage-entry-transition", "");
     const title = post(from) ? document.querySelector('.vs-article-head h1') : document.getElementById(source.card)?.querySelector('[data-entry-title]');
     if (title) title.style.viewTransitionName = 'voyage-entry-title';
   });
   document.addEventListener('astro:before-swap', event => {
     if (!selected) return;
     const incoming = event.newDocument;
+    incoming.documentElement?.setAttribute("data-voyage-entry-transition", "");
     const title = post(path(event.to)) ? incoming.querySelector('.vs-article-head h1') : incoming.getElementById(selected.card)?.querySelector('[data-entry-title]');
     if (title) title.style.viewTransitionName = 'voyage-entry-title';
     const transition = event.viewTransition;
     const current = generation;
     const cleanup = () => {
       if (current !== generation) return;
+      document.documentElement.removeAttribute("data-voyage-entry-transition");
       document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     };
     if (transition) void transition.finished.then(cleanup, cleanup); else cleanup();

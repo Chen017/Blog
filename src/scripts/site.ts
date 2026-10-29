@@ -1,3 +1,4 @@
+import "./content-features";
 import "./heading-motion";
 import { cleanupFancybox, initFancybox } from "../utils/fancybox";
 import { initMarkdownActions } from "../utils/markdown";
@@ -9,6 +10,7 @@ import {
 import { initScrollControls } from "../utils/scroll-controls";
 
 let pageController: AbortController | undefined;
+let transitionFinished: Promise<unknown> = Promise.resolve();
 function initializePage() {
  const page = document.querySelector<HTMLElement>(".vs-interior");
  if (!page || page.dataset.siteInitialized === "true") return;
@@ -157,7 +159,7 @@ function initializePage() {
 			});
 		initMarkdownActions();
 		initScrollControls();
-		void initFancybox().catch(() => {
+		void transitionFinished.then(() => { if (!signal.aborted) return initFancybox(); }).catch(() => {
 			/* Images remain readable without the viewer. */
 		});
 		announcePageReady();
@@ -194,7 +196,8 @@ function initializePage() {
 		document.addEventListener("DOMContentLoaded", ready, { once: true });
 	else ready();
 }
-document.addEventListener("astro:before-swap", () => {
+document.addEventListener("astro:before-swap", event => {
+ transitionFinished = (event as Event & {viewTransition?: ViewTransition}).viewTransition?.finished.catch(() => {}) ?? Promise.resolve();
  document.dispatchEvent(new Event(CLOSE_PANELS));
  document.dispatchEvent(new CustomEvent(PAGE_BEFORE_REPLACE, { detail: { persisted: false } }));
  document.querySelectorAll<HTMLMediaElement>("#content-wrapper audio, #content-wrapper video").forEach(media => media.pause());

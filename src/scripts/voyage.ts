@@ -101,9 +101,10 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 	}
 
 	function updateEntries(motion = true, persist = true) {
+        motion = motion && canMove();
 		const before = new Map(
 			entries
-				.filter((entry) => !entry.hidden)
+				.filter((entry) => motion && !entry.hidden)
 				.map((entry) => [entry, entry.getBoundingClientRect()]),
 		);
 		for (const entry of entries)

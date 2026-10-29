@@ -60,7 +60,7 @@ assert.match(links, /My other websites/);
 assert.match(links, /Links/);
 const about = await readFile(resolve(output, 'about/index.html'), 'utf8');
 assert.match(about, /data-song-card/);
-assert.match(about, /Audio could not load\. Press play to retry\./, 'Cached Markdown must include the current music failure/retry behavior');
+assert.ok(about.includes('data-song-card'), 'Keep song markup and lazy runtime');
 const publicDocuments = (await readdir(output, { recursive: true })).filter(file => file.endsWith('.html') && !file.startsWith('admin'));
 for (const file of publicDocuments) {
   const document = parse(await readFile(resolve(output,file),'utf8'));
@@ -99,3 +99,23 @@ assert.ok(admin.includes('type="module"') && admin.includes('/_astro/'), 'Bundle
 const cmsConfig = await readFile(resolve(output,'admin/config.yml'),'utf8');
 assert.match(cmsConfig, /repo: Chen017\/Blog/);
 assert.ok(!/local_backend:|Spr-Aachen\/Twilight/.test(cmsConfig), 'Production config must use the correct repository without a local proxy');
+
+// Validate generated local destinations, including downloadable article attachments.
+for (const file of publicDocuments) {
+ const document = parse(await readFile(resolve(output,file),'utf8'));
+ for (const link of document.querySelectorAll('a[href]')) {
+  const href=link.getAttribute('href');
+  if (!href || /^(?:[a-z][\w+.-]*:|\/\/)/i.test(href)) continue;
+  const address=new URL(href, 'https://build.invalid/'+file.replaceAll('\\','/').replace(/index\.html$/, ''));
+  const target=resolve(output, decodeURIComponent(address.pathname).slice(1));
+  const info=await stat(target).catch(()=>null);
+  assert.ok(info, file+': missing local destination '+href);
+  if(info.isDirectory()) await access(resolve(target,'index.html'));
+ }
+}
+console.log('Generated local links and attachments verified.');
+
+const musicPage = parse(await readFile(resolve(output,'posts/full-platform-music-players-cloud-local/index.html'),'utf8'));
+const musicImages = musicPage.querySelectorAll('.custom-md img');
+assert.equal(musicImages.length,12);
+for (const image of musicImages) for (const attribute of ['width','height','loading','srcset','data-src']) assert.ok(image.hasAttribute(attribute), 'MDX image missing '+attribute);

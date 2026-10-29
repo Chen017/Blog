@@ -35,8 +35,9 @@ test('replacing one reused image makes its own import and leaves the other occur
     const index = document.segments.findIndex(segment => segment.images?.some(image => image.src === './image1.png'));
     const changed = replaceImage(document, index, 0, { src: 'new photo.png', alt: 'A "new" image & notes' });
     assert.match(changed, /^import cmsImage1 from "\.\/new photo.png";/);
-    assert.equal((changed.match(/src=\{muslyImg.src\}/g) || []).length, 1);
-    assert.match(changed, /src=\{cmsImage1.src\}/);
+    assert.equal((changed.match(/src=\{muslyImg\}/g) || []).length, 1);
+    assert.match(changed, /src=\{cmsImage1\}/);
+    assert.match(changed, /data-src=\{cmsImage1.src\}/);
     assert.match(changed, /alt="A &quot;new&quot; image &amp; notes"/);
     const parsed = parseDocument(changed);
     assert.equal(parsed.error, null);

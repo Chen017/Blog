@@ -11,7 +11,6 @@ import yaml from 'js-yaml';
 import { hasValidPostPassword, publicPostDescription } from '../src/utils/post-security.ts';
 import { normalizePostRoute } from '../src/utils/route-name.ts';
 import { escapeHtml } from '../src/utils/html.ts';
-import { cleanFeedHtml, feedAssetPath } from '../src/utils/feed-html.ts';
 import { createUmamiStatsClient } from '../src/utils/umami-stats.ts';
 import { createPost } from '../scripts/new-post.js';
 import { z } from 'astro/zod';
@@ -45,7 +44,7 @@ test('TOC preserves literal code in headings without creating HTML elements or a
     const wrapper = { classList: { contains: () => false, add() {}, remove() {} }, removeAttribute() {} };
     const heading = { depth: 2, slug: 'title" onclick="bad', text: '<img src=x onerror="bad"> & literal' };
     const context = vm.createContext({ HTMLElement: class {}, IntersectionObserver: class {}, customElements: { get: () => true },
-        escapeHtml, widgetManager: { getPageHeadings: () => [heading] } });
+        escapeHtml, getPageHeadings: () => [heading] });
     vm.runInContext(`${stripTypeScriptTypes(raw, { mode: 'transform' }).replace('export class', 'class')}\nglobalThis.TOC = TableOfContents;`, context);
     const toc = new context.TOC();
     toc.dataset = { isFloating: 'true' };
@@ -80,15 +79,6 @@ for (const [provider, globalName] of [['twikoo', 'twikoo'], ['waline', 'Waline']
         if (provider === 'waline') assert.match(raw, /waline\.umd\.js/);
     });
 }
-
-test('feed HTML removes scripts and controls and resolves content links absolutely', () => {
-    assert.equal(feedAssetPath('src/content/posts/nested/index.md', '../other/image.png'), '/src/content/posts/other/image.png');
-    assert.equal(feedAssetPath('src\\content\\posts\\nested\\index.md', '../../shared/image%20one.png'), '/src/content/shared/image one.png');
-    const html = parse(cleanFeedHtml('<script>alert(1)</script><p><img src="/_astro/test.png" onerror="bad"><a href="#heading">Go</a></p><button>Play</button>', new URL('https://example.test/'), '/posts/test/'));
-    assert.equal(html.querySelector('script,button,[onerror]'), null);
-    assert.equal(html.querySelector('img').getAttribute('src'), 'https://example.test/_astro/test.png');
-    assert.equal(html.querySelector('a').getAttribute('href'), 'https://example.test/posts/test/#heading');
-});
 
 test('analytics credentials stay in server requests and only validated counts leave the client', async () => {
     let requests = 0;

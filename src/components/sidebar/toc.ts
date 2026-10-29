@@ -1,6 +1,6 @@
 import { PAGE_READY, PAGE_BEFORE_REPLACE, getScrollBehavior } from "@utils/page-lifecycle";
 import { NAVBAR_HEIGHT } from "@constants/constants";
-import { widgetManager } from "@utils/widget";
+import { getPageHeadings } from "@utils/headings";
 import { escapeHtml } from "@utils/html";
 
 
@@ -219,7 +219,7 @@ export class TableOfContents extends HTMLElement {
 
         if (!tocWrapper) return false;
 
-        const headings = widgetManager.getPageHeadings();
+        const headings = getPageHeadings();
         if (headings.length === 0 && this.isPostPage() && this._retryCount < 3) {
             this._retryCount++;
             this.schedule(() => this.init(), 120);

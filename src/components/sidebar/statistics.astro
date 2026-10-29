@@ -15,18 +15,3 @@ const { class: className, style, side = 'right' } = Astro.props;
 <div id="statistics-single" data-owner={side}>
     <StatsCharts client:visible {activity} {categories} class={className} {style} />
 </div>
-<script>
-// One island moves between the existing responsive sidebar slots without duplicating data.
-const moveStatistics = () => {
-    const content = document.getElementById('statistics-single');
-    const side = window.innerWidth >= 1280 ? content?.dataset.owner : window.innerWidth >= 768 ? 'left' : 'middle';
-    const host = document.querySelector(`[data-statistics-host="${side}"]`);
-    if (host && content && content.parentElement !== host) host.append(content);
-};
-moveStatistics();
-const desktop = window.matchMedia('(min-width: 1280px)');
-const tablet = window.matchMedia('(min-width: 768px)');
-desktop.addEventListener('change', moveStatistics);
-tablet.addEventListener('change', moveStatistics);
-window.addEventListener('pageshow', moveStatistics);
-</script>

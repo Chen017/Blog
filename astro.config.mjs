@@ -54,11 +54,7 @@ export default defineConfig({
             { src: ["./src/assets/fonts/InstrumentSerif-Latin.woff2"], weight: 400, style: "normal" },
             { src: ["./src/assets/fonts/InstrumentSerif-Latin-Italic.woff2"], weight: 400, style: "italic" },
           ] } },
-        { name: "MiSans Latin", cssVariable: "--font-misans-latin", provider: fontProviders.local(), fallbacks: [], optimizedFallbacks: false,
-          options: { variants: [
-            { src: ["./src/assets/fonts/MiSansLatin-Regular.woff2"], weight: 400, style: "normal" },
-            { src: ["./src/assets/fonts/MiSansLatin-Semibold.woff2"], weight: 600, style: "normal" },
-          ] } },
+
     ],
     integrations: [
         expressiveCode({

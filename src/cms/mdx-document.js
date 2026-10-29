@@ -16,19 +16,22 @@ const isSpecial = node => /^mdx|Directive$/.test(node.type) || ['math', 'inlineM
 const containsMdx = node => /^mdx/.test(node.type) || children(node).some(containsMdx);
 
 function image(node, imports) {
-    if (node.type !== 'mdxJsxFlowElement' || node.name !== 'img' || children(node).length) return null;
+    if (node.type !== 'mdxJsxFlowElement' || !['img', 'Image'].includes(node.name) || children(node).length) return null;
     const source = attr(node, 'src');
     const alt = attr(node, 'alt');
     if (!source || (alt && typeof alt.value !== 'string')) return null;
     let path = source.value;
     if (typeof path !== 'string') {
         const expression = path?.data?.estree?.body?.[0]?.expression;
-        if (expression?.type !== 'MemberExpression' || expression.computed || expression.object?.type !== 'Identifier'
+        if (expression?.type === 'Identifier') path = imports.get(expression.name);
+        else {
+            if (expression?.type !== 'MemberExpression' || expression.computed || expression.object?.type !== 'Identifier'
             || expression.property?.name !== 'src') return null;
-        path = imports.get(expression.object.name);
+            path = imports.get(expression.object.name);
+        }
     }
     if (typeof path !== 'string' || /^(?:javascript|data):/i.test(path)) return null;
-    return { start: start(node), end: end(node), src: path, alt: alt?.value || '', source, altAttribute: alt };
+    return { start: start(node), end: end(node), src: path, alt: alt?.value || '', source, originalSource: attr(node, 'data-src'), component: node.name, altAttribute: alt };
 }
 
 function imageGroup(node, imports) {
@@ -133,9 +136,13 @@ export function replaceImage(document, index, imageIndex, change) {
             const importPath = path.startsWith('.') ? path : `./${path}`;
             const lineEnding = document.source.includes('\r\n') ? '\r\n' : '\n';
             edits.push({ start: 0, end: 0, text: `import ${name} from ${JSON.stringify(importPath)};${lineEnding}${lineEnding}` });
-            value = `{${name}.src}`;
+            value = target.component === 'Image' ? `{${name}}` : `{${name}.src}`;
         }
         edits.push({ start: start(target.source), end: end(target.source), text: `src=${value}` });
+        if (target.originalSource) {
+            const original = target.component === 'Image' && value.startsWith('{') ? value.replace(/}$/, '.src}') : value;
+            edits.push({start:start(target.originalSource),end:end(target.originalSource),text:`data-src=${original}`});
+        }
     }
     if ('alt' in change && change.alt !== target.alt) {
         const text = `alt="${quote(change.alt)}"`;

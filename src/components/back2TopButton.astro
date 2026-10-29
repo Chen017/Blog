@@ -66,10 +66,3 @@ import { Icon } from "astro-icon/components";
             &:active
                 scale: 0.9
 </style>
-
-<script>
-import { getScrollBehavior } from "@utils/page-lifecycle";
-document.getElementById('back-to-top-btn')?.addEventListener('click', () => {
-    window.scroll({ top: 0, behavior: getScrollBehavior() });
-});
-</script>

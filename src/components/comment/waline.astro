@@ -19,7 +19,13 @@ const config = {
 <link rel="stylesheet" href="https://unpkg.com/@waline/client@3.1.3/dist/waline.css" />
 <script is:inline define:vars={{ config }}>
 (() => {
+    window.__commentCleanup?.();
     let mountedElement;
+    window.__commentCleanup = () => {
+        clearTimeout(retry);
+        document.removeEventListener('twilight:page:loaded', initComments);
+        document.removeEventListener('DOMContentLoaded', initComments);
+    };
     let attempts = 0;
     let retry;
     function initComments() {
@@ -40,6 +46,7 @@ const config = {
                 console.error('[Waline] Initialization failed:', error);
             });
     }
+    document.addEventListener('astro:before-swap', window.__commentCleanup, { once: true });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initComments, { once: true });
     else initComments();
     document.addEventListener('twilight:page:loaded', initComments);

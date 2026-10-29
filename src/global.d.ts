@@ -6,12 +6,6 @@ declare global {
     }
 
     interface Window {
-        // Define swup type directly since @swup/astro doesn't export AstroIntegration
-        swup: any;
-        iconifyLoaded: boolean;
-        __iconifyLoader: {
-            load: () => Promise<void>;
-        };
         pagefind: {
             search: (query: string) => Promise<{
                 results: Array<{

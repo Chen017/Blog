@@ -11,7 +11,7 @@ test("Astro navigation pairs the selected title until the transition finishes in
  const cardTitle = makeTitle(), articleTitle = makeTitle();
  const card = {id:"selected", querySelector:() => cardTitle};
  const link = {href:"https://example.com/posts/one/", target:"", hasAttribute:() => false, closest:() => card};
- const document = {addEventListener:(name, fn) => {handlers[name] = fn}, getElementById:id => id === "selected" ? card : null, querySelector:() => articleTitle, querySelectorAll:() => [cardTitle, articleTitle].filter(x => x.style.viewTransitionName)};
+ const document = {documentElement:{setAttribute(){},removeAttribute(){}},addEventListener:(name, fn) => {handlers[name] = fn}, getElementById:id => id === "selected" ? card : null, querySelector:() => articleTitle, querySelectorAll:() => [cardTitle, articleTitle].filter(x => x.style.viewTransitionName)};
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
  vm.runInNewContext(source, {window:{},document,location,URL,history:{state:{index:5}},sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
  handlers.click({button:0,target:{closest:() => link}});

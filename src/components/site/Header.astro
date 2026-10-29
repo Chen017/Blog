@@ -15,7 +15,7 @@ const links = [
     { name: "About", href: "/about/", active: Astro.url.pathname === "/about/" },
 ];
 ---
-<header class="nv-header">
+<header class="nv-header" transition:name="voyage-header">
     <a class="nv-brand" href={home ? "#nv-home" : "/"}><Icon name="mdi:orbit" aria-hidden="true" /><span>AI</span></a>
     <nav class="nv-nav" aria-label="Main navigation">{links.map(link => <a href={link.href} aria-current={link.active ? "page" : undefined}>{link.name}</a>)}</nav>
     <div class="nv-tools"><Search client:load {icons} variant="voyage" {titles} /></div>

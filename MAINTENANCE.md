@@ -9,12 +9,12 @@ This is an independently maintained Astro blog derived from Spr-Aachen/Twilight.
 - Preserve `:::song`, including adaptive colors, background blur, timed lyrics and playback controls. Upstream music and GitHub cards have been removed.
 - Keep math, Mermaid, admonitions, spoilers, image lightboxes and code controls.
 - Keep both Twikoo and Waline, per-article comments, password protection, copy restrictions and optional OG images. Retaining a capability does not require enabling it globally.
-- Use the fixed dark interface, local DM Sans and Instrument Serif for Latin text, explicit system fallbacks for Chinese, current wallpapers, particles and responsive layout. Preserve the explicit Umami tracking script. Font provenance and licenses are documented in `src/assets/fonts/README.md`.
+- Use the fixed dark interface, local DM Sans and Instrument Serif for Latin text, explicit system fallbacks for Chinese, current photographic sky, vector stars and responsive layout. Preserve the explicit Umami tracking script. Font provenance and licenses are documented in `src/assets/fonts/README.md`.
 - Preserve VPS Docker deployment, Pagefind generation, cache rules and BuildKit cache pruning.
 
 ## Writing
 
-The editor is at `/admin/`. Plain Markdown supports rich text and source editing. Articles containing directives, JSX, imports, math or Mermaid are opened in source mode. MDX always uses source mode. The common-component forms insert images, song cards, admonitions, spoilers, display math and Mermaid. Inserting an advanced component switches to source mode. Before typing advanced syntax manually, switch to source mode first.
+The editor is at `/admin/`. Plain Markdown supports rich text and source editing. Articles containing directives, JSX, imports, math or Mermaid are opened in source mode. MDX supports protected visual prose and Astro Image editing. The common-component forms insert images, song cards, admonitions, spoilers, display math and Mermaid. Inserting an advanced component switches to source mode. Before typing advanced syntax manually, switch to source mode first.
 
 Song forms can update one existing card without rewriting the rest of the article. Song assets upload to `public/assets/media` with site-root URLs; ordinary images remain beside the article. Keep the nested helper fields in the CMS body configuration: Decap uses these field identities to resolve media paths. Helpers are temporary form state, not extra article frontmatter.
 
@@ -32,9 +32,9 @@ Keep functional article fields in the schema. Unreferenced tags/attribution meta
 - `pnpm test:markdown` exercises temporary Markdown and MDX, then removes the fixtures.
 - `pnpm build` generates `dist`, Pagefind and validates required/removed paths.
 
-After `test:markdown`, run a normal build before packaging so temporary test pages cannot enter the release. Keep fixtures in `tests/fixtures/`, outside the production content loader.
+After `test:markdown`, run a normal build before packaging so temporary test pages cannot enter the release. Integration fixtures are created and removed by the test runner.
 
-Keep regression coverage for canonical article routes, empty encryption passwords and public excerpts, escaped TOC/JSON-LD content, MDX feed rendering and relative images, single comment initialization, and image lightboxes after decryption. Use the maintained tests for verification; historical one-off probe scripts are not regression test entrypoints.
+Keep regression coverage for canonical article routes, empty encryption passwords and public excerpts, escaped TOC/JSON-LD content, MDX rendering and relative images, single comment initialization, and image lightboxes after decryption. Use the maintained tests for verification; historical one-off probe scripts are not regression test entrypoints.
 
 ## Build output and performance
 
@@ -44,7 +44,7 @@ Parse `twilight.config.yaml` at production build time through the `twilight-buil
 
 Preserve responsive AVIF/WebP pictures, eager high-priority loading for the banner, deferred post covers, and interaction-triggered search loading. Only the interface Regular and display Italic Latin subsets are preloaded. Do not restore the complete Chinese font to the active font stack; its public URL remains available for compatibility. Cache hashed `/_astro/` assets for one year with `immutable`, revalidate HTML, and keep Pagefind entry files uncached so new deployments use the matching index.
 
-The image postprocessor selects AVIF only when every responsive size is smaller than WebP. Deferred covers start loading within 350px of the viewport and fade in after decoding; keep no-JavaScript, missing IntersectionObserver, failure and reduced-motion fallbacks. Navigation icons use local SVG data, while the Skills page has its own icon loader.
+The image postprocessor selects AVIF only when every responsive size is smaller than WebP. Deferred covers start loading within 350px of the viewport and fade in after decoding; keep no-JavaScript, missing IntersectionObserver, failure and reduced-motion fallbacks. Navigation icons use local SVG data, and Skills uses the shared static layout.
 
 Measure performance changes with repeated comparisons under the same browser and network settings. Distinguish observed paint and presentation timing from Lighthouse's simulated metrics; resource-size reductions do not imply an equal loading-time or score improvement.
 

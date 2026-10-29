@@ -21,6 +21,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.13.0'
+      - name: Validate source and content
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test:unit
+          pnpm type-check
+          pnpm test:markdown
+          pnpm build
+
       - name: Copy files via SCP
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
