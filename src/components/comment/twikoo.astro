@@ -23,6 +23,8 @@ const config = {
     let mountedElement;
     window.__commentCleanup = () => {
         clearTimeout(retry);
+        mountedElement = undefined;
+        window.removeEventListener('pagehide', pauseRetry);
         document.removeEventListener('twilight:page:loaded', initComments);
         document.removeEventListener('DOMContentLoaded', initComments);
     };
@@ -50,6 +52,7 @@ const config = {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initComments, { once: true });
     else initComments();
     document.addEventListener('twilight:page:loaded', initComments);
-    window.addEventListener('pagehide', () => clearTimeout(retry));
+    function pauseRetry() { clearTimeout(retry); }
+    window.addEventListener('pagehide', pauseRetry);
 })();
 </script>
