@@ -134,6 +134,9 @@ Use `cubic-bezier(.2,.8,.2,1)` for responsive local settling and
 `cubic-bezier(.16,.8,.2,1)` for slower decorative settling. Avoid overshoot on
 reading surfaces, simultaneous floating cards, flashing stars, cursor trails,
 automatic sound, long scroll hijacks, and continuous JavaScript animation loops.
+Parallax photography must overscan by at least its full travel on every screen
+width; use explicit 20px horizontal / 14px vertical overscan rather than a scale
+factor whose margin becomes insufficient in a narrow window.
 
 ## Preferences and lifecycle
 
