@@ -10,7 +10,9 @@ body.voyage-interior { margin: 0; background: #080c17; color: #f0eef0; }
 #voyage-afterhours .vs-shell { position: relative; width: min(1120px, calc(100% - 80px)); margin: 52px auto 84px; min-height: 55vh; }
 #voyage-afterhours .vs-shell main, #voyage-afterhours #content-wrapper { min-width: 0; }
 #voyage-afterhours #content-wrapper { animation: none; }
-#voyage-afterhours .vs-reading { display: grid; grid-template-columns: minmax(0, 760px) minmax(180px, 230px); gap: 64px; }
+#voyage-afterhours .vs-reading { display: grid; width: min(1440px, calc(100% - 64px)); grid-template-columns: minmax(0,1fr) minmax(0,44rem) minmax(0,1fr); gap: 0; }
+#voyage-afterhours .vs-reading > #content-wrapper { grid-column: 2; }
+#voyage-afterhours .vs-reading > .vs-outline { grid-column: 3; padding-left: 40px; max-width: 280px; }
 #voyage-afterhours .vs-interior h1 { font: 500 clamp(34px, 4.5vw, 58px)/1.12 var(--font-voyage-sans), sans-serif; letter-spacing: -1.8px; text-wrap: pretty; margin: 0; }
 #voyage-afterhours .vs-interior h1::before { display: none; }
 #voyage-afterhours .vs-interior h1 { text-shadow: none; }
@@ -35,7 +37,7 @@ body.voyage-interior { margin: 0; background: #080c17; color: #f0eef0; }
 #voyage-afterhours .vs-article-head .vs-deck { max-width: 660px; margin: 20px auto 0; }
 #voyage-afterhours .vs-article-head .vs-article-meta { justify-content: center; margin-top: 22px; }
 #voyage-afterhours .vs-shell.vs-article-layout { margin-top: 0; }
-#voyage-afterhours .vs-shell.vs-single-reading { max-width: 760px; }
+#voyage-afterhours .vs-shell.vs-single-reading { max-width: 44rem; }
 #voyage-afterhours .vs-updated { font-size: 11px; color: #8b9ab3; margin-top: 36px; }
 #voyage-afterhours .vs-interior .nv-footer { padding-right: 64px; }
 #voyage-afterhours .vs-inline-cover { overflow: hidden; border-radius: 7px; margin-bottom: 36px; }
@@ -136,8 +138,8 @@ body.voyage-interior { margin: 0; background: #080c17; color: #f0eef0; }
 #voyage-afterhours nav[aria-label="Pagination"] { margin: 32px auto; font-size: 13px; }
 #voyage-afterhours nav[aria-label="Pagination"] :is(a,button,span[aria-current]) { background: transparent; border: 1px solid #a7bedb26; border-radius: 4px; color: #b1c4ce; }
 #voyage-afterhours nav[aria-label="Pagination"] span[aria-current] { background: #adcfc91c; border-color: #b6d4cc72; }
-@media(min-width:1100px) { #voyage-afterhours .toc-floating-container { display: none; } }
-@media(max-width:1099px) { #voyage-afterhours .vs-reading { display: block; max-width: 760px; } #voyage-afterhours .vs-outline { display: none; } }
+@media(min-width:1280px) { #voyage-afterhours .toc-floating-container { display: none; } }
+@media(max-width:1279px) { #voyage-afterhours .vs-reading { display: block; max-width: 44rem; width: calc(100% - 80px); } #voyage-afterhours .vs-outline { display: none; } }
 @media(max-width:820px) { #voyage-afterhours .vs-shell { width: calc(100% - 56px); margin-top: 38px; } #voyage-afterhours .vs-skill-grid, #voyage-afterhours .vs-page-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } #voyage-afterhours .vs-link-grid { grid-template-columns: 1fr; } }
 @media(max-width:570px) { #voyage-afterhours .vs-shell { width: calc(100% - 40px); margin: 25px auto 60px; } #voyage-afterhours .vs-interior h1 { font-size: 33px; letter-spacing: -1px; } #voyage-afterhours .vs-page-head { margin-bottom: 28px; padding-bottom: 28px; } #voyage-afterhours .vs-page-head p, #voyage-afterhours .vs-deck { font-size: 14px; } #voyage-afterhours .vs-article .custom-md, #voyage-afterhours .vs-about .custom-md { font-size: 16px; line-height: 1.85; } #voyage-afterhours .vs-article-head { margin-bottom: 30px; } #voyage-afterhours .vs-article-meta { gap: 10px 16px; } #voyage-afterhours .vs-back { margin-bottom: 22px; } #voyage-afterhours .vs-interior .custom-md h2 { font-size: 25px; } #voyage-afterhours .vs-interior .custom-md h3 { font-size: 20px; } #voyage-afterhours .vs-adjacent { grid-template-columns: 1fr; gap: 10px; } #voyage-afterhours .vs-destination { padding: 24px; gap: 20px; min-height: 175px; } #voyage-afterhours .vs-destination img { width: 48px; height: 48px; } #voyage-afterhours .vs-skill-grid, #voyage-afterhours .vs-page-grid { grid-template-columns: 1fr; } #voyage-afterhours .vs-feed-entry { grid-template-columns: 1fr; gap: 7px; } #voyage-afterhours .vs-feed-url { padding: 20px; } #voyage-afterhours .nv-footer nav { gap: 8px 18px; } }
 @media(max-width:820px) { #voyage-afterhours .vs-article-intro { width: calc(100% - 56px); margin-top: 24px; } }

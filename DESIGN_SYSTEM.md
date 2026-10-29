@@ -74,6 +74,12 @@ link behavior must be shared across pages. The article body must not inherit
 the homepage's oversized display type or cinematic card overlays.
 Articles without section headings use a centered single reading column; never
 reserve an empty outline column simply because the page is an article.
+Center the **reading column itself** on the viewport, not the combined body and
+outline. On wide screens, use equal left/right rails around the 44rem body and
+place the outline in the right rail with a 40px separation. At widths below
+1280px use the outline button instead of shifting or squeezing the body.
+Validate the body's center against the viewport center on both short notes and
+long essays; a centered masthead alone is not sufficient.
 The article's "All writing" link returns to the homepage's full writing section
 at `/#nv-writing`. The chronological archive remains a separate destination.
 
