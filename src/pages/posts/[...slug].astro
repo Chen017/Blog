@@ -56,6 +56,7 @@ const previous = adjacent(entry.data.nextSlug);
 const next = adjacent(entry.data.prevSlug);
 const published = entry.data.published!.toISOString().slice(0,10);
 const updated = entry.data.updated?.toISOString().slice(0,10);
+const shortNote = !entry.data.encrypted && copy.category === "Life" && Number(remarkPluginFrontmatter.words) < 160;
 const jsonLd = {
     "@context": "https://schema.org", "@type": "BlogPosting", headline: copy.title,
     description: copy.description, author: { "@type": "Person", name: profileConfig.name, url: Astro.site },
@@ -66,22 +67,22 @@ const jsonLd = {
 ---
 <GridLayout title={copy.title} description={copy.description} lang={entry.data.lang || "en"} canonical={getPostUrl(entry)} setOGTypeArticle postSlug={entry.id} dynamicOutline={entry.data.encrypted} headings={entry.data.encrypted ? [] : headings}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\u003c')} />
-        <header slot="intro" class="vs-article-head" data-title-length={copy.title.length > 85 ? "long" : "short"}>
-            <a class="vs-back" href="/#nv-writing">← All writing</a>
-            <div class="vs-article-kicker"><a href={getCategoryUrl(entry.data.category)}>{copy.category}</a><span>{remarkPluginFrontmatter.minutes} min read</span></div>
+        <header slot="intro" class="vs-article-head" data-kind={shortNote ? "note" : "essay"} data-title-length={copy.title.length > 85 ? "long" : "short"}>
+            <div class="vs-return-links"><button type="button" class="vs-source-back" data-source-back hidden>← Back to selection</button><a class="vs-back" href="/#nv-writing">All writing ↗</a></div>
+            <div class="vs-article-kicker"><a href={getCategoryUrl(entry.data.category)}>{copy.category}</a>{!shortNote && <span>{remarkPluginFrontmatter.minutes} min read</span>}</div>
             <h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title">{copy.title}</h1>
-            {copy.description && <p class="vs-deck">{copy.description}</p>}
-            <div class="vs-article-meta"><span>{profileConfig.name}</span><time datetime={published}>{published}</time>{postConfig.showLastModified && updated && <span>Updated <time datetime={updated}>{updated}</time></span>}<span>{remarkPluginFrontmatter.words} words</span></div>
+            {copy.description && !shortNote && <p class="vs-deck">{copy.description}</p>}
+            <div class="vs-article-meta"><span>{profileConfig.name}</span><time datetime={published}>{published}</time>{postConfig.showLastModified && updated && <span>Updated <time datetime={updated}>{updated}</time></span>}{!shortNote && <span>{remarkPluginFrontmatter.words} words</span>}</div>
         </header>
-    <article id="post-container" class="vs-article">
+    <article id="post-container" class="vs-article" data-kind={shortNote ? "note" : "essay"}>
         {entry.data.cover && entry.data.coverInContent && <ImageWrapper id="post-cover" src={entry.data.cover} basePath={getFileDirFromPath(entry.filePath || "")} alt="" class="vs-inline-cover" loading="lazy" />}
         <PasswordProtection isEncrypted={entry.data.encrypted} password={entry.data.password}><Markdown class="markdown-content"><Content /></Markdown></PasswordProtection>
         {postConfig.showLastModified && <p class="vs-updated">Last edited <time datetime={updated || published}>{updated || published}</time>.</p>}
     </article>
     <Comment post={entry} />
     <nav class="vs-adjacent" aria-label="Adjacent writing">
-        {previous && <a href={getPostUrl(previous)}><span>← Previous entry</span><strong>{homePostCopy(previous.data).title}</strong></a>}
-        {next && <a href={getPostUrl(next)}><span>Next entry →</span><strong>{homePostCopy(next.data).title}</strong></a>}
+        {previous && <a href={getPostUrl(previous)} data-direction="previous"><span>← Previous entry</span><strong>{homePostCopy(previous.data).title}</strong></a>}
+        {next && <a href={getPostUrl(next)} data-direction="next"><span>Next entry →</span><strong>{homePostCopy(next.data).title}</strong></a>}
     </nav>
     <CopyProtection copyProtection={entry.data.copyProtection} />
 </GridLayout>

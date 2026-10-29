@@ -59,7 +59,7 @@ uniform glowing panels, arbitrary gradients, and repeated pairs of hero CTAs.
 
 | Page | Main purpose | Composition |
 | --- | --- | --- |
-| Home | Introduce the place and invite reading | Centered offset display type, low planetary horizon, small peripheral code/math/binary-star notes; all published entries remain directly discoverable. |
+| Home | Introduce the person through their work and invite reading | Offset display type above a low planetary horizon and an operable complex plane. Preserve the approved original equal-sized image cards, overlay titles, writing heading, filters and spacing; do not add a selected-work section or change their layout. All published entries remain directly discoverable. |
 | Article | Read and move through a text | A centered masthead spans the reading composition above the body/outline grid. Long titles use smaller type and balanced wrapping (about 42px maximum; 28–32px on phones), never an oversized five-line poster squeezed beside the outline. Body and outline begin together; the narrow outline stays sticky on wide screens and becomes an accessible panel on small screens. Clear metadata, a calm reading field and complete adjacent-entry titles support reading. |
 | Archive | Find a particular entry | Strong editorial heading, explicit category controls, chronological groups, complete titles and dates. A compact list belongs here rather than replacing the homepage's image cards. |
 | About | Meet the author through chosen material | Generous image presentation, a personal heading, original writing and music; no fabricated biography or personality claims. |
@@ -121,18 +121,23 @@ static rendering and native document transitions over a new animation framework.
 | Press a button | 2px displacement and scale to 0.97 | About 100ms; immediate, visible acknowledgment without a rubbery bounce. |
 | Hover/focus a reading card | Lift ≤6px, image scale ≤1.055, arrow shifts 4px | Surface about 260ms; image about 600ms. Suggest depth without tilting the text. |
 | Open/close a panel | Opacity with a small directional translation, no layout jump | 160–220ms, ease-out on entrance; keep focus and hit testing synchronized. |
-| Filter or sort entries | Local opacity and 12px settling of the changed results | About 280ms; stagger 20ms and cap the total delay. Do not animate unrelated content. |
-| Move between pages | Native cross-document transition when supported | About 200ms. Navigation must work immediately without it; avoid transitions that hide content pending JavaScript. |
-| Explicitly replay the homepage opening | Display text settles and the horizon becomes clear | 1400–1900ms; deliberate and finite. Never force this sequence on every visit. |
+| Filter or sort entries | Surviving cards move from their previous positions; new entries settle locally | About 320ms, interruptible. Persist category, order and source position in the current history entry. Do not animate unrelated content. |
+| Open an entry and return | The selected title continues into the article masthead and returns to its source | Native cross-document transitions, about 380ms. Keep the shared header stable. Map only the selected title; never assign one identity to different articles. All links work without this enhancement. |
+| Move to an adjacent entry | Short directional movement of the reading composition | About 260ms. Previous and next have opposite directions; direct visits do not slide. |
+| Explicitly replay the homepage opening | Display text settles and the horizon becomes clear | 900–1400ms; deliberate and finite. Never force this sequence on every visit. |
 | Move a fine pointer over the hero | Photographic sky moves up to 16×10px; stars up to 10×6px in the opposite direction | About 550–700ms response, pointer sensitivity 1.25 with clamped limits. Text remains stable. No touch-pointer imitation. |
 | Activate the two-star ornament | One complete shared orbit | About 2400ms, then rest. The ornament does not run an endless loop. |
-| Change a formula/code view | Update the selected representation and its accessible label | Immediate or a short local transition. Mathematical meaning must stay correct. |
+| Explore the complex plane | Drag the point, use the native angle slider, or step by 45 degrees; projections and code follow the same angle | Direct manipulation is immediate; discrete steps follow a finite 360ms arc. Reduced motion updates instantly. Numeric output always describes the displayed point. |
 | Copy a link/code or submit a form | Clear text feedback and a recoverable failure state | Feedback is explicit; motion is optional and never the only indication. |
 
 Use `cubic-bezier(.2,.8,.2,1)` for responsive local settling and
 `cubic-bezier(.16,.8,.2,1)` for slower decorative settling. Avoid overshoot on
 reading surfaces, simultaneous floating cards, flashing stars, cursor trails,
 automatic sound, long scroll hijacks, and continuous JavaScript animation loops.
+One short homepage opening may run on the first visit of a browser session; keep
+all content immediately visible, skip it on history return and reduced motion,
+and retain explicit replay. Scroll-linked decoration follows native scrolling
+and never captures wheel or touch input.
 Parallax photography must overscan by at least its full travel on every screen
 width; use explicit 20px horizontal / 14px vertical overscan rather than a scale
 factor whose margin becomes insufficient in a narrow window.

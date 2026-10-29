@@ -9,7 +9,7 @@ This is an independently maintained Astro blog derived from Spr-Aachen/Twilight.
 - Preserve `:::song`, including adaptive colors, background blur, timed lyrics and playback controls. Upstream music and GitHub cards have been removed.
 - Keep math, Mermaid, admonitions, spoilers, image lightboxes and code controls.
 - Keep both Twikoo and Waline, per-article comments, password protection, copy restrictions and optional OG images. Retaining a capability does not require enabling it globally.
-- Use the fixed dark interface, local MiSans Latin for English and numbers, system fonts for Chinese, current wallpapers, particles and responsive layout. Preserve the explicit Umami tracking script. Font provenance and licenses are documented in `src/assets/fonts/README.md`.
+- Use the fixed dark interface, local DM Sans and Instrument Serif for Latin text, explicit system fallbacks for Chinese, current wallpapers, particles and responsive layout. Preserve the explicit Umami tracking script. Font provenance and licenses are documented in `src/assets/fonts/README.md`.
 - Preserve VPS Docker deployment, Pagefind generation, cache rules and BuildKit cache pruning.
 
 ## Writing
@@ -42,7 +42,7 @@ The production site is static and generated in `dist/`. `.astro/` is Astro's gen
 
 Parse `twilight.config.yaml` at production build time through the `twilight-build-config` Vite plugin. Keep the YAML fallback for Astro configuration loading and development updates, so browsers do not download the YAML parser. Keep the configuration validation and normalization paths shared.
 
-Preserve responsive AVIF/WebP pictures, eager high-priority loading for the banner, deferred post covers, and interaction-triggered search loading. Latin Regular is the only preloaded font face. Do not restore the complete Chinese font to the active font stack; its public URL remains available for compatibility. Cache hashed `/_astro/` assets for one year with `immutable`, revalidate HTML, and keep Pagefind entry files uncached so new deployments use the matching index.
+Preserve responsive AVIF/WebP pictures, eager high-priority loading for the banner, deferred post covers, and interaction-triggered search loading. Only the interface Regular and display Italic Latin subsets are preloaded. Do not restore the complete Chinese font to the active font stack; its public URL remains available for compatibility. Cache hashed `/_astro/` assets for one year with `immutable`, revalidate HTML, and keep Pagefind entry files uncached so new deployments use the matching index.
 
 The image postprocessor selects AVIF only when every responsive size is smaller than WebP. Deferred covers start loading within 350px of the viewport and fade in after decoding; keep no-JavaScript, missing IntersectionObserver, failure and reduced-motion fallbacks. Navigation icons use local SVG data, while the Skills page has its own icon loader.
 

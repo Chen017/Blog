@@ -10,6 +10,25 @@ import { initScrollControls } from "../utils/scroll-controls";
 const page = document.querySelector<HTMLElement>(".vs-interior");
 if (page) {
 	const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+	try {
+		const source = JSON.parse(
+			sessionStorage.getItem("voyage:source") || "null",
+		);
+		const previous = document.referrer ? new URL(document.referrer) : null;
+		const button = page.querySelector<HTMLButtonElement>("[data-source-back]");
+		if (
+			button &&
+			source?.post === location.pathname &&
+			previous?.origin === location.origin &&
+			previous.pathname === source.from &&
+			history.length > 1
+		) {
+			button.hidden = false;
+			button.addEventListener("click", () => history.back());
+		}
+	} catch {
+		/* All writing is always available without session state. */
+	}
 	const canMove = () => !reduced.matches;
 	const syncMotion = () => {
 		const active = canMove();

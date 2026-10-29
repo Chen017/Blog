@@ -7,6 +7,7 @@ import Header from "@components/site/Header.astro";
 import Footer from "@components/site/Footer.astro";
 import HomeLayout from "@layouts/home.astro";
 import EntryCard from "@components/home/EntryCard.astro";
+import ComplexPlane from "@components/home/ComplexPlane.astro";
 import avatar from "../assets/images/avatar.jpg";
 
 const posts = await getSortedPosts();
@@ -21,7 +22,7 @@ const categories = await getCategoryList();
     <section class="nv-hero" id="nv-home" aria-label="Etalib's Space">
       <div class="nv-titleblock"><p class="nv-eyebrow">MATHEMATICS / CODE / LIFE</p><h1><span class="nv-title-first">Etalib’s</span><em>Space.</em></h1><a class="nv-quote" href="/posts/to-feel-not-fight/">To feel, not fight.<span class="nv-quote-rule" aria-hidden="true"></span></a></div>
       <aside class="nv-code" aria-label="A small note on curiosity"><span class="nv-margin-label">a little curiosity</span><code><span class="nv-code-key">while</span> (curious) &#123;<br>&nbsp;&nbsp;<span class="nv-code-call">explore</span>();<br>&#125;</code><span class="nv-code-annotation">there is always more.</span></aside>
-      <aside class="nv-complex" aria-label="The complex plane"><div class="nv-plane-head"><span>the complex plane</span><button type="button" class="nv-tiny" data-plane-toggle disabled aria-label="Show formula as code" aria-pressed="false"><Icon name="mdi:code-tags" aria-hidden="true" /></button></div><div class="nv-plane-canvas"><svg class="nv-plane" viewBox="0 0 160 119" role="img" aria-label="Complex unit circle with a point at 45 degrees"><line x1="20" y1="60" x2="139" y2="60" stroke="currentColor" opacity=".25"/><line x1="72" y1="10" x2="72" y2="109" stroke="currentColor" opacity=".25"/><circle cx="72" cy="60" r="40" fill="none" stroke="currentColor" opacity=".35"/><line data-radius x1="72" y1="60" x2="100.284" y2="31.716" stroke="#aecdc8"/><circle data-point cx="100.284" cy="31.716" r="2.5" fill="#bdded3"/><text x="130" y="76" fill="currentColor" font-size="11">Re</text><text x="80" y="19" fill="currentColor" font-size="11">Im</text></svg><code class="nv-plane-code" hidden>const z = &#123;<br>&nbsp; re: Math.cos(θ),<br>&nbsp; im: Math.sin(θ)<br>&#125;;</code></div><button type="button" class="nv-formula" data-angle disabled aria-label="Rotate the point on the complex plane"><span class="nv-expression">z = e<sup>iθ</sup></span><span class="nv-angle">θ = 45°</span></button></aside>
+      <ComplexPlane />
       <div class="nv-horizon" aria-hidden="true"><div class="nv-horizon-grain"></div></div>
       <button class="nv-binary" type="button" data-binary disabled aria-label="Two stars, one orbit. Play a single orbit"><span class="nv-binary-drawing" aria-hidden="true"><span class="nv-binary-ellipse"></span><span class="nv-binary-dot nv-dot-a"></span><span class="nv-binary-dot nv-dot-b"></span></span><span>two stars,<br><em>one orbit.</em></span></button>
       <span class="nv-horizon-caption">Written by<br>Eta Lib.</span>

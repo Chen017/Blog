@@ -3,6 +3,11 @@ import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import test from "node:test";
 import vm from "node:vm";
+import {
+	complexPoint,
+	pointerAngle,
+	shortestAngle,
+} from "../src/utils/complex-plane.ts";
 import { compareHomeEntries } from "../src/utils/home-post.ts";
 
 class ElementStub {
@@ -59,6 +64,9 @@ test("system reduced motion governs animation and history return ignores the ret
 	const events = [];
 	const context = vm.createContext({
 		compareHomeEntries,
+		complexPoint,
+		pointerAngle,
+		shortestAngle,
 		announcePageReady() {},
 		CLOSE_PANELS: "close-panels",
 		PAGE_BEFORE_REPLACE: "before-replace",
@@ -94,6 +102,12 @@ test("system reduced motion governs animation and history return ignores the ret
 	assert.equal(page.dataset.motion, "off");
 	assert.equal(orbit.disabled, true);
 	assert.equal(replay.disabled, true);
+	elements
+		.get("[data-plane-angle]")
+		.listeners.input({ target: { value: "90" } });
+	assert.equal(elements.get("[data-real]").textContent, "0.000");
+	assert.equal(elements.get("[data-imag]").textContent, "1.000");
+	assert.equal(elements.get(".nv-angle").textContent, "θ = 90°");
 	media.matches = false;
 	media.change();
 	assert.equal(page.dataset.motion, "on");
