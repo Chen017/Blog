@@ -32,7 +32,7 @@ class ElementStub {
 	}
 }
 
-test("system reduced motion overrides saved animation preferences and survives returning to the page", async () => {
+test("system reduced motion governs animation and history return ignores the retired pause preference", async () => {
 	const raw = await readFile("src/scripts/voyage.ts", "utf8");
 	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("const root =")), {
 		mode: "transform",
@@ -55,7 +55,7 @@ test("system reduced motion overrides saved animation preferences and survives r
 	};
 	const windowListeners = {};
 	const documentListeners = {};
-	const storage = new Map([["etalib:motion", "on"]]);
+	const storage = new Map([["etalib:motion", "off"]]);
 	const events = [];
 	const context = vm.createContext({
 		compareHomeEntries,
@@ -89,23 +89,22 @@ test("system reduced motion overrides saved animation preferences and survives r
 	});
 	vm.runInContext(program, context);
 	const page = elements.get(".nv-page");
-	const toggle = elements.get("[data-motion-toggle]");
 	const orbit = elements.get("[data-binary]");
 	const replay = elements.get("[data-replay]");
 	assert.equal(page.dataset.motion, "off");
-	assert.equal(toggle.disabled, true);
 	assert.equal(orbit.disabled, true);
 	assert.equal(replay.disabled, true);
 	media.matches = false;
 	media.change();
 	assert.equal(page.dataset.motion, "on");
-	assert.equal(toggle.disabled, false);
-	toggle.listeners.click();
-	assert.equal(storage.get("etalib:motion"), "off");
-	assert.equal(page.dataset.motion, "off");
+	assert.equal(orbit.disabled, false);
+	assert.equal(replay.disabled, false);
 	windowListeners.pagehide({ persisted: true });
 	assert.deepEqual(events, ["close-panels", "before-replace"]);
 	windowListeners.pageshow({ persisted: true });
+	assert.equal(page.dataset.motion, "on");
+	media.matches = true;
+	media.change();
 	assert.equal(page.dataset.motion, "off");
 	assert.equal(orbit.disabled, true);
 	assert.equal(replay.disabled, true);

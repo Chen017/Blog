@@ -10,7 +10,7 @@ const titles = Object.fromEntries(posts.map(post => [getPostUrl(post), post.data
 const icons = localIcons(["material-symbols:search", "material-symbols:close"]);
 const links = [
     { name: "Home", href: home ? "#nv-home" : "/", active: home },
-    { name: "Writing", href: home ? "#nv-writing" : "/archive/", active: Astro.url.pathname === "/archive/" || Astro.url.pathname.startsWith("/posts/") || /^\/\d+\/$/.test(Astro.url.pathname) },
+    { name: "Writing", href: "/archive/", active: Astro.url.pathname === "/archive/" || Astro.url.pathname.startsWith("/posts/") || /^\/\d+\/$/.test(Astro.url.pathname) },
     { name: "Links", href: "/friends/", active: Astro.url.pathname === "/friends/" },
     { name: "About", href: "/about/", active: Astro.url.pathname === "/about/" },
 ];
@@ -18,5 +18,5 @@ const links = [
 <header class="nv-header">
     <a class="nv-brand" href={home ? "#nv-home" : "/"}><Icon name="mdi:orbit" aria-hidden="true" /><span>Etalib’s Space</span></a>
     <nav class="nv-nav" aria-label="Main navigation">{links.map(link => <a href={link.href} aria-current={link.active ? "page" : undefined}>{link.name}</a>)}</nav>
-    <div class="nv-tools"><Search client:load {icons} variant="voyage" {titles} /><button class="nv-icon" type="button" data-motion-toggle disabled aria-label="Pause motion" aria-pressed="false"><span data-motion-pause><Icon name="mdi:pause" aria-hidden="true" /></span><span data-motion-play hidden><Icon name="mdi:play" aria-hidden="true" /></span></button></div>
+    <div class="nv-tools"><Search client:load {icons} variant="voyage" {titles} /></div>
 </header>

@@ -12,7 +12,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours button,#voyage-afterhours input,#voyage-afterhours select{font:inherit}
 #voyage-afterhours code{background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;color:inherit}
 #voyage-afterhours button{color:inherit;border:0;background:transparent}
-#voyage-afterhours button:active{translate:0 1px}
+#voyage-afterhours button:active{translate:0 2px;scale:.97}
 #voyage-afterhours button:disabled{opacity:.5}
 #voyage-afterhours a,#voyage-afterhours button{ -webkit-tap-highlight-color:transparent}
 #voyage-afterhours h1,#voyage-afterhours h2,#voyage-afterhours h3,#voyage-afterhours p{margin:0}
@@ -101,15 +101,15 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-order{display:flex;align-items:center;gap:8px;font-size:10px;color:#8191ac;white-space:nowrap}
 #voyage-afterhours .nv-order select{background:#0d1422;color:#b4bfd1;border:1px solid #9cb2d322;border-radius:3px;padding:5px 6px;font-size:10px;max-width:135px}
 #voyage-afterhours .nv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 18px}
-#voyage-afterhours .nv-entry{position:relative;min-height:326px;display:flex;overflow:hidden;isolation:isolate;border-radius:7px;background:#111a29;border:1px solid #c2cad31f;box-shadow:inset 0 1px #ffffff05;transition:border-color 400ms,transform 500ms cubic-bezier(.16,.8,.24,1)}
-#voyage-afterhours .nv-entry:hover,#voyage-afterhours .nv-entry:focus-within{border-color:#a6c3d551;transform:translateY(-3px)}
+#voyage-afterhours .nv-entry{position:relative;min-height:326px;display:flex;overflow:hidden;isolation:isolate;border-radius:7px;background:#111a29;border:1px solid #c2cad31f;box-shadow:inset 0 1px #ffffff05;transition:border-color 200ms,transform 260ms cubic-bezier(.16,.8,.24,1)}
+#voyage-afterhours .nv-entry:hover,#voyage-afterhours .nv-entry:focus-within{border-color:#a6c3d551;transform:translateY(-6px)}
 #voyage-afterhours .nv-entry-link{width:100%;display:flex;flex-direction:column;padding:18px 20px 20px;position:relative;z-index:1;min-width:0}
 #voyage-afterhours .nv-entry-image,#voyage-afterhours .nv-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:brightness(.64) saturate(.6);transition:transform 1100ms cubic-bezier(.15,.8,.2,1),filter 800ms}
-#voyage-afterhours .nv-entry:hover .nv-entry-image,#voyage-afterhours .nv-entry:focus-within .nv-entry-image{transform:scale(1.035);filter:brightness(.77) saturate(.7)}
+#voyage-afterhours .nv-entry:hover .nv-entry-image,#voyage-afterhours .nv-entry:focus-within .nv-entry-image{transform:scale(1.055);filter:brightness(.77) saturate(.7)}
 #voyage-afterhours .nv-entry::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#080e19b8 0%,#080e191a 24%,#080e19bd 51%,#080e19f2 100%);pointer-events:none;z-index:0}
 #voyage-afterhours .nv-entry-top{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#d2d5e0;font:9px/1.5 var(--font-voyage-sans),sans-serif;letter-spacing:1.3px;text-transform:uppercase;position:relative;z-index:1}
-#voyage-afterhours .nv-entry-top svg{width:13px;height:13px;stroke-width:1.4;transition:transform 450ms}
-#voyage-afterhours .nv-entry:hover .nv-entry-top svg{transform:translate(2px,-2px)}
+#voyage-afterhours .nv-entry-top svg{width:13px;height:13px;stroke-width:1.4;transition:transform 200ms}
+#voyage-afterhours .nv-entry:hover .nv-entry-top svg{transform:translate(4px,-4px)}
 #voyage-afterhours .nv-entry-copy{margin-top:auto;padding-top:89px;position:relative;z-index:1}
 #voyage-afterhours .nv-entry h3{font:500 20px/1.23 var(--font-voyage-sans),Arial,sans-serif;letter-spacing:-.6px;text-wrap:pretty;color:#efedf1;overflow-wrap:anywhere}
 #voyage-afterhours .nv-entry[data-life=true] h3{font:400 32px/1.02 var(--font-voyage-serif),Georgia,serif;letter-spacing:-.2px;max-width:190px}
@@ -188,7 +188,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 /* Production surfaces: crisp stars, responsive assets, and no preview runtime. */
 .nv-skip { position: absolute; z-index: 100; left: 1rem; top: 1rem; padding: .65rem 1rem; background: #e1e9e7; color: #080c17; font: 14px/1.5 system-ui, sans-serif; transform: translateY(-200%); }
 .nv-skip:focus { transform: translateY(0); }
-#voyage-afterhours :where(a, button, select, input):focus-visible { outline: 2px solid #b6d9d2; outline-offset: 4px; }
+#voyage-afterhours :where(a, button, select, input, summary):focus-visible { outline: 2px solid #b6d9d2; outline-offset: 4px; }
 #voyage-afterhours .nv-main:focus, #voyage-afterhours #site-main:focus { outline: none; }
 #voyage-afterhours button, #voyage-afterhours select { cursor: pointer; }
 #voyage-afterhours button:disabled { cursor: default; }
@@ -198,12 +198,13 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-main { background: linear-gradient(var(--nv-bg), #080c17eb 180px, var(--nv-bg) 650px); }
 #voyage-afterhours .nv-signoff, #voyage-afterhours .nv-footer { width: calc(100% - 80px); max-width: 1280px; }
 #voyage-afterhours .nv-sky { height: 920px; mask-image: linear-gradient(#000 70%, transparent); }
-#voyage-afterhours .nv-photograph { inset: 0; width: 100%; height: 850px; object-fit: cover; object-position: center top; opacity: .63; filter: none; transform: translate(calc(var(--nv-px) * -5px), calc(var(--nv-py) * -3px)) scale(1.02); }
-#voyage-afterhours .nv-stars { width: 100%; height: 850px; opacity: .88; }
+#voyage-afterhours .nv-photograph { inset: 0; width: 100%; height: 850px; object-fit: cover; object-position: center top; opacity: .63; filter: none; transform: translate(calc(var(--nv-px) * -16px), calc(var(--nv-py) * -10px)) scale(1.04); transition: transform 550ms cubic-bezier(.16,.85,.25,1); }
+#voyage-afterhours .nv-stars { width: 100%; height: 850px; opacity: .88; transform: translate(calc(var(--nv-px) * 10px), calc(var(--nv-py) * 6px)); transition: transform 700ms cubic-bezier(.16,.85,.25,1); }
+@container (min-width: 571px) { #voyage-afterhours .nv-header { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); } #voyage-afterhours .nv-brand { justify-self: start; } #voyage-afterhours .nv-tools { justify-self: end; } }
 #voyage-afterhours .nv-entry-cover { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; }
 #voyage-afterhours .nv-entry-cover :is(picture, deferred-cover) { display: block; width: 100%; height: 100%; }
-#voyage-afterhours .nv-entry-cover img { display: block; width: 100%; height: 100%; object-fit: cover; filter: brightness(.67) saturate(.65); transition: transform 1100ms cubic-bezier(.15,.8,.2,1), filter 800ms; }
-#voyage-afterhours .nv-entry:hover .nv-entry-cover img, #voyage-afterhours .nv-entry:focus-within .nv-entry-cover img { transform: scale(1.035); filter: brightness(.78) saturate(.75); }
+#voyage-afterhours .nv-entry-cover img { display: block; width: 100%; height: 100%; object-fit: cover; filter: brightness(.67) saturate(.65); transition: transform 600ms cubic-bezier(.15,.8,.2,1), filter 300ms; }
+#voyage-afterhours .nv-entry:hover .nv-entry-cover img, #voyage-afterhours .nv-entry:focus-within .nv-entry-cover img { transform: scale(1.055); filter: brightness(.78) saturate(.75); }
 #voyage-afterhours .nv-art pre { font-size: 11px; }
 #voyage-afterhours .nv-footer button { min-height: 34px; }
 #voyage-afterhours .nv-footer nav { display: flex; flex-wrap: wrap; gap: 10px 18px; }

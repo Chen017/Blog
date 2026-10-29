@@ -41,9 +41,9 @@ const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlu
             document.documentElement.classList.add('dark');
             document.documentElement.setAttribute('data-theme', 'github-dark');
             try {
-                const paused = localStorage.getItem('etalib:motion') === 'off' || matchMedia('(prefers-reduced-motion: reduce)').matches;
-                document.documentElement.dataset.motion = paused ? 'off' : 'on';
-            } catch { /* Rendering does not depend on storage. */ }
+                const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+                document.documentElement.dataset.motion = reduced ? 'off' : 'on';
+            } catch { /* CSS also respects the system preference. */ }
         </script>
         <script defer src="https://cloud.umami.is/script.js" data-website-id="6f7ec1f7-de68-4a99-9eaf-3e395237e061"></script>
         <slot name="head" />

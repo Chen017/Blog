@@ -10,48 +10,16 @@ import { initScrollControls } from "../utils/scroll-controls";
 const page = document.querySelector<HTMLElement>(".vs-interior");
 if (page) {
 	const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-	const toggle = page.querySelector<HTMLButtonElement>("[data-motion-toggle]");
-	let enabled = true;
-	try {
-		enabled = localStorage.getItem("etalib:motion") !== "off";
-	} catch {
-		/* Optional storage. */
-	}
-	const canMove = () => enabled && !reduced.matches;
+	const canMove = () => !reduced.matches;
 	const syncMotion = () => {
 		const active = canMove();
 		page.dataset.motion = active ? "on" : "off";
 		document.documentElement.dataset.motion = active ? "on" : "off";
-		if (toggle) {
-			toggle.disabled = reduced.matches;
-			toggle.setAttribute("aria-pressed", String(!active));
-			toggle.setAttribute(
-				"aria-label",
-				reduced.matches
-					? "System reduced motion is enabled"
-					: active
-						? "Pause motion"
-						: "Enable motion",
-			);
-			const pause = toggle.querySelector<HTMLElement>("[data-motion-pause]");
-			const play = toggle.querySelector<HTMLElement>("[data-motion-play]");
-			if (pause) pause.hidden = !active;
-			if (play) play.hidden = active;
-		}
 		if (!active)
 			page.getAnimations({ subtree: true }).forEach((animation) => {
 				animation.cancel();
 			});
 	};
-	toggle?.addEventListener("click", () => {
-		enabled = !enabled;
-		try {
-			localStorage.setItem("etalib:motion", enabled ? "on" : "off");
-		} catch {
-			/* Optional storage. */
-		}
-		syncMotion();
-	});
 	reduced.addEventListener("change", syncMotion);
 	page.addEventListener("click", (event) => {
 		const target = event.target as Element;

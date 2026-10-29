@@ -69,7 +69,7 @@ uniform glowing panels, arbitrary gradients, and repeated pairs of hero CTAs.
 | Error | Recover | Quiet planetary/typographic composition, a clear explanation, a direct route home or to the archive. Do not animate an error into a spectacle. |
 | Writing room | Author and edit | A branded night frame around a neutral editing canvas. Retain the established authoring language and controls; do not override generated third-party component selectors. |
 
-The header, search, motion preference, footer, typography, focus treatment and
+The header, search, system motion handling, footer, typography, focus treatment and
 link behavior must be shared across pages. The article body must not inherit
 the homepage's oversized display type or cinematic card overlays.
 Articles without section headings use a centered single reading column; never
@@ -82,6 +82,12 @@ Validate the body's center against the viewport center on both short notes and
 long essays; a centered masthead alone is not sufficient.
 The article's "All writing" link returns to the homepage's full writing section
 at `/#nv-writing`. The chronological archive remains a separate destination.
+The global navigation item "Writing" always opens `/archive/`, including on the
+homepage. Do not make this navigation item a homepage section shortcut.
+Archive statistics are a compact supporting section, with a fixed 124px plot
+and HTML axis labels that do not grow with SVG scaling. Place activity and
+subject distribution beside each other when space allows; stack below 720px
+of component width. Preserve time-scale selection and accessible exact counts.
 
 ## Choosing interface patterns
 
@@ -95,6 +101,11 @@ at `/#nv-writing`. The chronological archive remains a separate destination.
   put every paragraph, metadata item, and navigation link in its own card.
 - Show actual loading, empty, failure, retry and success states. Restore focus
   when closing a panel with Escape. Hidden panels must be inert.
+- Image viewing uses the same midnight, ivory, seafoam, fine borders and locally
+  hosted interface font. Use 44px circular tools, clear hover/press/focus states,
+  quiet counters and a compact thumbnail tray. Scope its styles to
+  `.voyage-viewer`; Fancybox v6 uses `--f-*` tokens and `Carousel.Toolbar` /
+  `Carousel.Thumbs` options. Old v5 selectors/options do not theme these controls.
 - Touch targets should be at least 44×44px, even when the visible icon is smaller.
 - Code copy, image viewing, songs, diagrams, encrypted content, aliases and feeds
   are site capabilities, not decorative details. A redesign must preserve them.
@@ -108,13 +119,13 @@ static rendering and native document transitions over a new animation framework.
 
 | Trigger | Motion | Timing and reason |
 | --- | --- | --- |
-| Press a button | 1px displacement or a very small scale change | 80–140ms; immediate acknowledgment without a rubbery bounce. |
-| Hover/focus a reading card | Lift ≤3px, image scale ≤1.035, subtle arrow shift | Surface 300–500ms; image 800–1100ms. Suggest depth without tilting the text. |
+| Press a button | 2px displacement and scale to 0.97 | About 100ms; immediate, visible acknowledgment without a rubbery bounce. |
+| Hover/focus a reading card | Lift ≤6px, image scale ≤1.055, arrow shifts 4px | Surface about 260ms; image about 600ms. Suggest depth without tilting the text. |
 | Open/close a panel | Opacity with a small directional translation, no layout jump | 160–220ms, ease-out on entrance; keep focus and hit testing synchronized. |
-| Filter or sort entries | Short local opacity/translation of the changed results | 250–380ms; stagger ≤25–30ms and cap the total delay. Do not animate unrelated content. |
+| Filter or sort entries | Local opacity and 12px settling of the changed results | About 280ms; stagger 20ms and cap the total delay. Do not animate unrelated content. |
 | Move between pages | Native cross-document transition when supported | About 200ms. Navigation must work immediately without it; avoid transitions that hide content pending JavaScript. |
 | Explicitly replay the homepage opening | Display text settles and the horizon becomes clear | 1400–1900ms; deliberate and finite. Never force this sequence on every visit. |
-| Move a fine pointer over the hero | Small eased displacement of distant scenery | A few pixels, 1200–1600ms response. Text remains stable. No touch-pointer imitation. |
+| Move a fine pointer over the hero | Photographic sky moves up to 16×10px; stars up to 10×6px in the opposite direction | About 550–700ms response, pointer sensitivity 1.25 with clamped limits. Text remains stable. No touch-pointer imitation. |
 | Activate the two-star ornament | One complete shared orbit | About 2400ms, then rest. The ornament does not run an endless loop. |
 | Change a formula/code view | Update the selected representation and its accessible label | Immediate or a short local transition. Mathematical meaning must stay correct. |
 | Copy a link/code or submit a form | Clear text feedback and a recoverable failure state | Feedback is explicit; motion is optional and never the only indication. |
@@ -127,10 +138,11 @@ automatic sound, long scroll hijacks, and continuous JavaScript animation loops.
 ## Preferences and lifecycle
 
 `prefers-reduced-motion` is an upper bound: stop parallax, orbit/replay, animated
-reordering and document transitions. A manual pause also stops current finite
-animations, and its preference follows the visitor across pages. Never reset
-the paused preference because the visitor has merely navigated to a page or
-selected a filter. Preserve the state when returning through browser history.
+reordering and document transitions. Motion follows the operating-system
+preference; there is no per-site pause button or stored pause preference. Ignore
+historical `etalib:motion` values. Apply system preference changes immediately,
+cancel active animation when reducing motion, and recheck on browser-history
+return. Cancel pointer work when the page becomes hidden.
 
 Reduced transparency uses solid surfaces. Text, actions and selected states
 must remain understandable without transparency, color, hover, or animation.

@@ -68,7 +68,6 @@ for (const file of publicDocuments) {
   assert.ok(document.querySelector('#voyage-afterhours .nv-footer'), `${file}: shared Voyage footer missing`);
   assert.ok(document.querySelector('.nv-sky svg'), `${file}: shared starfield missing`);
   assert.equal(document.querySelector('#navbar, #banner-wrapper, .page-content-shell'), null, `${file}: legacy shell remains`);
-  assert.ok(document.querySelector('[data-motion-toggle]'), `${file}: motion preference control missing`);
   assert.ok(!document.querySelector('a[href=""]'), `${file}: empty navigation target`);
   if (document.querySelector('.vs-article')) {
     assert.ok(document.querySelector('main .vs-article-intro h1'), `${file}: article masthead must span the reading composition`);

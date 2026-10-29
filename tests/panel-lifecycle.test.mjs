@@ -31,7 +31,7 @@ test("scrolling respects reduced motion", () => {
 	}
 });
 
-test("manual motion pause also disables shared outline and return scrolling", () => {
+test("document motion state also disables shared outline and return scrolling", () => {
 	const oldWindow = globalThis.window;
 	const oldDocument = globalThis.document;
 	try {

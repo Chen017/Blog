@@ -21,14 +21,12 @@ function initializeVoyage(root: HTMLElement) {
 	const buttons = Array.from(
 		root.querySelectorAll<HTMLButtonElement>("button[data-category]"),
 	);
-	const motionButton = get<HTMLButtonElement>("[data-motion-toggle]");
 	const binaryButton = get<HTMLButtonElement>("[data-binary]");
 	const replayButton = get<HTMLButtonElement>("[data-replay]");
 	const angleButton = get<HTMLButtonElement>("[data-angle]");
 	const planeButton = get<HTMLButtonElement>("[data-plane-toggle]");
 	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 	let category = "All";
-	let motionEnabled = true;
 	let angle = 45;
 	let showCode = false;
 	let orbitPlaying = false;
@@ -36,13 +34,7 @@ function initializeVoyage(root: HTMLElement) {
 	let pointerX = 0;
 	let pointerY = 0;
 	const animations = new Set<Animation>();
-	const motionKey = "etalib:motion";
-	try {
-		motionEnabled = localStorage.getItem(motionKey) !== "off";
-	} catch {
-		/* Storage is optional. */
-	}
-	const canMove = () => motionEnabled && !reduced.matches && !document.hidden;
+	const canMove = () => !reduced.matches && !document.hidden;
 
 	function animate(
 		element: Element,
@@ -69,24 +61,12 @@ function initializeVoyage(root: HTMLElement) {
 	}
 
 	function syncMotion() {
-		const enabled = motionEnabled && !reduced.matches;
+		const enabled = !reduced.matches;
 		page.dataset.motion = enabled ? "on" : "off";
 		document.documentElement?.setAttribute(
 			"data-motion",
 			enabled ? "on" : "off",
 		);
-		motionButton.disabled = reduced.matches;
-		motionButton.setAttribute(
-			"aria-label",
-			reduced.matches
-				? "System reduced motion is enabled"
-				: enabled
-					? "Pause motion"
-					: "Enable motion",
-		);
-		motionButton.setAttribute("aria-pressed", String(!enabled));
-		get<HTMLElement>("[data-motion-pause]").hidden = !enabled;
-		get<HTMLElement>("[data-motion-play]").hidden = enabled;
 		binaryButton.disabled = !enabled;
 		replayButton.disabled = !enabled;
 		if (!enabled || document.hidden) stopMotion();
@@ -110,12 +90,12 @@ function initializeVoyage(root: HTMLElement) {
 				animate(
 					entry,
 					[
-						{ opacity: 0.45, translate: "0 7px" },
+						{ opacity: 0.45, translate: "0 12px" },
 						{ opacity: 1, translate: "0 0" },
 					],
 					{
-						duration: 340,
-						delay: Math.min(count, 5) * 25,
+						duration: 280,
+						delay: Math.min(count, 5) * 20,
 						easing: "cubic-bezier(.2,.8,.2,1)",
 					},
 				);
@@ -245,15 +225,6 @@ function initializeVoyage(root: HTMLElement) {
 		"change",
 		updateEntries,
 	);
-	motionButton.addEventListener("click", () => {
-		motionEnabled = !motionEnabled;
-		try {
-			localStorage.setItem(motionKey, motionEnabled ? "on" : "off");
-		} catch {
-			/* Storage is optional. */
-		}
-		syncMotion();
-	});
 	planeButton.addEventListener("click", () => {
 		showCode = !showCode;
 		get(".nv-plane").toggleAttribute("hidden", showCode);
@@ -279,8 +250,13 @@ function initializeVoyage(root: HTMLElement) {
 	hero.addEventListener("pointermove", (event) => {
 		if (!canMove() || event.pointerType === "touch") return;
 		const bounds = hero.getBoundingClientRect();
-		pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
-		pointerY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+		const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+		pointerX = clamp(
+			((event.clientX - bounds.left) / bounds.width - 0.5) * 2.5,
+		);
+		pointerY = clamp(
+			((event.clientY - bounds.top) / bounds.height - 0.5) * 2.5,
+		);
 		if (pointerFrame) return;
 		pointerFrame = requestAnimationFrame(() => {
 			pointerFrame = 0;
