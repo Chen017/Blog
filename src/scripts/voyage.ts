@@ -6,6 +6,8 @@ import {
 	PAGE_BEFORE_REPLACE,
 } from "../utils/page-lifecycle";
 
+type HomeTransitionGate = NonNullable<Window["__voyageHomeTransition"]>;
+
 let homeController: AbortController | undefined;
 function initializeCurrentVoyage() {
 	const root = document.getElementById("voyage-afterhours");
@@ -13,13 +15,18 @@ function initializeCurrentVoyage() {
 	root.dataset.homeInitialized = "true";
 	homeController?.abort();
 	homeController = new AbortController();
-	initializeVoyage(root, homeController.signal);
+	const transition = window.__voyageHomeTransition ?? null;
+	initializeVoyage(root, homeController.signal, transition);
 }
 document.addEventListener("astro:before-swap", () => homeController?.abort());
 document.addEventListener("astro:after-swap", initializeCurrentVoyage);
 initializeCurrentVoyage();
 
-function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
+function initializeVoyage(
+	root: HTMLElement,
+	signal: AbortSignal,
+	transition: HomeTransitionGate | null,
+) {
 	const get = <T extends Element = HTMLElement>(selector: string): T => {
 		const element = root.querySelector<T>(selector);
 		if (!element) throw new Error(`Missing homepage element: ${selector}`);
@@ -271,128 +278,166 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		);
 	}
 
-	for (const button of buttons) {
-		button.addEventListener("click", () => {
-			category = button.dataset.category || "All";
-			updateEntries();
+	function attachHomeInteractions() {
+		for (const button of buttons) {
+			button.addEventListener("click", () => {
+				category = button.dataset.category || "All";
+				updateEntries();
+			});
+		}
+		get<HTMLSelectElement>(".nv-order select").addEventListener("change", () =>
+			updateEntries(),
+		);
+		graph.addEventListener("pointerenter", (event) => {
+			if (event.pointerType !== "touch") playGraph();
 		});
-	}
-	get<HTMLSelectElement>(".nv-order select").addEventListener("change", () =>
-		updateEntries(),
-	);
-	graph.addEventListener("pointerenter", event => { if (event.pointerType !== "touch") playGraph(); });
-	graph.addEventListener("pointerleave", stopGraph);
-	graph.addEventListener("focus", playGraph);
-	graph.addEventListener("blur", stopGraph);
-	graph.addEventListener("click", playGraph);
-	binaryButton.addEventListener("pointerenter", orbit);
-	binaryButton.addEventListener("focus", orbit);
-	binaryButton.addEventListener("click", orbit);
-	hero.addEventListener("pointermove", (event) => {
-		if (!canMove() || event.pointerType === "touch") return;
-		const bounds = hero.getBoundingClientRect();
-		const clamp = (value: number) => Math.max(-1, Math.min(1, value));
-		pointerX = clamp(
-			((event.clientX - bounds.left) / bounds.width - 0.5) * 2.5,
-		);
-		pointerY = clamp(
-			((event.clientY - bounds.top) / bounds.height - 0.5) * 2.5,
-		);
-		if (pointerFrame) return;
-		pointerFrame = requestAnimationFrame(() => {
+		graph.addEventListener("pointerleave", stopGraph);
+		graph.addEventListener("focus", playGraph);
+		graph.addEventListener("blur", stopGraph);
+		graph.addEventListener("click", playGraph);
+		binaryButton.addEventListener("pointerenter", orbit);
+		binaryButton.addEventListener("focus", orbit);
+		binaryButton.addEventListener("click", orbit);
+		hero.addEventListener("pointermove", (event) => {
+			if (!canMove() || event.pointerType === "touch") return;
+			const bounds = hero.getBoundingClientRect();
+			const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+			pointerX = clamp(
+				((event.clientX - bounds.left) / bounds.width - 0.5) * 2.5,
+			);
+			pointerY = clamp(
+				((event.clientY - bounds.top) / bounds.height - 0.5) * 2.5,
+			);
+			if (pointerFrame) return;
+			pointerFrame = requestAnimationFrame(() => {
+				pointerFrame = 0;
+				page.style.setProperty("--nv-px", String(pointerX));
+				page.style.setProperty("--nv-py", String(pointerY));
+			});
+		});
+		hero.addEventListener("pointerleave", () => {
+			cancelAnimationFrame(pointerFrame);
 			pointerFrame = 0;
-			page.style.setProperty("--nv-px", String(pointerX));
-			page.style.setProperty("--nv-py", String(pointerY));
+			page.style.setProperty("--nv-px", "0");
+			page.style.setProperty("--nv-py", "0");
 		});
-	});
-	hero.addEventListener("pointerleave", () => {
-		cancelAnimationFrame(pointerFrame);
-		pointerFrame = 0;
-		page.style.setProperty("--nv-px", "0");
-		page.style.setProperty("--nv-py", "0");
-	});
-	root.addEventListener("click", (event) => {
-		const card = (event.target as Element).closest<HTMLElement>(".nv-card");
-		if (card) {
-			try {
-				history.replaceState(
-					{
-						...history.state,
-						voyage: {
-							...history.state?.voyage,
-							source: card.id,
-							keyboard: document.activeElement === card.querySelector("a"),
+		root.addEventListener("click", (event) => {
+			const card = (event.target as Element).closest<HTMLElement>(".nv-card");
+			if (card) {
+				try {
+					history.replaceState(
+						{
+							...history.state,
+							voyage: {
+								...history.state?.voyage,
+								source: card.id,
+								keyboard: document.activeElement === card.querySelector("a"),
+							},
 						},
-					},
-					"",
-				);
-			} catch {}
-			saveState();
-		}
-		const anchor = (event.target as Element).closest<HTMLAnchorElement>(
-			'a[href^="#"]',
-		);
-		if (
-			!anchor ||
-			event.defaultPrevented ||
-			event.metaKey ||
-			event.ctrlKey ||
-			event.shiftKey ||
-			event.altKey
-		)
-			return;
-		const target = document.getElementById(anchor.hash.slice(1));
-		if (!target) return;
-		event.preventDefault();
-		target.scrollIntoView({
-			behavior: canMove() ? "smooth" : "instant",
-			block: "start",
+						"",
+					);
+				} catch {}
+				saveState();
+			}
+			const anchor = (event.target as Element).closest<HTMLAnchorElement>(
+				'a[href^="#"]',
+			);
+			if (
+				!anchor ||
+				event.defaultPrevented ||
+				event.metaKey ||
+				event.ctrlKey ||
+				event.shiftKey ||
+				event.altKey
+			)
+				return;
+			const target = document.getElementById(anchor.hash.slice(1));
+			if (!target) return;
+			event.preventDefault();
+			target.scrollIntoView({
+				behavior: canMove() ? "smooth" : "instant",
+				block: "start",
+			});
+			if (target.id === "nv-writing") {
+				target.setAttribute("tabindex", "-1");
+				target.focus({ preventScroll: true });
+			}
 		});
-		if (target.id === "nv-writing") {
-			target.setAttribute("tabindex", "-1");
-			target.focus({ preventScroll: true });
+
+		const order = get<HTMLElement>(".nv-order");
+		const menu = order.querySelector<HTMLDetailsElement>("details");
+		const select = get<HTMLSelectElement>(".nv-order select");
+		if (menu) {
+			if (order.dataset.enhanced !== "true") order.dataset.enhanced = "true";
+			const summary = menu.querySelector<HTMLElement>("summary")!;
+			const refresh = () => {
+				const label = select.selectedOptions?.[0]?.textContent || "Newest first";
+				if (summary.textContent !== label) summary.textContent = label;
+				menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach((b) =>
+					b.setAttribute("aria-pressed", String(b.dataset.order === select.value)),
+				);
+			};
+			menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach((button) =>
+				button.addEventListener("click", () => {
+					select.value = button.dataset.order || "recent";
+					select.dispatchEvent(new Event("change"));
+					menu.open = false;
+					refresh();
+					summary.focus();
+				}),
+			);
+			menu.addEventListener("keydown", (event) => {
+				if (event.key === "Escape" && menu.open) {
+					menu.open = false;
+					summary.focus();
+				}
+			});
+			document.addEventListener(
+				"click",
+				(event) => {
+					if (!menu.contains(event.target as Node)) menu.open = false;
+				},
+				{ signal },
+			);
+			select.addEventListener("change", refresh);
+			addEventListener("pageshow", refresh, { signal });
+			refresh();
 		}
-	});
-	reduced.addEventListener("change", syncMotion, {signal});
-	document.addEventListener("visibilitychange", syncMotion, {signal});
-	window.addEventListener("pagehide", (event) => {
+	}
+
+	reduced.addEventListener("change", syncMotion, { signal });
+	document.addEventListener("visibilitychange", syncMotion, { signal });
+	window.addEventListener(
+		"pagehide",
+		(event) => {
+			saveState();
+			stopMotion();
+			document.dispatchEvent(new Event(CLOSE_PANELS));
+			document.dispatchEvent(
+				new CustomEvent(PAGE_BEFORE_REPLACE, {
+					detail: { persisted: event.persisted },
+				}),
+			);
+		},
+		{ signal },
+	);
+	window.addEventListener(
+		"pageshow",
+		(event) => {
+			if (event.persisted) {
+				restoreState();
+				syncMotion();
+				announcePageReady();
+			}
+		},
+		{ signal },
+	);
+	signal.addEventListener("abort", () => {
 		saveState();
 		stopMotion();
-		document.dispatchEvent(new Event(CLOSE_PANELS));
-		document.dispatchEvent(
-			new CustomEvent(PAGE_BEFORE_REPLACE, {
-				detail: { persisted: event.persisted },
-			}),
-		);
-	}, {signal});
-	window.addEventListener("pageshow", (event) => {
-		if (event.persisted) {
-			restoreState();
-			syncMotion();
-			announcePageReady();
-		}
-	}, {signal});
-	signal.addEventListener("abort", () => { saveState(); stopMotion(); });
+	});
 	const browse = get<HTMLElement>(".nv-browse");
 	if (browse.hidden) browse.hidden = false;
-	const order = get<HTMLElement>(".nv-order");
-	const menu = order.querySelector<HTMLDetailsElement>("details");
-	const select = get<HTMLSelectElement>(".nv-order select");
-	if (menu) {
-		if (order.dataset.enhanced !== "true") order.dataset.enhanced = "true";
-		const summary = menu.querySelector<HTMLElement>("summary")!;
-		const refresh = () => {
-			const label = select.selectedOptions?.[0]?.textContent || "Newest first";
-			if (summary.textContent !== label) summary.textContent = label;
-			menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.order === select.value)));
-		};
-		menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(button => button.addEventListener("click", () => { select.value = button.dataset.order || "recent"; select.dispatchEvent(new Event("change")); menu.open = false; refresh(); summary.focus(); }));
-		menu.addEventListener("keydown", event => { if (event.key === "Escape" && menu.open) { menu.open = false; summary.focus(); } });
-		document.addEventListener("click", event => { if (!menu.contains(event.target as Node)) menu.open = false; }, {signal});
-		select.addEventListener("change", refresh);
-		addEventListener("pageshow", refresh, {signal});
-		refresh();
-	}
 
 	syncMotion();
 	const saved = typeof history !== "undefined" ? history.state?.voyage : null;
@@ -414,19 +459,36 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 					?.focus({ preventScroll: true });
 		}
 	}
-	try {
-		if (
-			!sessionStorage.getItem("voyage:opened") &&
-			!location.hash &&
-			!saved &&
-			canMove()
-		) {
-			sessionStorage.setItem("voyage:opened", "true");
-			playOpening();
+
+	function finishHomeInitialization() {
+		if (signal.aborted) return;
+		attachHomeInteractions();
+		try {
+			if (
+				!sessionStorage.getItem("voyage:opened") &&
+				!location.hash &&
+				!saved &&
+				canMove()
+			) {
+				sessionStorage.setItem("voyage:opened", "true");
+				playOpening();
+			}
+		} catch {
+			/* A blocked storage area simply skips the opening. */
 		}
-	} catch {
-		/* A blocked storage area simply skips the opening. */
+		document.documentElement.removeAttribute("data-voyage-opening");
+		announcePageReady();
 	}
-	document.documentElement.removeAttribute("data-voyage-opening");
-	announcePageReady();
+
+	if (transition) {
+		void transition.finished.then(() => {
+			if (signal.aborted) return;
+			if (!root.isConnected) return;
+			if (typeof location !== "undefined" && location.pathname !== "/") return;
+			if (window.__voyageHomeTransition !== transition) return;
+			finishHomeInitialization();
+		});
+	} else {
+		finishHomeInitialization();
+	}
 }

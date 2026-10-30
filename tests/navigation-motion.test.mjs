@@ -105,4 +105,68 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  assert.equal(navLinks[1].current, undefined);
  handlers['astro:page-load']();
  assert.equal(storage.has('voyage:source'), false);
+
+ // Verify Home transition signal capture, invalidation, and rejection safety
+ const friendsToHomePrep = { from: new URL("https://example.com/friends/"), to: new URL("https://example.com/"), direction: "back" };
+ handlers["astro:before-preparation"](friendsToHomePrep);
+ assert.equal(friendsToHomePrep.direction, "back", "Home transition setup preserves event.direction");
+ assert.equal(windowObj.__voyageHomeTransition, null, "new navigation clears previous home transition");
+
+ let resolveFriendsTransition;
+ const vtFriends = { finished: new Promise(r => { resolveFriendsTransition = r; }) };
+ handlers["astro:before-swap"]({
+  from: new URL("https://example.com/friends/"),
+  to: new URL("https://example.com/"),
+  newDocument: { getElementById: () => null },
+  viewTransition: vtFriends,
+ });
+ assert.ok(windowObj.__voyageHomeTransition, "creates home transition record on /friends/ -> /");
+ assert.equal(windowObj.__voyageHomeTransition.from, "/friends/");
+ assert.ok(typeof windowObj.__voyageHomeTransition.id === "number");
+ assert.ok(windowObj.__voyageHomeTransition.finished instanceof Promise);
+
+ handlers["astro:before-preparation"]({ from: new URL("https://example.com/about/"), to: new URL("https://example.com/") });
+ assert.equal(windowObj.__voyageHomeTransition, null, "clears record on new preparation");
+ handlers["astro:before-swap"]({
+  from: new URL("https://example.com/about/"),
+  to: new URL("https://example.com/"),
+  newDocument: { getElementById: () => null },
+  viewTransition: { finished: Promise.resolve() },
+ });
+ assert.ok(windowObj.__voyageHomeTransition, "creates record on /about/ -> /");
+ assert.equal(windowObj.__voyageHomeTransition.from, "/about/");
+
+ handlers["astro:before-preparation"]({ from: new URL("https://example.com/archive/"), to: new URL("https://example.com/") });
+ handlers["astro:before-swap"]({
+  from: new URL("https://example.com/archive/"),
+  to: new URL("https://example.com/"),
+  newDocument: { getElementById: () => null },
+  viewTransition: { finished: Promise.resolve() },
+ });
+ assert.ok(windowObj.__voyageHomeTransition, "creates record on /archive/ -> /");
+ assert.equal(windowObj.__voyageHomeTransition.from, "/archive/");
+
+ // Subpage to subpage (/friends/ -> /about/) does not create home transition
+ handlers["astro:before-preparation"]({ from: new URL("https://example.com/friends/"), to: new URL("https://example.com/about/") });
+ handlers["astro:before-swap"]({
+  from: new URL("https://example.com/friends/"),
+  to: new URL("https://example.com/about/"),
+  newDocument: { getElementById: () => null },
+  viewTransition: { finished: Promise.resolve() },
+ });
+ assert.equal(windowObj.__voyageHomeTransition, null, "does not create record on /friends/ -> /about/");
+
+ // Rejection of viewTransition.finished does not cause unhandled rejection
+ let rejectTransition;
+ const vtReject = { finished: new Promise((_, rej) => { rejectTransition = rej; }) };
+ handlers["astro:before-preparation"]({ from: new URL("https://example.com/about/"), to: new URL("https://example.com/") });
+ handlers["astro:before-swap"]({
+  from: new URL("https://example.com/about/"),
+  to: new URL("https://example.com/"),
+  newDocument: { getElementById: () => null },
+  viewTransition: vtReject,
+ });
+ assert.ok(windowObj.__voyageHomeTransition);
+ rejectTransition(new Error("view transition cancelled"));
+ await windowObj.__voyageHomeTransition.finished;
 });
