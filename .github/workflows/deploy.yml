@@ -21,18 +21,40 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '24.13.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Astro assets
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.astro
+          key: ${{ runner.os }}-astro-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-astro-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-astro-
+
       - name: Validate source and content
         run: |
-          corepack enable
-          pnpm install --frozen-lockfile
           pnpm test:unit
           pnpm type-check
           pnpm test:markdown
+
+      - name: Build and package site
+        env:
+          UMAMI_API_KEY: ${{ secrets.UMAMI_API_KEY }}
+        run: |
           pnpm build
           git archive --format=tar --output=site-source.tar HEAD
+          tar -rf site-source.tar dist
 
       - name: Copy files via SCP
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
@@ -73,8 +95,9 @@ jobs:
             tar -xf "$incoming/site-source.tar" -C "$incoming"
             rm -f -- "$incoming/site-source.tar"
             test -f "$incoming/package.json"
+            test -s "$incoming/dist/index.html"
             mkdir -p /root/Blog
-            rsync -a --delete --exclude='.env' --exclude='.git/' --exclude='node_modules/' --exclude='.astro/' --exclude='dist/' --exclude='audit/' "$incoming/" /root/Blog/
+            rsync -a --delete --exclude='.env' --exclude='.git/' --exclude='node_modules/' --exclude='.astro/' --exclude='audit/' "$incoming/" /root/Blog/
             cd /root/Blog
             if [ -n "${OAUTH_GITHUB_CLIENT_ID:-}" ] && [ -n "${OAUTH_GITHUB_CLIENT_SECRET:-}" ]; then
               umask 077
@@ -109,5 +132,5 @@ jobs:
               '
             fi
             docker image prune -f
-            docker builder prune -af
+            docker builder prune -f --filter "until=168h"
             rm -rf -- "$incoming"
