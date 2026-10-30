@@ -1,5 +1,7 @@
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 let observer: IntersectionObserver | undefined;
+let transitionDone: Promise<unknown> = Promise.resolve();
+let navGeneration = 0;
 const animations = new Set<Animation>();
 function start() {
  observer?.disconnect(); if (reduced.matches || !document.documentElement.hasAttribute("data-voyage-preparing")) return;
@@ -17,9 +19,23 @@ function start() {
  observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { reveal(entry.target as HTMLElement); observer?.unobserve(entry.target); } }), {threshold:.2}); headings.forEach(el => observer?.observe(el));
  document.documentElement.setAttribute("data-voyage-observing", "");
 }
+function scheduleStart() {
+ const current = navGeneration;
+ void transitionDone.then(() => {
+  if (current !== navGeneration) return;
+  start();
+ });
+}
 function stop() { observer?.disconnect(); animations.forEach(a => a.cancel()); animations.clear(); }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, {once:true}); else start();
-document.addEventListener("astro:before-swap", event => { stop(); const incoming = (event as Event & {newDocument: Document}).newDocument; if (!reduced.matches) incoming.documentElement.setAttribute('data-voyage-preparing', ''); });
-document.addEventListener("astro:page-load", start);
+document.addEventListener("astro:before-swap", event => {
+ navGeneration++;
+ stop();
+ const vt = (event as Event & {viewTransition?: ViewTransition}).viewTransition;
+ transitionDone = vt?.finished ? vt.finished.catch(() => {}) : Promise.resolve();
+ const incoming = (event as Event & {newDocument: Document}).newDocument;
+ if (!reduced.matches) incoming.documentElement.setAttribute('data-voyage-preparing', '');
+});
+document.addEventListener("astro:page-load", scheduleStart);
 addEventListener("pagehide", stop); addEventListener("pageshow", event => { if (event.persisted) start(); });
 reduced.addEventListener("change", () => { stop(); if (!reduced.matches) start(); });

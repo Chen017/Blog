@@ -16,7 +16,7 @@ const links = [
 ];
 ---
 <header class="nv-header" transition:name="voyage-header">
-    <a class="nv-brand" href={home ? "#nv-home" : "/"} data-astro-prefetch={home ? undefined : "viewport"}><Icon name="mdi:orbit" aria-hidden="true" /><span>AI</span></a>
-    <nav class="nv-nav" aria-label="Main navigation">{links.map(link => <a href={link.href} aria-current={link.active ? "page" : undefined} data-astro-prefetch={Astro.url.pathname !== link.href && !link.href.startsWith("#") ? "viewport" : undefined}>{link.name}</a>)}</nav>
+    <a class="nv-brand" href={home ? "#nv-home" : "/"} data-astro-prefetch={home ? undefined : "hover"}><Icon name="mdi:orbit" aria-hidden="true" /><span>AI</span></a>
+    <nav class="nv-nav" aria-label="Main navigation">{links.map(link => <a href={link.href} aria-current={link.active ? "page" : undefined} data-astro-prefetch={Astro.url.pathname !== link.href && !link.href.startsWith("#") ? "hover" : undefined}>{link.name}</a>)}</nav>
     <div class="nv-tools" transition:persist="voyage-search"><Search client:load {icons} variant="voyage" {titles} /></div>
 </header>

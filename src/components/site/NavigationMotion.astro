@@ -85,31 +85,54 @@
       return nativeFetch(input, init);
     };
     const warmAllTabs = () => {
-      tabs.forEach(tab => {
-        if (!pageCache.has(tab)) void fetchTab(tab, { priority: 'low' }).catch(() => {});
+      if (typeof navigator !== 'undefined' && navigator.webdriver) return;
+      tabs.forEach((tab, index) => {
+        if (tab === location.pathname || pageCache.has(tab)) return;
+        setTimeout(() => {
+          if (!pageCache.has(tab)) void fetchTab(tab, { priority: 'low' }).catch(() => {});
+        }, index * 300);
       });
     };
-    if (document.readyState === 'complete') setTimeout(warmAllTabs, 80);
-    else {
-      window.addEventListener?.('DOMContentLoaded', () => setTimeout(warmAllTabs, 20), { once: true });
-      window.addEventListener?.('load', () => setTimeout(warmAllTabs, 80), { once: true });
-    }
-    window.addEventListener?.('pointerover', event => {
-      const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href]');
+    const scheduleWarm = () => {
+      setTimeout(() => {
+        if (typeof requestIdleCallback === 'function') requestIdleCallback(warmAllTabs, { timeout: 2000 });
+        else warmAllTabs();
+      }, 1500);
+    };
+    if (document.readyState === 'complete') scheduleWarm();
+    else window.addEventListener?.('load', scheduleWarm, { once: true });
+    const warmLinkTarget = event => {
+      const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href]');
       if (!link) return;
       const targetPath = path(link.getAttribute?.('href') || link.href || '');
       if (tabSet.has(targetPath) && !pageCache.has(targetPath)) void fetchTab(targetPath).catch(() => {});
-    }, { passive: true });
+    };
+    window.addEventListener?.('pointerover', warmLinkTarget, { passive: true });
+    window.addEventListener?.('touchstart', warmLinkTarget, { passive: true });
+    window.addEventListener?.('focusin', warmLinkTarget, { passive: true });
   }
   let selected;
   let generation = 0;
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target.closest?.('a[href]');
-    const card = link?.closest('[data-entry-route]');
-    if (!card || link.target || link.hasAttribute('download')) return;
+    if (!link || link.target || link.hasAttribute('download')) return;
+    const card = link.closest?.('[data-entry-route]');
     const destination = new URL(link.href, location.href);
-    if (destination.origin === location.origin) write({ post: destination.pathname, current: destination.pathname, from: location.pathname, card: card.id, originIndex: history.state?.index });
+    if (destination.origin !== location.origin) return;
+    if (card) {
+      write({ post: destination.pathname, current: destination.pathname, from: location.pathname, card: card.id, originIndex: history.state?.index });
+      return;
+    }
+    const from = location.pathname;
+    const to = destination.pathname;
+    if ((from === '/' || to === '/') && from !== to) {
+      document.documentElement.setAttribute("data-voyage-home-transition", "");
+      const nearTop = typeof window.scrollY !== 'number' || window.scrollY < 200;
+      if (!destination.hash && (from !== '/' || nearTop)) {
+        document.documentElement.setAttribute("data-voyage-home-fold-deferred", "");
+      }
+    }
   }, true);
   document.addEventListener('astro:before-preparation', event => {
     generation++;
@@ -148,6 +171,15 @@
     const from = path(event.from);
     const to = path(event.to);
     const incoming = event.newDocument;
+    if (incoming?.head && document.head?.querySelectorAll) {
+      document.head.querySelectorAll('link[rel="stylesheet"][href^="/_astro/"]').forEach(link => {
+        const href = link.getAttribute?.('href');
+        if (href && !incoming.head.querySelector?.(`link[rel="stylesheet"][href="${href}"]`)) {
+          const clone = link.cloneNode ? link.cloneNode(true) : null;
+          if (clone) incoming.head.appendChild?.(clone);
+        }
+      });
+    }
     const homeBoundary = (from === '/' || to === '/') && from !== to;
     if (homeBoundary) {
       incoming?.documentElement?.setAttribute?.("data-voyage-home-transition", "");

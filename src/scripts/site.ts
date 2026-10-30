@@ -144,25 +144,29 @@ function initializePage() {
 		});
 	const ready = () => {
 		syncMotion();
-		page
-			.querySelectorAll<HTMLImageElement>("img[data-fallback-artwork]")
-			.forEach((image) => {
-				if (image.dataset.fallbackBound) return;
-				image.dataset.fallbackBound = "true";
-				const failed = () => {
-					image.hidden = true;
-					if (image.parentElement)
-						image.parentElement.dataset.artworkError = "true";
-				};
-				image.addEventListener("error", failed, { once: true });
-				if (image.complete && image.currentSrc && !image.naturalWidth) failed();
+		const finishSiteInit = () => {
+			if (signal.aborted || !page.isConnected) return;
+			page
+				.querySelectorAll<HTMLImageElement>("img[data-fallback-artwork]")
+				.forEach((image) => {
+					if (image.dataset.fallbackBound) return;
+					image.dataset.fallbackBound = "true";
+					const failed = () => {
+						image.hidden = true;
+						if (image.parentElement)
+							image.parentElement.dataset.artworkError = "true";
+					};
+					image.addEventListener("error", failed, { once: true });
+					if (image.complete && image.currentSrc && !image.naturalWidth) failed();
+				});
+			initMarkdownActions();
+			initScrollControls();
+			void initFancybox().catch(() => {
+				/* Images remain readable without the viewer. */
 			});
-		initMarkdownActions();
-		initScrollControls();
-		void transitionFinished.then(() => { if (!signal.aborted) return initFancybox(); }).catch(() => {
-			/* Images remain readable without the viewer. */
-		});
-		announcePageReady();
+			announcePageReady();
+		};
+		void transitionFinished.then(finishSiteInit, finishSiteInit);
 	};
 	window.addEventListener("content-decrypted", () => {
 		void initFancybox().catch(() => {});

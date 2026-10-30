@@ -2,6 +2,7 @@
 import { Font } from "astro:assets";
 import { profileConfig, siteConfig } from "@/config";
 import { defaultFavicons } from "@constants/icon";
+import { voyageSlide } from "@utils/page-lifecycle";
 import { url } from "@utils/url";
 import "@styles/voyage.css";
 import NavigationMotion from "@components/site/NavigationMotion.astro";
@@ -14,7 +15,7 @@ const favicons = siteConfig.favicon.length ? siteConfig.favicon : defaultFavicon
 const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlug}.png`, Astro.site).toString() : undefined;
 ---
 <!doctype html>
-<html lang={lang.replace("_", "-")} class="dark" data-theme="github-dark">
+<html lang={lang.replace("_", "-")} class="dark" data-theme="github-dark" transition:name="root" transition:animate={voyageSlide}>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

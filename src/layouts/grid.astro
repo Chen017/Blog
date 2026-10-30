@@ -1,7 +1,6 @@
 ---
 import type { MarkdownHeading } from "astro";
 import VoyageDocument from "./home.astro";
-import { voyageSlide } from "@utils/page-lifecycle";
 import Backdrop from "@components/site/Backdrop.astro";
 import Header from "@components/site/Header.astro";
 import Footer from "@components/site/Footer.astro";
@@ -23,7 +22,7 @@ const hasIntro = Astro.slots.has("intro");
 <VoyageDocument {title} {description} {lang} {canonical} {postSlug} article={setOGTypeArticle} interior>
     <slot slot="head" name="head" />
     <a class="nv-skip" href="#site-main">Skip to content</a>
-    <div id="voyage-afterhours"><div class="nv-page vs-interior" data-motion="on" data-route={Astro.url.pathname} transition:name="voyage-page" transition:animate={voyageSlide}>
+    <div id="voyage-afterhours"><div class="nv-page vs-interior" data-motion="on" data-route={Astro.url.pathname}>
         <Backdrop /><Header />
         <main id="site-main" tabindex="-1">
             {hasIntro && <div class="vs-article-intro"><slot name="intro" /></div>}

@@ -469,7 +469,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.ok(events.includes("twilight:page:loaded"));
 });
 
-test("Solutions 1 + 2 + 4: Home transition flags clear on completion, below-fold covers defer until transition finishes, and islands persist or idle-hydrate", async () => {
+test("Solutions 1 + 2 + 3 + 4: root viewport transitions, 100vh DOM pre-collapse, deferred post-swap work, and hover prefetching", async () => {
 	const raw = await readFile("src/scripts/voyage.ts", "utf8");
 	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("let homeController")), {
 		mode: "transform",
@@ -537,7 +537,6 @@ test("Solutions 1 + 2 + 4: Home transition flags clear on completion, below-fold
 
 	vm.runInContext(program, context);
 
-	// During the transition, Home transition and fold deferral attributes remain active
 	assert.equal(docEl.attributes["data-voyage-home-transition"], "");
 	assert.equal(docEl.attributes["data-voyage-home-fold-deferred"], "");
 
@@ -545,23 +544,33 @@ test("Solutions 1 + 2 + 4: Home transition flags clear on completion, below-fold
 	await transitionPromise;
 	await new Promise(r => setTimeout(r, 10));
 
-	// Once transition finishes, Stage 2 clears both attributes
 	assert.equal("data-voyage-home-transition" in docEl.attributes, false);
 	assert.equal("data-voyage-home-fold-deferred" in docEl.attributes, false);
 
-	// Verify static CSS & template contracts for Solutions 1, 2, and 4
+	const homeLayout = await readFile("src/layouts/home.astro", "utf8");
+	assert.match(homeLayout, /transition:name="root"\s+transition:animate=\{voyageSlide\}/);
+
+	const indexPage = await readFile("src/pages/index.astro", "utf8");
+	assert.ok(!indexPage.includes("transition:name=\"voyage-page\""));
+
+	const gridLayout = await readFile("src/layouts/grid.astro", "utf8");
+	assert.ok(!gridLayout.includes("transition:name=\"voyage-page\""));
+
 	const css = await readFile("src/styles/voyage.css", "utf8");
-	assert.match(css, /html\[data-voyage-home-transition\]:not\(\[data-motion="off"\]\)::view-transition-group\(voyage-page\)\s*\{\s*animation:\s*none;/);
-	assert.match(css, /html\[data-voyage-home-transition\]:not\(\[data-motion="off"\]\)::view-transition-old\(voyage-page\)\s*\{\s*animation-duration:\s*200ms,\s*280ms;\s*animation-delay:\s*40ms,\s*0ms;/);
-	assert.match(css, /\.voyage-home\s+#voyage-afterhours\s+\.nv-grid\s*\{\s*content-visibility:\s*auto;/);
-	assert.match(css, /html\[data-voyage-home-fold-deferred\]\s+\.voyage-home\s+#voyage-afterhours\s+:is\(\.nv-grid,\s*\.nv-end,\s*\.nv-signoff,\s*\.nv-footer\)\s*\{\s*content-visibility:\s*hidden;/);
+	assert.match(css, /::view-transition-group\(root\)\s*\{\s*animation-duration:\s*0s;\s*animation:\s*none;\s*overflow:\s*clip;\s*\}/);
+	assert.match(css, /html\[data-voyage-home-fold-deferred\]\s+\.voyage-home\s+#voyage-afterhours\s+:is\(\.nv-grid,\s*\.nv-end,\s*\.nv-signoff,\s*\.nv-footer\)\s*\{\s*display:\s*none\s*!important;/);
+	assert.match(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+:is\(\.nv-twinkle,\s*\.nv-sky\)\s*\{\s*animation:\s*none\s*!important;\s*\}/);
 
 	const header = await readFile("src/components/site/Header.astro", "utf8");
 	assert.match(header, /transition:persist="voyage-search"/);
+	assert.match(header, /data-astro-prefetch=.*?"hover"/);
 
 	const archive = await readFile("src/pages/archive.astro", "utf8");
 	assert.match(archive, /<ArchivePanel\s+sortedPosts=\{sortedPostsList\}\s+client:idle\s*\/>/);
 
-	const deferredImg = await readFile("src/components/common/deferredImage.astro", "utf8");
-	assert.match(deferredImg, /data-voyage-home-fold-deferred/);
+	const headingMotion = await readFile("src/scripts/heading-motion.ts", "utf8");
+	assert.match(headingMotion, /transitionDone\.then/);
+
+	const siteScript = await readFile("src/scripts/site.ts", "utf8");
+	assert.match(siteScript, /transitionFinished\.then\(finishSiteInit/);
 });
