@@ -429,3 +429,10 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 
 /* Entry navigation follows its title; the entire long page need not slide too. */
 html[data-voyage-entry-transition] #voyage-afterhours .nv-page { view-transition-name:none; }
+/* Home boundary transitions: skip the 250ms group height interpolation and keep the outgoing snapshot opaque long enough to cover the slide. */
+html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(voyage-page) { animation: none; overflow: clip; }
+html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-old(voyage-page) { animation-duration: 200ms, 280ms; animation-delay: 40ms, 0ms; }
+/* Isolate below-the-fold homepage sections and defer their rendering during top-of-page menu transitions. */
+.voyage-home #voyage-afterhours .nv-grid { content-visibility: auto; contain-intrinsic-size: auto 1200px; }
+.voyage-home #voyage-afterhours :is(.nv-signoff, .nv-footer) { content-visibility: auto; contain-intrinsic-size: auto 160px; }
+html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours :is(.nv-grid, .nv-end, .nv-signoff, .nv-footer) { content-visibility: hidden; contain-intrinsic-size: auto 1200px; }

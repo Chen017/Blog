@@ -7,6 +7,6 @@ const sortedPostsList = await getSortedPostsList();
 ---
 <GridLayout title="Archive" description="Every note, project, and personal entry, in one place.">
     <header class="vs-page-head"><span class="vs-kicker">THE WRITING / {sortedPostsList.length} ENTRIES</span><h1>Over the <em>years.</em></h1><p>Notes, projects, and personal entries. Follow a date, or a subject.</p></header>
-    <ArchivePanel sortedPosts={sortedPostsList} client:load />
+    <ArchivePanel sortedPosts={sortedPostsList} client:idle />
     <section class="vs-activity" aria-label="Writing activity"><Statistics /></section>
 </GridLayout>

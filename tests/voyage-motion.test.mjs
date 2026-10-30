@@ -468,3 +468,100 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.equal(horizon.animations[0].options.delay, 450);
 	assert.ok(events.includes("twilight:page:loaded"));
 });
+
+test("Solutions 1 + 2 + 4: Home transition flags clear on completion, below-fold covers defer until transition finishes, and islands persist or idle-hydrate", async () => {
+	const raw = await readFile("src/scripts/voyage.ts", "utf8");
+	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("let homeController")), {
+		mode: "transform",
+	});
+	const elements = new Map();
+	const root = new ElementStub();
+	const devBtn = new ElementStub();
+	devBtn.dataset = { category: "All" };
+	root.querySelector = (selector) => {
+		if (!elements.has(selector)) elements.set(selector, new ElementStub());
+		return elements.get(selector);
+	};
+	root.querySelectorAll = () => [devBtn];
+	root.querySelector(".nv-grid").querySelectorAll = () => [];
+	root.querySelector(".nv-graph-trigger").querySelectorAll = () => [];
+	const media = { matches: false, addEventListener() {} };
+
+	let resolveTransition;
+	const transitionPromise = new Promise(resolve => {
+		resolveTransition = resolve;
+	});
+	const homeTransition = {
+		id: 3,
+		from: "/archive/",
+		finished: transitionPromise,
+	};
+
+	const docEl = new ElementStub();
+	docEl.setAttribute("data-voyage-home-transition", "");
+	docEl.setAttribute("data-voyage-home-fold-deferred", "");
+
+	const windowObj = {
+		__voyageHomeTransition: homeTransition,
+		matchMedia: () => media,
+		location: { pathname: "/", hash: "" },
+		addEventListener: () => {},
+	};
+
+	const context = vm.createContext({
+		compareHomeEntries,
+		announcePageReady() {},
+		CLOSE_PANELS: "close-panels",
+		PAGE_BEFORE_REPLACE: "before-replace",
+		document: {
+			hidden: false,
+			documentElement: docEl,
+			getElementById: (id) => (id === "voyage-afterhours" ? root : null),
+			addEventListener: () => {},
+			dispatchEvent: () => {},
+		},
+		window: windowObj,
+		location: { pathname: "/", hash: "" },
+		sessionStorage: {
+			getItem: () => "true",
+			setItem: () => {},
+		},
+		history: { state: null },
+		ResizeObserver: class { observe() {} disconnect() {} },
+		AbortController,
+		cancelAnimationFrame() {},
+		requestAnimationFrame(cb) { return setTimeout(cb, 0); },
+		Event,
+		CustomEvent,
+	});
+
+	vm.runInContext(program, context);
+
+	// During the transition, Home transition and fold deferral attributes remain active
+	assert.equal(docEl.attributes["data-voyage-home-transition"], "");
+	assert.equal(docEl.attributes["data-voyage-home-fold-deferred"], "");
+
+	resolveTransition();
+	await transitionPromise;
+	await new Promise(r => setTimeout(r, 10));
+
+	// Once transition finishes, Stage 2 clears both attributes
+	assert.equal("data-voyage-home-transition" in docEl.attributes, false);
+	assert.equal("data-voyage-home-fold-deferred" in docEl.attributes, false);
+
+	// Verify static CSS & template contracts for Solutions 1, 2, and 4
+	const css = await readFile("src/styles/voyage.css", "utf8");
+	assert.match(css, /html\[data-voyage-home-transition\]:not\(\[data-motion="off"\]\)::view-transition-group\(voyage-page\)\s*\{\s*animation:\s*none;/);
+	assert.match(css, /html\[data-voyage-home-transition\]:not\(\[data-motion="off"\]\)::view-transition-old\(voyage-page\)\s*\{\s*animation-duration:\s*200ms,\s*280ms;\s*animation-delay:\s*40ms,\s*0ms;/);
+	assert.match(css, /\.voyage-home\s+#voyage-afterhours\s+\.nv-grid\s*\{\s*content-visibility:\s*auto;/);
+	assert.match(css, /html\[data-voyage-home-fold-deferred\]\s+\.voyage-home\s+#voyage-afterhours\s+:is\(\.nv-grid,\s*\.nv-end,\s*\.nv-signoff,\s*\.nv-footer\)\s*\{\s*content-visibility:\s*hidden;/);
+
+	const header = await readFile("src/components/site/Header.astro", "utf8");
+	assert.match(header, /transition:persist="voyage-search"/);
+
+	const archive = await readFile("src/pages/archive.astro", "utf8");
+	assert.match(archive, /<ArchivePanel\s+sortedPosts=\{sortedPostsList\}\s+client:idle\s*\/>/);
+
+	const deferredImg = await readFile("src/components/common/deferredImage.astro", "utf8");
+	assert.match(deferredImg, /data-voyage-home-fold-deferred/);
+});

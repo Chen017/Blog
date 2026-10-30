@@ -20,8 +20,17 @@ const markup = await Astro.slots.render("default");
 
         connectedCallback() {
             if (!this.querySelector("template")) return;
-            if (DeferredCover.observer) DeferredCover.observer.observe(this);
-            else this.reveal();
+            const startObserve = () => {
+                if (!this.isConnected || !this.querySelector("template")) return;
+                if (DeferredCover.observer) DeferredCover.observer.observe(this);
+                else this.reveal();
+            };
+            const homeTransition = window.__voyageHomeTransition;
+            if (homeTransition?.finished && document.documentElement.hasAttribute("data-voyage-home-fold-deferred")) {
+                void homeTransition.finished.then(startObserve, startObserve);
+            } else {
+                startObserve();
+            }
         }
 
         disconnectedCallback() { DeferredCover.observer?.unobserve(this); }

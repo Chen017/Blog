@@ -441,8 +441,8 @@ function initializeVoyage(
 
 	syncMotion();
 	const saved = typeof history !== "undefined" ? history.state?.voyage : null;
-	restoreState();
 	if (saved) {
+		restoreState();
 		const targetScroll = Number.isFinite(saved.scroll) ? saved.scroll : 0;
 		if (window.scrollY !== targetScroll) {
 			window.scrollTo({
@@ -462,6 +462,8 @@ function initializeVoyage(
 
 	function finishHomeInitialization() {
 		if (signal.aborted) return;
+		document.documentElement?.removeAttribute("data-voyage-home-transition");
+		document.documentElement?.removeAttribute("data-voyage-home-fold-deferred");
 		attachHomeInteractions();
 		try {
 			if (

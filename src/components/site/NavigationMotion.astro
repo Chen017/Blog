@@ -34,6 +34,16 @@
           head.appendChild(link);
         }
       }
+      for (const match of html.matchAll(/(?:<script\b[^>]*type=["']module["'][^>]*src|component-url|renderer-url)=["'](\/_astro\/[^"']+\.js)["']/gi)) {
+        const src = match[1];
+        if (src && !head.querySelector(`link[href="${src}"], script[src="${src}"]`)) {
+          const link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.as = 'script';
+          link.href = src;
+          head.appendChild(link);
+        }
+      }
     } catch {}
   };
   const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
@@ -80,7 +90,16 @@
       });
     };
     if (document.readyState === 'complete') setTimeout(warmAllTabs, 80);
-    else window.addEventListener?.('load', () => setTimeout(warmAllTabs, 80), { once: true });
+    else {
+      window.addEventListener?.('DOMContentLoaded', () => setTimeout(warmAllTabs, 20), { once: true });
+      window.addEventListener?.('load', () => setTimeout(warmAllTabs, 80), { once: true });
+    }
+    window.addEventListener?.('pointerover', event => {
+      const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href]');
+      if (!link) return;
+      const targetPath = path(link.getAttribute?.('href') || link.href || '');
+      if (tabSet.has(targetPath) && !pageCache.has(targetPath)) void fetchTab(targetPath).catch(() => {});
+    }, { passive: true });
   }
   let selected;
   let generation = 0;
@@ -96,6 +115,8 @@
     generation++;
     window.__voyageHomeTransition = null;
     document.documentElement.removeAttribute("data-voyage-entry-transition");
+    document.documentElement.removeAttribute("data-voyage-home-transition");
+    document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
     document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     const from = path(event.from), to = path(event.to);
     syncNav(to);
@@ -109,6 +130,15 @@
     if (effectiveFromTab >= 0 && toTab >= 0 && effectiveFromTab !== toTab) event.direction = toTab < effectiveFromTab ? 'back' : 'forward';
     else if (post(from) && post(to) && link?.dataset.direction) event.direction = link.dataset.direction === 'previous' ? 'back' : 'forward';
     selected = source && ((post(to) && !post(from) && source.post === to && source.from === from) || (post(from) && !post(to) && source.post === from && source.from === to)) ? source : null;
+    const homeBoundary = (from === '/' || to === '/') && from !== to;
+    if (homeBoundary) {
+      document.documentElement.setAttribute("data-voyage-home-transition", "");
+      const hasHash = Boolean(event.to?.hash);
+      const nearTop = typeof window.scrollY !== 'number' || window.scrollY < 200;
+      if (!selected && !hasHash && (from !== '/' || nearTop)) {
+        document.documentElement.setAttribute("data-voyage-home-fold-deferred", "");
+      }
+    }
     if (!selected) return;
     document.documentElement.setAttribute("data-voyage-entry-transition", "");
     const title = post(from) ? document.querySelector('.vs-article-head h1') : document.getElementById(source.card)?.querySelector('[data-entry-title]');
@@ -117,6 +147,25 @@
   document.addEventListener('astro:before-swap', event => {
     const from = path(event.from);
     const to = path(event.to);
+    const incoming = event.newDocument;
+    const homeBoundary = (from === '/' || to === '/') && from !== to;
+    if (homeBoundary) {
+      incoming?.documentElement?.setAttribute?.("data-voyage-home-transition", "");
+      const savedScroll = typeof history !== 'undefined' ? history.state?.voyage?.scroll : 0;
+      const hasHash = Boolean(event.to?.hash);
+      if (to === '/' && !selected && !hasHash && !(Number.isFinite(savedScroll) && savedScroll > 120)) {
+        incoming?.documentElement?.setAttribute?.("data-voyage-home-fold-deferred", "");
+      }
+      const transition = event.viewTransition;
+      const current = generation;
+      const clearHomeFlags = () => {
+        if (current !== generation) return;
+        document.documentElement.removeAttribute("data-voyage-home-transition");
+        document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
+      };
+      if (transition?.finished) void transition.finished.then(clearHomeFlags, clearHomeFlags);
+      else clearHomeFlags();
+    }
     if (to === '/' && from !== '/') {
       const finished = event.viewTransition?.finished;
       window.__voyageHomeTransition = {
@@ -126,7 +175,6 @@
       };
     }
     if (!selected) return;
-    const incoming = event.newDocument;
     incoming.documentElement?.setAttribute("data-voyage-entry-transition", "");
     const title = post(path(event.to)) ? incoming.querySelector('.vs-article-head h1') : incoming.getElementById(selected.card)?.querySelector('[data-entry-title]');
     if (title) title.style.viewTransitionName = 'voyage-entry-title';
