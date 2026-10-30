@@ -101,7 +101,7 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 	}
 
 	function updateEntries(motion = true, persist = true) {
-        motion = motion && canMove();
+		motion = motion && canMove();
 		const before = new Map(
 			entries
 				.filter((entry) => motion && !entry.hidden)
@@ -123,14 +123,19 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		let count = 0;
 		for (const entry of sorted) {
 			entry.hidden = category !== "All" && entry.dataset.category !== category;
-			grid.append(entry);
 			if (!entry.hidden) count++;
 		}
+		grid.append(...sorted);
+		const after = new Map(
+			sorted
+				.filter((entry) => motion && !entry.hidden)
+				.map((entry) => [entry, entry.getBoundingClientRect()]),
+		);
 		let index = 0;
 		for (const entry of sorted) {
-			if (!entry.hidden && motion) {
+			const current = after.get(entry);
+			if (current && motion) {
 				const previous = before.get(entry);
-				const current = entry.getBoundingClientRect();
 				animate(
 					entry,
 					[

@@ -14,6 +14,7 @@ class ElementStub {
 		this.clientWidth = 160;
 		this.clientHeight = 119;
 		this.animations = [];
+		this.hidden = false;
 	}
 	addEventListener(name, handler) {
 		this.listeners[name] = handler;
@@ -34,6 +35,13 @@ class ElementStub {
 	querySelector() {
 		return null;
 	}
+	getAnimations() {
+		return this.animations;
+	}
+	append() {}
+	getBoundingClientRect() {
+		return { left: 0, top: 0, width: 100, height: 100 };
+	}
 	animate(keyframes, options) {
 		const animation = { keyframes, options, cancelled: false, finished: new Promise(() => {}), cancel() { this.cancelled = true; } };
 		this.animations.push(animation);
@@ -48,10 +56,37 @@ test("system reduced motion governs animation and history return ignores the ret
 	});
 	const elements = new Map();
 	const root = new ElementStub();
+	const trace = [];
+	const makeEntry = (category, date, top) => {
+		const entry = new ElementStub();
+		entry.dataset = { category, date };
+		entry.getBoundingClientRect = () => {
+			trace.push("read");
+			return { left: 0, top, width: 100, height: 100 };
+		};
+		const baseAnimate = entry.animate.bind(entry);
+		entry.animate = (keyframes, options) => {
+			trace.push("write");
+			return baseAnimate(keyframes, options);
+		};
+		return entry;
+	};
+	const cards = [
+		makeEntry("Development", "2026-03-01", 0),
+		makeEntry("Development", "2026-02-01", 120),
+		makeEntry("Life", "2026-01-01", 240),
+	];
+	const allBtn = new ElementStub();
+	allBtn.dataset = { category: "All" };
+	const devBtn = new ElementStub();
+	devBtn.dataset = { category: "Development" };
 	root.querySelector = (selector) => {
 		if (!elements.has(selector)) elements.set(selector, new ElementStub());
 		return elements.get(selector);
 	};
+	root.querySelectorAll = (selector) =>
+		selector === "button[data-category]" ? [allBtn, devBtn] : [];
+	root.querySelector(".nv-grid").querySelectorAll = () => cards;
 	const strokes = [new ElementStub(), new ElementStub(), new ElementStub()];
 	root.querySelector(".nv-graph-trigger").querySelectorAll = () => strokes;
 	const media = {
@@ -109,6 +144,13 @@ test("system reduced motion governs animation and history return ignores the ret
 	media.change();
 	assert.equal(page.dataset.motion, "on");
 	assert.equal(orbit.disabled, false);
+
+	trace.length = 0;
+	devBtn.listeners.click();
+	const firstWrite = trace.indexOf("write");
+	const lastRead = trace.lastIndexOf("read");
+	assert.ok(firstWrite > 0 && lastRead < firstWrite, "all layout reads complete before any FLIP animation starts");
+
 	graph.listeners.focus();
 	assert.deepEqual(strokes.map(stroke => stroke.animations[0].options.delay), [0, 1400, 2800]);
 	graph.listeners.pointerleave();

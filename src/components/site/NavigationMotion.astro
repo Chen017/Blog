@@ -8,6 +8,16 @@
   const path = value => { try { return new URL(value, location.href).pathname; } catch { return ''; } };
   const post = value => value.startsWith('/posts/');
   const tabs = ['/', '/archive/', '/friends/', '/about/'];
+  const activeNavHref = target => target === '/' ? '/' : (post(target) || /^\/\d+\/$/.test(target) ? '/archive/' : target);
+  const syncNav = target => {
+    const current = activeNavHref(target);
+    document.querySelectorAll?.('#voyage-afterhours .nv-nav a[href]').forEach(link => {
+      const href = link.getAttribute?.('href');
+      const active = (current === '/' && (href === '/' || href === '#nv-home')) || href === current;
+      if (active) link.setAttribute?.('aria-current', 'page');
+      else link.removeAttribute?.('aria-current');
+    });
+  };
   let selected;
   let generation = 0;
   document.addEventListener('click', event => {
@@ -23,6 +33,7 @@
     document.documentElement.removeAttribute("data-voyage-entry-transition");
     document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     const from = path(event.from), to = path(event.to);
+    syncNav(to);
     const link = event.sourceElement?.closest?.('a[href]');
     const card = link?.closest('[data-entry-route]');
     if (card && !post(from) && post(to)) write({ post: to, current: to, from, card: card.id, originIndex: history.state?.index });

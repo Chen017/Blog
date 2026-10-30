@@ -38,7 +38,7 @@ const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlu
         <meta name="twitter:description" content={description} />
         {ogImage && <meta name="twitter:image" content={ogImage} />}
         <Font cssVariable="--font-voyage-sans" preload={[{ weight: 400, style: "normal" }]} />
-        <Font cssVariable="--font-voyage-serif" preload={[{ weight: 400, style: "italic" }]} />
+        <Font cssVariable="--font-voyage-serif" preload={[{ weight: 400, style: "normal" }, { weight: 400, style: "italic" }]} />
         {favicons.map(favicon => <link rel="icon" href={favicon.src.startsWith("/") ? url(favicon.src) : favicon.src} sizes={favicon.sizes} media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`} />)}
         <script is:inline>
             document.documentElement.classList.add('dark');

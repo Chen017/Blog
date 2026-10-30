@@ -42,6 +42,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-nav{display:flex;gap:28px;align-items:center;font-size:12px;color:var(--nv-muted)}
 #voyage-afterhours .nv-nav a{position:relative;padding:9px 0;transition:color 200ms}
 #voyage-afterhours .nv-nav a:hover,#voyage-afterhours .nv-nav a[aria-current]{color:var(--nv-ink)}
+#voyage-afterhours .nv-nav a:active{opacity:.78;translate:0 1px}
 #voyage-afterhours .nv-nav a[aria-current]::after{content:'';position:absolute;height:1px;width:12px;left:50%;bottom:3px;translate:-50% 0;background:#d0d1dc}
 #voyage-afterhours .nv-tools{display:flex;gap:5px}
 #voyage-afterhours .nv-icon{display:grid;place-items:center;width:34px;min-height:34px;border-radius:50%;transition:background 180ms,color 180ms;color:#c3cadd}

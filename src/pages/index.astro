@@ -2,11 +2,11 @@
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import { getSortedPosts, getCategoryList } from "@utils/content";
+import { voyageSlide } from "@utils/page-lifecycle";
 import Backdrop from "@components/site/Backdrop.astro";
 import Header from "@components/site/Header.astro";
 import Footer from "@components/site/Footer.astro";
 import HomeLayout from "@layouts/home.astro";
-import { slide } from "astro:transitions";
 import EntryCard from "@components/home/EntryCard.astro";
 import ConnectionGraph from "@components/home/ConnectionGraph.astro";
 import avatar from "../assets/images/avatar.jpg";
@@ -17,7 +17,7 @@ const categories = await getCategoryList();
 <HomeLayout>
 <a class="nv-skip" href="#nv-writing">Skip to writing</a>
 <div id="voyage-afterhours" aria-label="Etalib's Space — After hours">
-  <div class="nv-page" lang="en" data-motion="on" transition:name="voyage-page" transition:animate={slide({ duration: "300ms" })}>
+  <div class="nv-page" lang="en" data-motion="on" transition:name="voyage-page" transition:animate={voyageSlide}>
     <Backdrop dense />
     <Header />
     <section class="nv-hero" id="nv-home" aria-label="Etalib's Space">
