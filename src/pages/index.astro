@@ -15,6 +15,7 @@ const posts = await getSortedPosts();
 const categories = await getCategoryList();
 ---
 <HomeLayout>
+<noscript><style>#voyage-afterhours .nv-browse{display:none!important}</style></noscript>
 <a class="nv-skip" href="#nv-writing">Skip to writing</a>
 <div id="voyage-afterhours" aria-label="Etalib's Space — After hours">
   <div class="nv-page" lang="en" data-motion="on" transition:name="voyage-page" transition:animate={voyageSlide}>
@@ -31,7 +32,7 @@ const categories = await getCategoryList();
     </section>
     <main class="nv-main" id="nv-writing" tabindex="-1">
       <div class="nv-writing-heading"><h2>Things I’ve <em>written.</em></h2></div>
-      <div class="nv-browse" hidden><div class="nv-filters" role="group" aria-label="Filter writing"><button type="button" data-category="All" aria-pressed="true">Everything <span>{posts.length}</span></button>{categories.map(category => <button type="button" data-category={category.name} aria-pressed="false">{category.name === "Recommended Projects" ? "Discoveries" : category.name} <span>{category.count}</span></button>)}</div><div class="nv-order">Order <select aria-label="Order writing"><option value="recent">Newest first</option><option value="oldest">Oldest first</option></select><details class="nv-order-menu"><summary>Newest first</summary><div class="nv-order-options"><button type="button" data-order="recent" aria-pressed="true">Newest first</button><button type="button" data-order="oldest" aria-pressed="false">Oldest first</button></div></details></div></div>
+      <div class="nv-browse"><div class="nv-filters" role="group" aria-label="Filter writing"><button type="button" data-category="All" aria-pressed="true">Everything <span>{posts.length}</span></button>{categories.map(category => <button type="button" data-category={category.name} aria-pressed="false">{category.name === "Recommended Projects" ? "Discoveries" : category.name} <span>{category.count}</span></button>)}</div><div class="nv-order" data-enhanced="true">Order <select aria-label="Order writing"><option value="recent">Newest first</option><option value="oldest">Oldest first</option></select><details class="nv-order-menu"><summary>Newest first</summary><div class="nv-order-options"><button type="button" data-order="recent" aria-pressed="true">Newest first</button><button type="button" data-order="oldest" aria-pressed="false">Oldest first</button></div></details></div></div>
       <div class="nv-grid">{posts.map((entry,index) => <EntryCard {entry} {index} />)}</div><p class="nv-end" role="status" aria-live="polite">{posts.length} of {posts.length} entries</p>
     </main>
     <section class="nv-signoff" aria-label="About the author"><a class="nv-person" href="/about/"><Image src={avatar} alt="AI's black cat avatar" width={44} height={44} widths={[44,88,132]} sizes="44px" format="webp" class="nv-avatar" loading="lazy" /><span><strong>AI</strong><small>Mathematics, code, and the rest of life.</small></span><Icon name="mdi:arrow-top-right" aria-hidden="true" /></a><p>To love,<br><em>even the pain.</em></p><a class="nv-github" href="https://github.com/Chen017">GitHub <Icon name="mdi:arrow-top-right" aria-hidden="true" /></a></section>

@@ -8,6 +8,7 @@
   const path = value => { try { return new URL(value, location.href).pathname; } catch { return ''; } };
   const post = value => value.startsWith('/posts/');
   const tabs = ['/', '/archive/', '/friends/', '/about/'];
+  const tabSet = new Set(tabs);
   const activeNavHref = target => target === '/' ? '/' : (post(target) || /^\/\d+\/$/.test(target) ? '/archive/' : target);
   const syncNav = target => {
     const current = activeNavHref(target);
@@ -18,6 +19,69 @@
       else link.removeAttribute?.('aria-current');
     });
   };
+  const pageCache = new Map();
+  const warmStyles = html => {
+    try {
+      const head = document.head;
+      if (!head?.querySelector) return;
+      for (const match of html.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi)) {
+        const href = match[1];
+        if (href && !head.querySelector(`link[href="${href}"]`)) {
+          const link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.as = 'style';
+          link.href = href;
+          head.appendChild(link);
+        }
+      }
+    } catch {}
+  };
+  const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
+  if (nativeFetch && typeof Response === 'function') {
+    const fetchTab = (key, init) => {
+      if (!pageCache.has(key)) {
+        const canonicalUrl = new URL(key, location.origin).href;
+        const request = nativeFetch(canonicalUrl, init).then(async res => {
+          const contentType = res.headers?.get?.('content-type') || 'text/html; charset=utf-8';
+          if (!res.ok || res.redirected || !contentType.includes('text/html')) {
+            pageCache.delete(key);
+            return res;
+          }
+          const body = await res.text();
+          warmStyles(body);
+          const entry = { body, status: res.status, statusText: res.statusText, headers: { 'content-type': contentType } };
+          pageCache.set(key, Promise.resolve(entry));
+          return new Response(entry.body, entry);
+        }).catch(err => {
+          pageCache.delete(key);
+          throw err;
+        });
+        pageCache.set(key, request);
+        return request;
+      }
+      return pageCache.get(key).then(entry => entry instanceof Response ? entry.clone() : new Response(entry.body, entry));
+    };
+    window.fetch = (input, init) => {
+      const method = (init?.method || (typeof Request === 'function' && input instanceof Request ? input.method : 'GET')).toUpperCase();
+      if (method === 'GET') {
+        const rawUrl = typeof input === 'string' || input instanceof URL ? String(input) : input?.url || '';
+        try {
+          const parsed = new URL(rawUrl, location.href);
+          if (parsed.origin === location.origin && tabSet.has(parsed.pathname)) {
+            return fetchTab(parsed.pathname, init);
+          }
+        } catch {}
+      }
+      return nativeFetch(input, init);
+    };
+    const warmAllTabs = () => {
+      tabs.forEach(tab => {
+        if (!pageCache.has(tab)) void fetchTab(tab, { priority: 'low' }).catch(() => {});
+      });
+    };
+    if (document.readyState === 'complete') setTimeout(warmAllTabs, 80);
+    else window.addEventListener?.('load', () => setTimeout(warmAllTabs, 80), { once: true });
+  }
   let selected;
   let generation = 0;
   document.addEventListener('click', event => {
@@ -40,7 +104,8 @@
     let source = read();
     if (source && post(from) && post(to) && source.current === from) { source.current = to; write(source); }
     const fromTab = tabs.indexOf(from), toTab = tabs.indexOf(to);
-    if (fromTab >= 0 && toTab >= 0 && fromTab !== toTab) event.direction = toTab < fromTab ? 'back' : 'forward';
+    const effectiveFromTab = fromTab >= 0 ? fromTab : (post(from) || /^\/\d+\/$/.test(from) ? 1 : -1);
+    if (effectiveFromTab >= 0 && toTab >= 0 && effectiveFromTab !== toTab) event.direction = toTab < effectiveFromTab ? 'back' : 'forward';
     else if (post(from) && post(to) && link?.dataset.direction) event.direction = link.dataset.direction === 'previous' ? 'back' : 'forward';
     selected = source && ((post(to) && !post(from) && source.post === to && source.from === from) || (post(from) && !post(to) && source.post === from && source.from === to)) ? source : null;
     if (!selected) return;

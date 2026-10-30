@@ -122,7 +122,8 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		);
 		let count = 0;
 		for (const entry of sorted) {
-			entry.hidden = category !== "All" && entry.dataset.category !== category;
+			const shouldHide = category !== "All" && entry.dataset.category !== category;
+			if (entry.hidden !== shouldHide) entry.hidden = shouldHide;
 			if (!entry.hidden) count++;
 		}
 		grid.append(...sorted);
@@ -175,9 +176,11 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 			)
 				? state.category
 				: "All";
-			get<HTMLSelectElement>(".nv-order select").value =
-				state.order === "oldest" ? "oldest" : "recent";
-			updateEntries(false, false);
+			const orderValue = state.order === "oldest" ? "oldest" : "recent";
+			get<HTMLSelectElement>(".nv-order select").value = orderValue;
+			if (category !== "All" || orderValue === "oldest") {
+				updateEntries(false, false);
+			}
 		} catch {
 			/* Native links and default ordering remain available. */
 		}
@@ -370,14 +373,19 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 		}
 	}, {signal});
 	signal.addEventListener("abort", () => { saveState(); stopMotion(); });
-	get<HTMLElement>(".nv-browse").hidden = false;
+	const browse = get<HTMLElement>(".nv-browse");
+	if (browse.hidden) browse.hidden = false;
 	const order = get<HTMLElement>(".nv-order");
 	const menu = order.querySelector<HTMLDetailsElement>("details");
 	const select = get<HTMLSelectElement>(".nv-order select");
 	if (menu) {
-		order.dataset.enhanced = "true";
+		if (order.dataset.enhanced !== "true") order.dataset.enhanced = "true";
 		const summary = menu.querySelector<HTMLElement>("summary")!;
-		const refresh = () => { summary.textContent = select.selectedOptions[0]?.textContent || "Newest first"; menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.order === select.value))); };
+		const refresh = () => {
+			const label = select.selectedOptions?.[0]?.textContent || "Newest first";
+			if (summary.textContent !== label) summary.textContent = label;
+			menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.order === select.value)));
+		};
 		menu.querySelectorAll<HTMLButtonElement>("[data-order]").forEach(button => button.addEventListener("click", () => { select.value = button.dataset.order || "recent"; select.dispatchEvent(new Event("change")); menu.open = false; refresh(); summary.focus(); }));
 		menu.addEventListener("keydown", event => { if (event.key === "Escape" && menu.open) { menu.open = false; summary.focus(); } });
 		document.addEventListener("click", event => { if (!menu.contains(event.target as Node)) menu.open = false; }, {signal});
@@ -390,18 +398,21 @@ function initializeVoyage(root: HTMLElement, signal: AbortSignal) {
 	const saved = typeof history !== "undefined" ? history.state?.voyage : null;
 	restoreState();
 	if (saved) {
+		const targetScroll = Number.isFinite(saved.scroll) ? saved.scroll : 0;
+		if (window.scrollY !== targetScroll) {
 			window.scrollTo({
-				top: Number.isFinite(saved.scroll) ? saved.scroll : 0,
+				top: targetScroll,
 				behavior: "instant",
 			});
-			const source = document.getElementById(saved.source);
-			if (source && !source.hidden) {
-				source.dataset.returned = "true";
-				if (saved.keyboard)
-					source
-						.querySelector<HTMLAnchorElement>("a")
-						?.focus({ preventScroll: true });
-			}
+		}
+		const source = saved.source ? document.getElementById(saved.source) : null;
+		if (source && !source.hidden) {
+			source.dataset.returned = "true";
+			if (saved.keyboard)
+				source
+					.querySelector<HTMLAnchorElement>("a")
+					?.focus({ preventScroll: true });
+		}
 	}
 	try {
 		if (

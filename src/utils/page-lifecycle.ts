@@ -11,7 +11,7 @@ export const voyageSlide: TransitionDirectionalAnimations = {
 	forwards: {
 		old: [
 			{
-				name: "astroFadeOut",
+				name: "voyageFadeOut",
 				duration: "90ms",
 				easing: VOYAGE_SLIDE_EASING,
 				fillMode: "both",
@@ -25,7 +25,7 @@ export const voyageSlide: TransitionDirectionalAnimations = {
 		],
 		new: [
 			{
-				name: "astroFadeIn",
+				name: "voyageFadeIn",
 				duration: "210ms",
 				easing: VOYAGE_SLIDE_EASING,
 				delay: "30ms",
@@ -42,7 +42,7 @@ export const voyageSlide: TransitionDirectionalAnimations = {
 	backwards: {
 		old: [
 			{
-				name: "astroFadeOut",
+				name: "voyageFadeOut",
 				duration: "90ms",
 				easing: VOYAGE_SLIDE_EASING,
 				fillMode: "both",
@@ -56,7 +56,7 @@ export const voyageSlide: TransitionDirectionalAnimations = {
 		],
 		new: [
 			{
-				name: "astroFadeIn",
+				name: "voyageFadeIn",
 				duration: "210ms",
 				easing: VOYAGE_SLIDE_EASING,
 				delay: "30ms",
