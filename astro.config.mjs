@@ -193,6 +193,7 @@ export default defineConfig({
         ],
         build: {
             cssCodeSplit: true,
+            chunkSizeWarningLimit: 1000,
             rolldownOptions: {
                 output: { minify: { compress: { dropConsole: true, dropDebugger: true } } },
                 onwarn(warning, warn) {

@@ -1,4 +1,3 @@
-import { getCollection } from "astro:content";
 import type { APIContext, GetStaticPaths } from "astro";
 import type { CollectionEntry } from "astro:content";
 import * as fs from "node:fs";
