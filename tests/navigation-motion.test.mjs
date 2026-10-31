@@ -43,6 +43,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  let fetchCalls = 0;
  let fakeNowMs = 1_000_000_000;
  let responseVersion = 1;
+ const connection = { saveData: false, effectiveType: "4g" };
  class MockResponse {
   constructor(body, init = {}) {
    this.body = body;
@@ -89,7 +90,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  };
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
  const historyObj = { state: { index: 5 }, replaceState(st) { this.state = st; } };
- vm.runInNewContext(source, {window:windowObj,Response:MockResponse,Date:{now:() => fakeNowMs},setTimeout,clearTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
+ vm.runInNewContext(source, {window:windowObj,Response:MockResponse,Date:{now:() => fakeNowMs},setTimeout,clearTimeout,document,location,URL,navigator:{connection,onLine:true},history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
 
  // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for un-warmed posts
  const firstMenuRes = await windowObj.fetch("https://example.com/friends/");
@@ -128,6 +129,10 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  await windowObj.fetch("https://example.com/posts/unwarmed/");
  await windowObj.fetch("https://example.com/posts/unwarmed/");
  assert.equal(fetchCalls, 7, "unwarmed post routes are not cached indiscriminately");
+ connection.saveData = true;
+ windowHandlers.load({ type: "load" });
+ assert.equal(fetchCalls, 7, "Save-Data prevents automatic background tab warming");
+ connection.saveData = false;
 
  // Solution A1: pointerdown / hover on a card pre-warms postCache so clicking serves from memory in 0ms
  windowHandlers.pointerdown({ type: "pointerdown", target: { closest: () => link } });
