@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const source = (await readFile("src/components/site/NavigationMotion.astro", "utf8")).match(/<script is:inline>([\s\S]*?)<\/script>/)[1];
 
-test("Astro navigation pairs the selected title, updates active nav state immediately, caches the 4 menu routes and hovered post routes, and unwraps covers on Post -> Home", async () => {
+test("Astro navigation preserves outgoing menu state, caches main routes and hovered posts, and unwraps covers on Post -> Home", async () => {
  const handlers = {}, windowHandlers = {}, storage = new Map(), rootAttrs = new Map(), cardAttrs = new Map(), fetchedUrls = [];
  const makeTitle = () => ({
   style:{removeProperty() { delete this.viewTransitionName; }},
@@ -169,6 +169,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  // CSS ownership: Astro ClientRouter must own <head> swaps (no outgoing CSS clones).
  // Solution B1: Post -> Home synchronously unwraps <deferred-cover> templates in incoming document before snapshot capture
  windowObj.scrollY = 0;
+ const postIncomingAttrs = new Map();
  let coverUnwrapped = false;
  let unrelatedCoverUnwrapped = false;
  let coverLoadedAttr = null;
@@ -191,12 +192,14 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  handlers["astro:before-swap"]({
   to:new URL("https://example.com/"),
   newDocument:{
+   documentElement: { setAttribute(k, v) { postIncomingAttrs.set(k, v); } },
    getElementById:() => card,
    querySelectorAll: sel => sel === "deferred-cover" ? [mockCover, unrelatedCover] : [],
   },
   viewTransition:{finished:new Promise(() => {})},
  });
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
+ assert.equal(postIncomingAttrs.has("data-voyage-hero-capture"), false, "Post -> Home preserves the shared-title transition");
  assert.equal(coverUnwrapped, true, "Post -> Home unwraps <deferred-cover> template before snapshot capture");
  assert.equal(unrelatedCoverUnwrapped, false, "Post -> Home preserves unrelated lazy cover templates");
  assert.equal(coverLoadedAttr, "true", "marks unwrapped cover as data-loaded=true to skip 360ms fade replay");
