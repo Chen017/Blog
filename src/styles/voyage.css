@@ -18,11 +18,10 @@ body.voyage-home { margin: 0; background: #080c17; }
 ::view-transition-group(voyage-header) { animation-duration: 0s; }
 ::view-transition-old(voyage-page), ::view-transition-new(voyage-page) { mix-blend-mode: normal; }
 html[data-astro-transition] #voyage-afterhours .nv-twinkle { animation-play-state: paused; }
-@keyframes voyageEntryTitleReveal { from { opacity: 0; translate: 0 12px; scale: .985; } to { opacity: 1; translate: 0 0; scale: 1; } }
-::view-transition-group(voyage-entry-title) { animation: none; overflow: visible; }
-::view-transition-old(voyage-entry-title), ::view-transition-new(voyage-entry-title) { width: 100%; height: auto; object-fit: none; mix-blend-mode: normal; }
-::view-transition-old(voyage-entry-title) { animation: 1ms linear both voyageFadeOut; opacity: 0; }
-::view-transition-new(voyage-entry-title) { animation: 280ms cubic-bezier(.22,1,.36,1) both voyageEntryTitleReveal; }
+::view-transition-group(voyage-entry-title) { animation-duration: 620ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
+::view-transition-old(voyage-entry-title), ::view-transition-new(voyage-entry-title) { height: 100%; width: 100%; object-fit: contain; object-position: left center; mix-blend-mode: normal; }
+::view-transition-old(voyage-entry-title) { animation-duration: 240ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+::view-transition-new(voyage-entry-title) { animation-duration: 460ms; animation-delay: 60ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
 html[data-motion="off"]::view-transition-group(*), html[data-motion="off"]::view-transition-old(*), html[data-motion="off"]::view-transition-new(*) { animation: none !important; }
 html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox__container * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 #voyage-afterhours{width:100%;background:transparent;container-type:inline-size}
@@ -434,9 +433,18 @@ html[data-voyage-entry-transition] #voyage-afterhours .nv-page { view-transition
 /* Prevent global img { max-width: 100% } resets from clipping the 40px parallax overscan (Solution 1A). */
 #voyage-afterhours .nv-photograph,
 #voyage-afterhours .nv-sky :is(picture, img) { max-width: none !important; }
-/* Entry navigation follows its title; root uses a synchronized 240ms fade so page and title finish together. */
-html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 180ms ease-out both voyageFadeOut !important; }
-html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 240ms cubic-bezier(.22,1,.36,1) 20ms both voyageFadeIn !important; }
+/* Entry navigation follows its title; root uses a calm 260ms fade while the shared title flies along its 620ms trajectory. */
+html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 220ms ease-out both voyageFadeOut !important; }
+html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 280ms ease-out both voyageFadeIn !important; }
+/* Wrap shared title elements tightly to their glyphs so empty grid/block width does not distort aspect-ratio morphing. */
+#voyage-afterhours .archive-title[data-entry-title] { justify-self: start; width: fit-content; max-width: 100%; }
+#voyage-afterhours .nv-entry h3[data-entry-title] { width: fit-content; max-width: 100%; }
+#voyage-afterhours .vs-article-head h1 { width: fit-content; max-width: min(24ch, 100%); margin-inline: auto; }
+/* Only keep cards elevated for keyboard :focus-visible or pointer :hover, never sticky mouse focus (Issue 2). */
+#voyage-afterhours .nv-entry:focus-within:not(:hover):not(:has(:focus-visible)) { border-color: #c2cad31f; transform: none; }
+#voyage-afterhours .nv-entry:focus-within:not(:hover):not(:has(:focus-visible)) :is(.nv-entry-image, .nv-entry-cover img) { transform: none; filter: brightness(.67) saturate(.65); }
+/* Ensure history scroll restoration is always instant rather than replaying a 350ms smooth scroll (Issue 3). */
+html, body { scroll-behavior: auto !important; }
 /* Home boundary transitions: disable group morphing and keep outgoing snapshot opaque long enough to cover the slide. */
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(root),
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(voyage-page) { animation: none; overflow: clip; }

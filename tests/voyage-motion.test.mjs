@@ -563,6 +563,9 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 
 	const headingMotion = await readFile("src/scripts/heading-motion.ts", "utf8");
 	assert.match(headingMotion, /const\s+baseDelay\s*=\s*inTransition\s*\?\s*110\s*:\s*0/);
-	assert.match(css, /@keyframes\s+voyageEntryTitleReveal/);
+	assert.match(css, /::view-transition-group\(voyage-entry-title\)\s*\{\s*animation-duration:\s*620ms;/);
+	assert.match(css, /#voyage-afterhours\s+\.archive-title\[data-entry-title\]\s*\{\s*justify-self:\s*start;\s*width:\s*fit-content;/);
+	assert.match(css, /#voyage-afterhours\s+\.nv-entry:focus-within:not\(:hover\):not\(:has\(:focus-visible\)\)\s*\{[^}]*transform:\s*none;/);
+	assert.match(css, /html,\s*body\s*\{\s*scroll-behavior:\s*auto\s*!important;\s*\}/);
 	assert.match(css, /@keyframes\s+voyageFoldReveal/);
 });

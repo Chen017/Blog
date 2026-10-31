@@ -348,7 +348,9 @@ function initializeVoyage(
 							voyage: {
 								...history.state?.voyage,
 								source: card.id,
-								keyboard: document.activeElement === card.querySelector("a"),
+								keyboard:
+									document.activeElement === card.querySelector("a") &&
+									(!("detail" in event) || (event as MouseEvent).detail === 0),
 							},
 						},
 						"",
