@@ -574,7 +574,7 @@ function initializeVoyage(
 			document.documentElement.removeAttribute("data-voyage-opening");
 			// Return navigation already finished its snapshot transition here.
 			// Do not repeat the first-visit reveal or dim the plus-lighter title.
-			if (transition) playReturnFlourish();
+			if (transition && canMove()) playReturnFlourish();
 		}
 		announcePageReady();
 	}
