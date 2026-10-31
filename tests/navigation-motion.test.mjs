@@ -329,7 +329,7 @@ test("mobile soft-expired pages stay instant while refreshes are serialized and 
   requests.push({ url: String(url), cache: init?.cache });
   if (init?.cache === "no-cache") {
    activeRefreshes++;
-   peakRefreshes = Math.max(activeRefreshes, activeRefreshes);
+   peakRefreshes = Math.max(peakRefreshes, activeRefreshes);
    return new Promise(resolve => pendingRefreshes.push((status, body) => {
     activeRefreshes--;
     resolve(new CachedResponse(body, status));
