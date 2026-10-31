@@ -33,6 +33,10 @@
   };
   const pageCache = new Map();
   const postCache = new Map();
+  const pageCacheTime = new Map();
+  const postCacheTime = new Map();
+  // Static HTML changes after deployment; never retain a warmed document indefinitely.
+  const documentCacheTtlMs = 5 * 60 * 1000;
   const warmedAssets = new Set();
   let hoverTimer = 0;
   const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
@@ -58,12 +62,15 @@
   };
   if (nativeFetch && typeof Response === 'function') {
     const fetchTab = (key, init) => {
+      if (pageCache.has(key) && Date.now() - (pageCacheTime.get(key) || 0) > documentCacheTtlMs) pageCache.delete(key);
       if (!pageCache.has(key)) {
+        pageCacheTime.set(key, Date.now());
         const canonicalUrl = new URL(key, location.origin).href;
         const request = nativeFetch(canonicalUrl, init).then(async res => {
           const contentType = res.headers?.get?.('content-type') || 'text/html; charset=utf-8';
           if (!res.ok || res.redirected || !contentType.includes('text/html')) {
             pageCache.delete(key);
+            pageCacheTime.delete(key);
             return res;
           }
           const body = await res.text();
@@ -73,6 +80,7 @@
           return new Response(entry.body, entry);
         }).catch(err => {
           pageCache.delete(key);
+          pageCacheTime.delete(key);
           throw err;
         });
         pageCache.set(key, request);
@@ -81,12 +89,15 @@
       return pageCache.get(key).then(entry => entry instanceof Response ? entry.clone() : new Response(entry.body, entry));
     };
     const fetchPost = (key, init) => {
+      if (postCache.has(key) && Date.now() - (postCacheTime.get(key) || 0) > documentCacheTtlMs) postCache.delete(key);
       if (!postCache.has(key)) {
+        postCacheTime.set(key, Date.now());
         const canonicalUrl = new URL(key, location.origin).href;
         const request = nativeFetch(canonicalUrl, init).then(async res => {
           const contentType = res.headers?.get?.('content-type') || 'text/html; charset=utf-8';
           if (!res.ok || res.redirected || !contentType.includes('text/html')) {
             postCache.delete(key);
+            postCacheTime.delete(key);
             return res;
           }
           const body = await res.text();
@@ -96,11 +107,15 @@
           postCache.set(key, Promise.resolve(entry));
           if (postCache.size > 6) {
             const oldest = postCache.keys().next().value;
-            if (oldest && oldest !== key) postCache.delete(oldest);
+            if (oldest && oldest !== key) {
+              postCache.delete(oldest);
+              postCacheTime.delete(oldest);
+            }
           }
           return new Response(entry.body, entry);
         }).catch(err => {
           postCache.delete(key);
+          postCacheTime.delete(key);
           throw err;
         });
         postCache.set(key, request);
@@ -117,6 +132,9 @@
         const rawUrl = typeof input === 'string' || input instanceof URL ? String(input) : input?.url || '';
         try {
           const parsed = new URL(rawUrl, location.href);
+          // Query variants and non-default fetch modes may not represent canonical static HTML.
+          // They must bypass path-only route caching rather than return the wrong document.
+          if (parsed.search || parsed.hash || init?.cache === 'no-store' || init?.cache === 'reload') return nativeFetch(input, init);
           if (parsed.origin === location.origin) {
             if (tabSet.has(parsed.pathname)) {
               return fetchTab(parsed.pathname, init);
