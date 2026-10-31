@@ -1,5 +1,6 @@
 import "./content-features";
 import "./heading-motion";
+import { whenTransitionSettled } from "./navigation/transition-settlement";
 import { cleanupFancybox, initFancybox } from "../utils/fancybox";
 import { initMarkdownActions } from "../utils/markdown";
 import {
@@ -10,7 +11,6 @@ import {
 import { initScrollControls } from "../utils/scroll-controls";
 
 let pageController: AbortController | undefined;
-let transitionFinished: Promise<unknown> = window.__voyageTransitionFinished ?? Promise.resolve();
 function initializePage() {
  const page = document.querySelector<HTMLElement>(".vs-interior");
  if (!page || page.dataset.siteInitialized === "true") return;
@@ -169,7 +169,7 @@ function initializePage() {
 			});
 			announcePageReady();
 		};
-		const activeTransition = window.__voyageTransitionFinished ?? transitionFinished;
+		const activeTransition = whenTransitionSettled();
 		void activeTransition.then(finishSiteInit, finishSiteInit);
 	};
 	window.addEventListener("content-decrypted", () => {
@@ -205,7 +205,6 @@ function initializePage() {
 	else ready();
 }
 document.addEventListener("astro:before-swap", event => {
- transitionFinished = (event as Event & {viewTransition?: ViewTransition}).viewTransition?.finished.catch(() => {}) ?? Promise.resolve();
  document.dispatchEvent(new Event(CLOSE_PANELS));
  document.dispatchEvent(new CustomEvent(PAGE_BEFORE_REPLACE, { detail: { persisted: false } }));
  document.querySelectorAll<HTMLMediaElement>("#content-wrapper audio, #content-wrapper video").forEach(media => media.pause());
