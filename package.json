@@ -5,6 +5,7 @@
 	"description": "A blog template",
 	"scripts": {
 		"test:unit": "node --test tests/*.test.mjs",
+		"test:motion": "node --test tests/navigation-motion.test.mjs tests/voyage-motion.test.mjs",
 		"test:markdown": "node scripts/test-markdown.mjs",
 		"verify:build": "node scripts/verify-build.mjs",
 		"type-check": "astro check",
@@ -18,7 +19,8 @@
 		"astro": "astro",
 		"new-post": "node scripts/new-post.js",
 		"cms:local": "node scripts/cms-local.mjs",
-		"cms:auth": "node --env-file-if-exists=.env cms/oauth.mjs"
+		"cms:auth": "node --env-file-if-exists=.env cms/oauth.mjs",
+		"lint:check": "biome check ./src"
 	},
 	"dependencies": {
 		"@astrojs/check": "0.9.10",
