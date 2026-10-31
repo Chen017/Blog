@@ -68,7 +68,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   readyState: "loading",
   head: {
    querySelector: () => null,
-   appendChild() {},
+   appendChild() { throw new Error("navigation must not append stale outgoing stylesheets"); },
   },
   documentElement:{
    setAttribute(k, v) { rootAttrs.set(k, v); },
@@ -139,6 +139,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  assert.equal(postToLinks.direction, "forward");
  assert.equal(navLinks[2].current, "page");
 
+ // CSS ownership: Astro ClientRouter must own <head> swaps (no outgoing CSS clones).
  // Solution B1: Post -> Home synchronously unwraps <deferred-cover> templates in incoming document before snapshot capture
  windowObj.scrollY = 0;
  let coverUnwrapped = false;
