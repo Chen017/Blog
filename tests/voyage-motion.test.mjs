@@ -33,6 +33,9 @@ class ElementStub {
 	removeAttribute(name) {
 		delete this.attributes[name];
 	}
+	hasAttribute(name) {
+		return Object.prototype.hasOwnProperty.call(this.attributes, name);
+	}
 	toggleAttribute(name, value) {
 		if (value) this.attributes[name] = "";
 		else delete this.attributes[name];
@@ -227,6 +230,8 @@ test("Home navigation splits initialization into visual state preparation and po
 		from: "/friends/",
 		finished: transitionPromise,
 	};
+	const homeHtml = new ElementStub();
+	homeHtml.setAttribute("data-voyage-return-prepared", "");
 
 	const windowObj = {
 		__voyageHomeTransition: homeTransition,
@@ -248,7 +253,7 @@ test("Home navigation splits initialization into visual state preparation and po
 		PAGE_BEFORE_REPLACE: "before-replace",
 		document: {
 			hidden: false,
-			documentElement: new ElementStub(),
+			documentElement: homeHtml,
 			getElementById: (id) => (id === "voyage-afterhours" ? root : null),
 			addEventListener: (name, handler) => {
 				documentListeners[name] = handler;
@@ -296,6 +301,7 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.equal(graph.listeners.focus, undefined, "graph focus deferred until transition finished");
 	assert.ok(!events.includes("twilight:page:loaded"), "announcePageReady deferred until transition finished");
 	assert.equal(elements.has("h1 em"), false, "return flourish cannot start inside a View Transition screenshot");
+	assert.equal(homeHtml.hasAttribute("data-voyage-return-prepared"), true, "the first return frame is already staged before the snapshot");
 
 	// Now transition finishes
 	resolveTransition();
@@ -312,6 +318,7 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.equal(flourish.options.delay, 190, "return keeps the original 110ms transition + 80ms flourish delay");
 	assert.equal(flourish.options.easing, "cubic-bezier(.16,.8,.2,1)");
 	assert.equal(flourish.options.fill, "both", "hold the starting keyframe during delay to avoid a delayed jump");
+	assert.equal(homeHtml.hasAttribute("data-voyage-return-prepared"), false, "CSS staging is removed only after WAAPI fills the initial pose");
 	assert.equal(flourish.keyframes.length, 2, "the original one-way motion has no mid-animation nod");
 	assert.equal(flourish.keyframes[0].translate, "0 8px", "start from the original lower position");
 	assert.equal(flourish.keyframes[0].rotate, "-2deg", "start from the original tilt");
@@ -490,6 +497,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.equal(titleFirst.animations[0].options.easing, "cubic-bezier(.16,.8,.2,1)");
 	assert.equal(titleEm.animations[0].options.duration, 2100);
 	assert.equal(titleEm.animations.length, 1, "direct first visit must not also run the return flourish");
+	assert.equal(html.hasAttribute("data-voyage-return-prepared"), false, "direct visit has no return staging state");
 	assert.equal(titleEm.animations[0].options.delay, 550);
 	assert.equal(horizon.animations[0].options.duration, 2300);
 	assert.equal(horizon.animations[0].options.delay, 450);
