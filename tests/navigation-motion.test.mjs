@@ -413,5 +413,26 @@ test("menu keeps correct selection timing and planet texture stays stable across
  assert.doesNotMatch(css, /data-voyage-hero-capture|voyage-hero-title|voyageHeroFromLeft/, "no orphaned title capture style remains");
  assert.doesNotMatch(css, /\.nv-horizon-grain\s*\{\s*display:\s*none\s*!important/, "planet texture must not disappear during a transition");
  assert.match(css, /\.nv-horizon-grain\s*\{[^}]*opacity:\s*\.07/, "planet texture retains original 7% opacity");
- assert.match(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/);
+ assert.doesNotMatch(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/, "navigation cannot dim the blended Home headline");
+});
+
+
+test("Home title keeps additive light on departure and its root snapshot stays opaque on return", async () => {
+ const css = await readFile("src/styles/voyage.css", "utf8");
+ const slide = await readFile("src/utils/page-lifecycle.ts", "utf8");
+ const nav = await readFile("src/components/site/NavigationMotion.astro", "utf8");
+
+ // Outgoing Home: no forced normal blend; the original and accessibility fallback remain.
+ assert.match(css, /@supports\s*\(mix-blend-mode:\s*plus-lighter\)[\s\S]*?\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*plus-lighter;/);
+ assert.match(css, /@media\s*\(prefers-reduced-transparency:\s*reduce\)[\s\S]*?\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal;/);
+ assert.doesNotMatch(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/);
+
+ // Incoming Home: scope to the new Home body and exclude shared-title transitions.
+ assert.match(css, /html\[data-voyage-home-transition\]:has\(> body\.voyage-home\):not\(\[data-voyage-entry-transition\]\):not\(\[data-motion="off"\]\)::view-transition-new\(root\)\s*\{\s*opacity:\s*1\s*!important;/);
+ assert.doesNotMatch(css, /::view-transition-new\(voyage-page\)\s*\{\s*opacity:\s*1/, "do not alter unrelated page snapshots");
+ assert.match(nav, /incoming\?\.documentElement\?\.setAttribute\?\.\("data-voyage-home-transition",\s*""\)/, "incoming Home gets the boundary marker");
+ assert.match(slide, /const VOYAGE_SLIDE_DURATION\s*=\s*"280ms"/, "the native horizontal slide timing stays intact");
+
+ // Planet grain remains visible across the full transition (PR #8).
+ assert.doesNotMatch(css, /\.nv-horizon-grain\s*\{\s*display:\s*none\s*!important/);
 });
