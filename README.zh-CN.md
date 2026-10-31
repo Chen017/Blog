@@ -53,10 +53,11 @@
 
 ### 本地写作
 
-需要 Node.js 22.22 及以上版本，以及 pnpm 10.29.2。
+需要 Node.js 22.22 及以上版本，以及 pnpm 10.29.2；使用 Node.js 24.13.0 可与 CI 保持一致。
 
 ```bash
-pnpm install
+corepack enable
+pnpm install --frozen-lockfile
 pnpm cms:local
 ```
 
@@ -67,17 +68,20 @@ pnpm cms:local
 博客配置位于 `twilight.config.yaml`，网站内容位于 `src/content`，后台内容集合配置位于 `public/admin/config.yml`。当前认证与部署配置见 [CMS_SETUP.md](CMS_SETUP.md)。
 
 ```bash
-pnpm check
 pnpm test:unit
+pnpm type-check
 pnpm test:markdown
 pnpm build
+pnpm exec playwright install chromium
+pnpm test:browser
 ```
 
-Markdown 集成检查完成后，需要再运行一次正常构建，避免临时测试页面进入正式产物。生产输出目录为 `dist/`，其中包含 Pagefind 搜索索引。
+按顺序执行：Markdown 集成检查和生产构建都会写入 `dist/`，不能并行。浏览器测试会自行启动生产预览，验证真实动画、交互和已审查的截图基线。`pnpm check` 是类型检查的别名，无需重复执行。生产产物包含 Pagefind 搜索索引。
 
-- [MAINTENANCE.md](MAINTENANCE.md)（英文）：保留功能与维护边界。
+- [MAINTENANCE.md](MAINTENANCE.md)（英文）：模块职责、动画回归历史、开发方式、CI/CD 和故障排查。
+- [浏览器测试指南](tests/browser/README.md)（英文）：屏幕尺寸与浏览器覆盖、动画证据、基线审查和失败诊断。
 - [CMS_SETUP.md](CMS_SETUP.md)：写作、媒体上传、认证与部署说明。
 
 `src/`、`public/`、`cms/`、`scripts/` 和 `tests/` 是持续维护的项目文件。`dist/`、`.astro/` 和 `.vercel/` 是构建产物或本地缓存，不使用时可以删除。一次性排查报告和日志不纳入 Git。
 
-OAuth 凭据保存在 GitHub Actions 加密 Secrets 中，并在部署时写入服务器的 `.env`。不要把本地凭据提交到 Git。现有 VPS 部署使用 Docker、Nginx 和 GitHub Actions。
+OAuth 凭据保存在 GitHub Actions 加密 Secrets 中，并在部署时写入服务器的 `.env`，不要提交到 Git。PR 自动验证；main 推送只执行一次完整验证，再通过 Docker/Nginx 部署同一份已测试的静态产物。每周和手动扩展检查增加浏览器引擎，具体触发条件、Secrets 和排查方法以维护指南为准。

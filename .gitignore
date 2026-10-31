@@ -15,6 +15,10 @@ dist/
 /audit/
 *.log
 
+# browser regression diagnostics (reviewed golden images live in tests/browser/snapshots)
+/playwright-report/
+/test-results/
+
 # private config
 .env
 .env.*

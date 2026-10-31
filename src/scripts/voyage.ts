@@ -409,7 +409,10 @@ function initializeVoyage(
 								scroll: targetScroll,
 								keyboard:
 									document.activeElement === card.querySelector("a") &&
-									(!("detail" in event) || (event as MouseEvent).detail === 0),
+									// Firefox can report detail=1 for Enter; an empty
+									// PointerEvent pointerType still identifies non-pointer activation.
+									(!("detail" in event) || (event as MouseEvent).detail === 0 ||
+										(event as PointerEvent).pointerType === ""),
 							},
 						},
 						"",

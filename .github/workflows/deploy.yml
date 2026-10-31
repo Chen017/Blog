@@ -12,7 +12,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+    with:
+      upload-dist: true
+    secrets:
+      UMAMI_API_KEY: ${{ secrets.UMAMI_API_KEY }}
+
   deploy:
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -21,38 +29,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - name: Download the tested production site
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
-          node-version: '24.13.0'
-          cache: 'pnpm'
+          name: validated-dist
+          path: dist
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Cache Astro assets
-        uses: actions/cache@v5
-        with:
-          path: node_modules/.astro
-          key: ${{ runner.os }}-astro-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-astro-${{ hashFiles('pnpm-lock.yaml') }}-
-            ${{ runner.os }}-astro-
-
-      - name: Validate source and content
+      - name: Package committed source with validated site
         run: |
-          pnpm test:unit
-          pnpm type-check
-          pnpm test:markdown
-
-      - name: Build and package site
-        env:
-          UMAMI_API_KEY: ${{ secrets.UMAMI_API_KEY }}
-        run: |
-          pnpm build
           git archive --format=tar --output=site-source.tar HEAD
           tar -rf site-source.tar dist
 

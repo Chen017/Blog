@@ -139,6 +139,12 @@ One short homepage opening may run on the first visit of a browser session; keep
 all content immediately visible, skip it on history return and reduced motion,
 without a replay control. Scroll-linked decoration follows native scrolling
 and never captures wheel or touch input.
+The shorter Home return entrance is separate from that first-session opening:
+both `Etalib’s` and `Space.` start from their prepared poses during the incoming
+slide. Preserve the existing stagger (110ms + 580ms and 190ms + 820ms), without
+restarting at transition completion. CSS must establish the initial poses before
+snapshot capture; removing that preparation creates a visible downward jump.
+See `MAINTENANCE.md` for ownership and the historical regression decisions.
 Parallax photography must overscan by at least its full travel on every screen
 width; use explicit 20px horizontal / 14px vertical overscan rather than a scale
 factor whose margin becomes insufficient in a narrow window.
