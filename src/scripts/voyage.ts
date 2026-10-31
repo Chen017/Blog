@@ -305,6 +305,20 @@ function initializeVoyage(
 		});
 	}
 
+	function playReturnFlourish() {
+		// The transition snapshot has already settled. Start at the resting
+		// pose and preserve opacity so the additive title light never flashes.
+		animate(
+			get("h1 em"),
+			[
+				{ translate: "0 0", rotate: "0deg", offset: 0 },
+				{ translate: "0 -6px", rotate: "-1.5deg", offset: 0.38 },
+				{ translate: "0 0", rotate: "0deg", offset: 1 },
+			],
+			{ duration: 820, easing: "cubic-bezier(.16,.8,.2,1)" },
+		);
+	}
+
 	function attachHomeInteractions() {
 		for (const button of buttons) {
 			button.addEventListener("click", () => {
@@ -556,7 +570,12 @@ function initializeVoyage(
 		} catch {
 			/* A blocked storage area simply skips the opening. */
 		}
-		if (!openingStarted) document.documentElement.removeAttribute("data-voyage-opening");
+		if (!openingStarted) {
+			document.documentElement.removeAttribute("data-voyage-opening");
+			// Return navigation already finished its snapshot transition here.
+			// Do not repeat the first-visit reveal or dim the plus-lighter title.
+			if (transition && canMove()) playReturnFlourish();
+		}
 		announcePageReady();
 	}
 
