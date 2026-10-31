@@ -396,7 +396,7 @@
       // Capture the returning hero title separately from the sliding root image,
       // so its additive blend is composited against the same sky as the live DOM.
       // Leave Post -> Home shared-title transitions unchanged.
-      if (to === '/' && !selected && event.viewTransition && document.documentElement.dataset.motion !== 'off') {
+      if (to === '/' && !selected && event.viewTransition && document.documentElement.dataset?.motion !== 'off') {
         incoming?.documentElement?.setAttribute?.("data-voyage-hero-capture", "");
       }
       const transition = event.viewTransition;
