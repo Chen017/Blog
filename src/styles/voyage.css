@@ -472,6 +472,7 @@ html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhou
 /* A returning Home hero is captured independently of root, preventing the
    baked-in blend of the page snapshot from changing as the snapshot disappears.
    Preserve the live plus-lighter lettering and backdrop-dependent colour. */
+@supports (mix-blend-mode: plus-lighter) {
 @media (prefers-reduced-motion:no-preference) {
   html[data-voyage-hero-capture] .voyage-home #voyage-afterhours .nv-titleblock h1 {
     view-transition-name: voyage-hero-title;
@@ -487,6 +488,12 @@ html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhou
   @keyframes voyageHeroFromLeft {
     from { transform: translateX(-100vw); }
     to { transform: translateX(0); }
+  }
+}
+}
+@media (prefers-reduced-transparency: reduce) {
+  html[data-voyage-hero-capture]::view-transition-new(voyage-hero-title) {
+    mix-blend-mode: normal;
   }
 }
 /* Snapshot the title as unblended translucent white, then add its light to
