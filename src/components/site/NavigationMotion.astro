@@ -319,6 +319,8 @@
           const tpl = cover.querySelector?.('template');
           if (!tpl?.content) return;
           const cardId = cover.closest?.('[id]')?.id || '';
+          // Only the paired title's cover (and already shown covers) may bypass lazy loading.
+          if (!cardId || (cardId !== selected.card && !loadedCovers.has(cardId))) return;
           const clone = tpl.content.cloneNode(true);
           const img = clone.querySelector?.('img');
           if (img) {

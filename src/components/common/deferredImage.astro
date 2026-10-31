@@ -31,8 +31,8 @@ const markup = await Astro.slots.render("default");
             if (!this.querySelector("template")) return;
             const key = this.coverKey();
             const isFoldDeferred = document.documentElement.hasAttribute("data-voyage-home-fold-deferred");
-            const isEntryTransition = document.documentElement.hasAttribute("data-voyage-entry-transition");
-            if (!isFoldDeferred && ((key && loadedCovers.has(key)) || isEntryTransition)) {
+            // A page-level entry transition must never eagerly decode every cover.
+            if (!isFoldDeferred && key && loadedCovers.has(key)) {
                 this.reveal(true);
                 return;
             }

@@ -94,6 +94,7 @@ function initializeVoyage(
 		if (!enabled || document.hidden) stopMotion();
 	}
 
+	let pendingEntryScroll: number | null = null;
 	function saveState() {
 		try {
 			if (typeof location !== "undefined" && location.pathname !== "/") return;
@@ -101,7 +102,9 @@ function initializeVoyage(
 			const fallbackScroll = Number.isFinite(history.state?.voyage?.scroll)
 				? history.state.voyage.scroll
 				: 0;
-			const effectiveScroll = currentScroll > 0 ? currentScroll : fallbackScroll;
+			// Keep the target card visible on return even when the old viewport was already scrolled.
+			// Both the click handler and the abort handler persist state; neither may overwrite this target.
+			const effectiveScroll = pendingEntryScroll ?? (currentScroll > 0 ? currentScroll : fallbackScroll);
 			history.replaceState(
 				{
 					...history.state,
@@ -356,6 +359,7 @@ function initializeVoyage(
 					if (rect && vh > 0 && (rect.bottom > vh - 24 || rect.top < 88)) {
 						targetScroll = Math.max(0, Math.round(targetScroll + rect.top - vh * 0.6));
 					}
+					pendingEntryScroll = targetScroll;
 					history.replaceState(
 						{
 							...history.state,
