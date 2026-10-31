@@ -142,6 +142,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  // Solution B1: Post -> Home synchronously unwraps <deferred-cover> templates in incoming document before snapshot capture
  windowObj.scrollY = 0;
  let coverUnwrapped = false;
+ let unrelatedCoverUnwrapped = false;
  let coverLoadedAttr = null;
  const mockImg = { decoding: "async", loading: "lazy" };
  const mockCover = {
@@ -150,6 +151,12 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   insertBefore() {},
   setAttribute(k, v) { if (k === "data-loaded") coverLoadedAttr = v; },
  };
+ const unrelatedCover = {
+  closest: () => ({ id: "unrelated-card" }),
+  querySelector: sel => sel === "template" ? { content: { cloneNode: () => ({ querySelector: () => mockImg }) }, remove() { unrelatedCoverUnwrapped = true; } } : null,
+  insertBefore() {},
+  setAttribute() {},
+ };
  handlers["astro:before-preparation"]({from:new URL(link.href),to:new URL("https://example.com/")});
  assert.equal(navLinks[0].page ?? navLinks[0].current, "page", "returning home highlights Home immediately");
  assert.equal(navLinks[2].current, undefined);
@@ -157,16 +164,18 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   to:new URL("https://example.com/"),
   newDocument:{
    getElementById:() => card,
-   querySelectorAll: sel => sel === "deferred-cover" ? [mockCover] : [],
+   querySelectorAll: sel => sel === "deferred-cover" ? [mockCover, unrelatedCover] : [],
   },
   viewTransition:{finished:new Promise(() => {})},
  });
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
  assert.equal(coverUnwrapped, true, "Post -> Home unwraps <deferred-cover> template before snapshot capture");
+ assert.equal(unrelatedCoverUnwrapped, false, "Post -> Home preserves unrelated lazy cover templates");
  assert.equal(coverLoadedAttr, "true", "marks unwrapped cover as data-loaded=true to skip 360ms fade replay");
  assert.equal(mockImg.decoding, "sync");
  assert.equal(mockImg.loading, "eager");
  assert.equal(windowObj.__voyageLoadedCovers.has("selected"), true);
+ assert.equal(windowObj.__voyageLoadedCovers.has("unrelated-card"), false);
  handlers["astro:after-swap"]();
  assert.ok(windowObj.scrollY > 0, "Post -> Home astro:after-swap aligns scrollY so target card is inside viewport before snapshot capture");
  const previous = { from:new URL(link.href), to:new URL('https://example.com/posts/older/'), direction:'forward', sourceElement:{closest:() => ({dataset:{direction:'previous'}, closest:() => null})} };
