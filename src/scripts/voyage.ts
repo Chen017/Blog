@@ -555,6 +555,17 @@ function initializeVoyage(
 				?.focus({ preventScroll: true });
 	}
 
+	// Start the Home title entrance during the incoming page transition,
+	// just like generic headings. The before-swap staging matches the first
+	// WAAPI frame, so the live new(root) view starts at the correct position.
+	// Keep interactive setup gated on transition.finished separately.
+	if (transition && canMove() &&
+		document.documentElement.hasAttribute("data-voyage-return-prepared")) {
+		playReturnFlourish();
+	} else {
+		document.documentElement.removeAttribute("data-voyage-return-prepared");
+	}
+
 	function finishHomeInitialization() {
 		if (signal.aborted) return;
 		// NavigationMotion.astro exclusively owns fold flags and their timed reveal.
@@ -575,19 +586,7 @@ function initializeVoyage(
 		} catch {
 			/* A blocked storage area simply skips the opening. */
 		}
-		if (!openingStarted) {
-			document.documentElement.removeAttribute("data-voyage-opening");
-			// Only reveal a Home title staged before the incoming snapshot.
-			// Unprepared/direct visits must never move the visible title downward.
-			if (transition && canMove() &&
-				document.documentElement.hasAttribute("data-voyage-return-prepared")) {
-				playReturnFlourish();
-			} else {
-				document.documentElement.removeAttribute("data-voyage-return-prepared");
-			}
-		} else {
-			document.documentElement.removeAttribute("data-voyage-return-prepared");
-		}
+		if (!openingStarted) document.documentElement.removeAttribute("data-voyage-opening");
 		announcePageReady();
 	}
 
