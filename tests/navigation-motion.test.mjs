@@ -41,6 +41,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   closest: sel => sel.includes("[data-entry-route]") ? card : link,
  };
  let fetchCalls = 0;
+ let fakeNowMs = 1_000_000_000;
  class MockResponse {
   constructor(body, init = {}) {
    this.body = body;
@@ -86,13 +87,20 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  };
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
  const historyObj = { state: { index: 5 }, replaceState(st) { this.state = st; } };
- vm.runInNewContext(source, {window:windowObj,Response:MockResponse,setTimeout,clearTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
+ vm.runInNewContext(source, {window:windowObj,Response:MockResponse,Date:{now:() => fakeNowMs},setTimeout,clearTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
 
  // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for un-warmed posts
  const firstMenuRes = await windowObj.fetch("https://example.com/friends/");
  const secondMenuRes = await windowObj.fetch("https://example.com/friends/");
  assert.equal(await firstMenuRes.text(), await secondMenuRes.text());
  assert.equal(fetchCalls, 1, "menu route HTML is served from in-memory cache on subsequent fetches");
+ await windowObj.fetch("https://example.com/friends/?category=Development");
+ assert.equal(fetchCalls, 2, "query-specific HTML bypasses pathname-only navigation cache");
+ await windowObj.fetch("https://example.com/friends/", { cache: "reload" });
+ assert.equal(fetchCalls, 3, "explicit reload requests bypass custom navigation cache");
+ fakeNowMs += 5 * 60 * 1000 + 1;
+ await windowObj.fetch("https://example.com/friends/");
+ assert.equal(fetchCalls, 4, "expired cached HTML is refetched to avoid stale deployments");
  assert.deepEqual(
   fetchedUrls.filter(item => String(item.url).includes("/_astro/")),
   [
@@ -105,7 +113,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  );
  await windowObj.fetch("https://example.com/posts/unwarmed/");
  await windowObj.fetch("https://example.com/posts/unwarmed/");
- assert.equal(fetchCalls, 3, "unwarmed post routes are not cached indiscriminately");
+ assert.equal(fetchCalls, 6, "unwarmed post routes are not cached indiscriminately");
 
  // Solution A1: pointerdown / hover on a card pre-warms postCache so clicking serves from memory in 0ms
  windowHandlers.pointerdown({ type: "pointerdown", target: { closest: () => link } });
