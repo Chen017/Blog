@@ -316,8 +316,12 @@ function initializeVoyage(
 			],
 			{ duration: 820, delay: 190, fill: "both", easing: "cubic-bezier(.16,.8,.2,1)" },
 		);
-		// Match the former generic-heading owner: release fill after completion.
-		void flourish?.finished.then(() => flourish.cancel(), () => {});
+		// The incoming snapshot and live DOM were already staged at 8px/-2deg.
+		// WAAPI fill:"both" now holds that exact pose through the 190ms delay;
+		// removing the CSS staging flag cannot cause a downward jump.
+		if (!flourish) return;
+		document.documentElement.removeAttribute("data-voyage-return-prepared");
+		void flourish.finished.then(() => flourish.cancel(), () => {});
 	}
 
 	function attachHomeInteractions() {
@@ -573,9 +577,16 @@ function initializeVoyage(
 		}
 		if (!openingStarted) {
 			document.documentElement.removeAttribute("data-voyage-opening");
-			// Return navigation already finished its snapshot transition here.
-			// Do not repeat the first-visit reveal or dim the plus-lighter title.
-			if (transition && canMove()) playReturnFlourish();
+			// Only reveal a Home title staged before the incoming snapshot.
+			// Unprepared/direct visits must never move the visible title downward.
+			if (transition && canMove() &&
+				document.documentElement.hasAttribute("data-voyage-return-prepared")) {
+				playReturnFlourish();
+			} else {
+				document.documentElement.removeAttribute("data-voyage-return-prepared");
+			}
+		} else {
+			document.documentElement.removeAttribute("data-voyage-return-prepared");
 		}
 		announcePageReady();
 	}
