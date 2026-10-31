@@ -300,8 +300,12 @@ test("Home navigation splits initialization into visual state preparation and po
 	const graph = elements.get(".nv-graph-trigger");
 	assert.equal(graph.listeners.focus, undefined, "graph focus deferred until transition finished");
 	assert.ok(!events.includes("twilight:page:loaded"), "announcePageReady deferred until transition finished");
-	assert.equal(elements.has("h1 em"), false, "return flourish cannot start inside a View Transition screenshot");
-	assert.equal(homeHtml.hasAttribute("data-voyage-return-prepared"), true, "the first return frame is already staged before the snapshot");
+	// The live ::view-transition-new(root) image must already contain the
+	// moving Space. heading; controls still wait for the slide to finish.
+	const flourish = elements.get("h1 em")?.animations[0];
+	assert.ok(flourish, "Space. begins animating while the page slide is still running");
+	assert.equal(elements.get("h1 em").animations.length, 1, "one animation owner even before transition completion");
+	assert.equal(homeHtml.hasAttribute("data-voyage-return-prepared"), false, "WAAPI first frame replaces staging before the incoming snapshot");
 
 	// Now transition finishes
 	resolveTransition();
@@ -312,13 +316,12 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.ok(typeof devBtn.listeners.click === "function", "click listener attached after transition finishes");
 	assert.ok(typeof graph.listeners.focus === "function", "graph focus listener attached after transition finishes");
 	assert.ok(events.includes("twilight:page:loaded"), "announcePageReady fired after transition finishes");
-	const flourish = elements.get("h1 em")?.animations[0];
-	assert.ok(flourish, "Space. resumes its decorative entrance after returning Home");
+	assert.equal(elements.get("h1 em").animations.length, 1, "finishing the page slide must not replay the Space. animation");
 	assert.equal(flourish.options.duration, 820, "return keeps the original 820ms entrance duration");
-	assert.equal(flourish.options.delay, 190, "return keeps the original 110ms transition + 80ms flourish delay");
+	assert.equal(flourish.options.delay, 190, "match the other headings' 110ms navigation + 80ms flourish delay");
 	assert.equal(flourish.options.easing, "cubic-bezier(.16,.8,.2,1)");
 	assert.equal(flourish.options.fill, "both", "hold the starting keyframe during delay to avoid a delayed jump");
-	assert.equal(homeHtml.hasAttribute("data-voyage-return-prepared"), false, "CSS staging is removed only after WAAPI fills the initial pose");
+	assert.equal(homeHtml.hasAttribute("data-voyage-return-prepared"), false, "CSS staging was replaced by WAAPI before the page transition completed");
 	assert.equal(flourish.keyframes.length, 2, "the original one-way motion has no mid-animation nod");
 	assert.equal(flourish.keyframes[0].translate, "0 8px", "start from the original lower position");
 	assert.equal(flourish.keyframes[0].rotate, "-2deg", "start from the original tilt");
