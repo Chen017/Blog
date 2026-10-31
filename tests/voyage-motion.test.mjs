@@ -585,7 +585,7 @@ test("Solutions 1A + 2A + 3A and Post -> Home exit title morph: unclipped oversc
 	const tocTs = await readFile("src/components/sidebar/toc.ts", "utf8");
 	assert.match(tocTs, /if\s*\(!inTransition\)\s*\{\s*this\.queueInit\(\);\s*\}/);
 	const siteTs = await readFile("src/scripts/site.ts", "utf8");
-	assert.match(siteTs, /window\.__voyageTransitionFinished\s*\?\?\s*transitionFinished/);
+	assert.match(siteTs, /whenTransitionSettled\(\)/);
 	const deferredAstro = await readFile("src/components/common/deferredImage.astro", "utf8");
 	assert.match(deferredAstro, /window\.__voyageLoadedCovers/);
 	assert.match(deferredAstro, /if\s*\(homeTransition\?\.finished\s*&&\s*isFoldDeferred\)/);
@@ -599,4 +599,14 @@ test("card scroll target survives both click and teardown saves", async () => {
  assert.match(source, /const effectiveScroll = pendingEntryScroll \?\? \(currentScroll > 0 \? currentScroll : fallbackScroll\);/);
  assert.match(source, /pendingEntryScroll = targetScroll;/);
  assert.match(source, /signal\.addEventListener\("abort", \(\) => \{\s*saveState\(\);/);
+});
+
+
+test("navigation settlement has one reader and page-specific imports are generation guarded", async () => {
+ const gate = await readFile("src/scripts/navigation/transition-settlement.ts", "utf8");
+ const features = await readFile("src/scripts/content-features.ts", "utf8");
+ assert.match(gate, /window\.__voyageTransitionFinished \?\? Promise\.resolve\(\)/);
+ assert.match(features, /navigationGeneration\+\+/);
+ assert.match(features, /if \(!isCurrent\(\)\) return;/);
+ assert.doesNotMatch(features, /document\.addEventListener\('astro:before-swap'/);
 });
