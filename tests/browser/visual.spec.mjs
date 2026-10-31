@@ -1,4 +1,7 @@
 import { test, expect, routes, visit, navigate, freezeDecorations, armCompositorCapture, seekCaptured } from './fixtures.mjs';
+import { fileURLToPath } from 'node:url';
+
+const countStyles = fileURLToPath(new URL('./screenshot.css', import.meta.url));
 
 test.beforeEach(async ({}, testInfo) => {
   test.skip(['firefox', 'webkit'].includes(testInfo.project.name), 'Golden pixels use the pinned Chromium/Windows renderer; behavior still runs across engines.');
@@ -11,13 +14,12 @@ test('four production page viewports retain the approved composition', async ({ 
     await freezeDecorations(page);
     // Publishing an article should not require approving new design goldens.
     // Counts/lists are verified semantically by build and behavior tests.
-    const options = route.name === 'Writing' ? {
-      clip: { x: 0, y: 0, width: page.viewportSize().width,
-        height: Math.ceil((await page.locator('.vs-page-head').boundingBox()).y + (await page.locator('.vs-page-head').boundingBox()).height) },
-      style: '.vs-page-head .vs-kicker { visibility:hidden; }',
-    } : route.name === 'Home' ? {
-      style: '.nv-filters button span, .nv-count { visibility:hidden; }',
-    } : {};
+    const options = {};
+    if (route.name === 'Writing') {
+      const head = await page.locator('.vs-page-head').boundingBox();
+      options.clip = { x: 0, y: 0, width: page.viewportSize().width, height: Math.ceil(head.y + head.height) };
+      options.stylePath = countStyles;
+    } else if (route.name === 'Home') options.stylePath = countStyles;
     await expect(page).toHaveScreenshot(`${route.name.toLowerCase()}-rest.png`, options);
   }
 });

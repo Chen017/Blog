@@ -65,6 +65,8 @@ Headless/virtual GPU results cannot establish all physical GPU/OS behavior.
   Writing captures the masthead, hiding its changing entry-count kicker; Home
   hides only the tiny changing counts. New articles therefore do not require
   approving design baselines. Build/behavior tests check real counts and entries.
+  `screenshot.css` is passed through the assertion API's `stylePath`; it is never
+  imported by the site and only applies while those resting images are captured.
 - `fixtures.mjs`: wraps native `Element.animate` / `startViewTransition` to
   observe effects and lifecycle timing while preserving their returned native
   objects. The recorder is test-only and never enters the production bundle.
