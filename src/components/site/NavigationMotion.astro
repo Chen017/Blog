@@ -20,33 +20,28 @@
     });
   };
   const pageCache = new Map();
+  const warmedAssets = new Set();
+  const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
   const warmStyles = html => {
     try {
+      if (!nativeFetch) return;
       const head = document.head;
-      if (!head?.querySelector) return;
       for (const match of html.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi)) {
         const href = match[1];
-        if (href && !head.querySelector(`link[href="${href}"]`)) {
-          const link = document.createElement('link');
-          link.rel = 'prefetch';
-          link.as = 'style';
-          link.href = href;
-          head.appendChild(link);
+        if (href && !warmedAssets.has(href) && !head?.querySelector?.(`link[href="${href}"]`)) {
+          warmedAssets.add(href);
+          void nativeFetch(new URL(href, location.origin).href, { priority: 'low', credentials: 'same-origin' }).catch(() => {});
         }
       }
       for (const match of html.matchAll(/(?:<script\b[^>]*type=["']module["'][^>]*src|component-url|renderer-url)=["'](\/_astro\/[^"']+\.js)["']/gi)) {
         const src = match[1];
-        if (src && !head.querySelector(`link[href="${src}"], script[src="${src}"]`)) {
-          const link = document.createElement('link');
-          link.rel = 'prefetch';
-          link.as = 'script';
-          link.href = src;
-          head.appendChild(link);
+        if (src && !warmedAssets.has(src) && !head?.querySelector?.(`script[src="${src}"]`)) {
+          warmedAssets.add(src);
+          void nativeFetch(new URL(src, location.origin).href, { priority: 'low', credentials: 'same-origin' }).catch(() => {});
         }
       }
     } catch {}
   };
-  const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
   if (nativeFetch && typeof Response === 'function') {
     const fetchTab = (key, init) => {
       if (!pageCache.has(key)) {
@@ -84,32 +79,28 @@
       }
       return nativeFetch(input, init);
     };
+    let tabsWarmed = false;
     const warmAllTabs = () => {
-      if (typeof navigator !== 'undefined' && navigator.webdriver) return;
+      if (tabsWarmed || (typeof navigator !== 'undefined' && navigator.webdriver)) return;
+      tabsWarmed = true;
       tabs.forEach((tab, index) => {
         if (tab === location.pathname || pageCache.has(tab)) return;
         setTimeout(() => {
           if (!pageCache.has(tab)) void fetchTab(tab, { priority: 'low' }).catch(() => {});
-        }, index * 300);
+        }, index * 250);
       });
     };
-    const scheduleWarm = () => {
-      setTimeout(() => {
-        if (typeof requestIdleCallback === 'function') requestIdleCallback(warmAllTabs, { timeout: 2000 });
-        else warmAllTabs();
-      }, 1500);
-    };
-    if (document.readyState === 'complete') scheduleWarm();
-    else window.addEventListener?.('load', scheduleWarm, { once: true });
     const warmLinkTarget = event => {
       const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href]');
       if (!link) return;
       const targetPath = path(link.getAttribute?.('href') || link.href || '');
       if (tabSet.has(targetPath) && !pageCache.has(targetPath)) void fetchTab(targetPath).catch(() => {});
+      warmAllTabs();
     };
     window.addEventListener?.('pointerover', warmLinkTarget, { passive: true });
     window.addEventListener?.('touchstart', warmLinkTarget, { passive: true });
     window.addEventListener?.('focusin', warmLinkTarget, { passive: true });
+    window.addEventListener?.('pointermove', warmAllTabs, { once: true, passive: true });
   }
   let selected;
   let generation = 0;

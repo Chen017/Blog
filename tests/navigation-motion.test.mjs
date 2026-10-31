@@ -6,7 +6,7 @@ import vm from "node:vm";
 const source = (await readFile("src/components/site/NavigationMotion.astro", "utf8")).match(/<script is:inline>([\s\S]*?)<\/script>/)[1];
 
 test("Astro navigation pairs the selected title, updates active nav state immediately, and caches the 4 menu routes in memory across all pages", async () => {
- const handlers = {}, storage = new Map(), rootAttrs = new Map(), prefetched = [];
+ const handlers = {}, storage = new Map(), rootAttrs = new Map(), fetchedUrls = [];
  const makeTitle = () => ({style:{removeProperty() { delete this.viewTransitionName; }}});
  const makeNavLink = (href, current = false) => ({
   href,
@@ -38,18 +38,18 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   clone() { return new MockResponse(this.body, this); }
  }
  const windowObj = {
-  fetch: async url => {
-   fetchCalls++;
+  fetch: async (url, init) => {
+   fetchedUrls.push({ url, priority: init?.priority });
+   if (!String(url).includes("/_astro/")) fetchCalls++;
    return new MockResponse(`<html><head><link rel="stylesheet" href="/_astro/test.css"><script type="module" src="/_astro/page.js"></script></head><body><astro-island component-url="/_astro/archivePanel.js" renderer-url="/_astro/client.js"></astro-island>${url}</body></html>`);
   },
   addEventListener() {},
  };
  const document = {
   readyState: "loading",
-  createElement: tag => ({ tag }),
   head: {
-   querySelector: selector => prefetched.find(item => selector.includes(item.href)) || null,
-   appendChild(node) { prefetched.push(node); },
+   querySelector: () => null,
+   appendChild() {},
   },
   documentElement:{
    setAttribute(k, v) { rootAttrs.set(k, v); },
@@ -64,20 +64,20 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
  vm.runInNewContext(source, {window:windowObj,Response:MockResponse,setTimeout,document,location,URL,history:{state:{index:5}},sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
 
- // Verify in-memory caching for the 4 menu routes, stylesheet + module script pre-warming, and non-caching for posts
+ // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for posts
  const firstMenuRes = await windowObj.fetch("https://example.com/friends/");
  const secondMenuRes = await windowObj.fetch("https://example.com/friends/");
  assert.equal(await firstMenuRes.text(), await secondMenuRes.text());
  assert.equal(fetchCalls, 1, "menu route HTML is served from in-memory cache on subsequent fetches");
  assert.deepEqual(
-  prefetched.map(item => ({ rel: item.rel, as: item.as, href: item.href })),
+  fetchedUrls.filter(item => String(item.url).includes("/_astro/")),
   [
-   { rel: "prefetch", as: "style", href: "/_astro/test.css" },
-   { rel: "prefetch", as: "script", href: "/_astro/page.js" },
-   { rel: "prefetch", as: "script", href: "/_astro/archivePanel.js" },
-   { rel: "prefetch", as: "script", href: "/_astro/client.js" },
+   { url: "https://example.com/_astro/test.css", priority: "low" },
+   { url: "https://example.com/_astro/page.js", priority: "low" },
+   { url: "https://example.com/_astro/archivePanel.js", priority: "low" },
+   { url: "https://example.com/_astro/client.js", priority: "low" },
   ],
-  "menu route fetch warms both stylesheets and Astro module/island scripts once",
+  "menu route fetch warms stylesheets and Astro scripts via low-priority fetch instead of link rel=prefetch",
  );
  await windowObj.fetch("https://example.com/posts/one/");
  await windowObj.fetch("https://example.com/posts/one/");
