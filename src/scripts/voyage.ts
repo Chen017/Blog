@@ -306,22 +306,31 @@ function initializeVoyage(
 	}
 
 	function playReturnFlourish() {
-		// Restore the original one-way Space. entrance, not an up-and-down nod.
-		// Keep the text fully opaque to preserve the PR #9 blend/brightness fix.
+		const ease = "cubic-bezier(.16,.8,.2,1)";
+		// Match the first-visit Etalib's reveal, with the same timing as the
+		// other page headings during navigation (110ms + 580ms).
+		const first = animate(
+			get(".nv-title-first"),
+			[
+				{ opacity: 0.45, filter: "blur(3px)", translate: "0 12px" },
+				{ opacity: 1, filter: "blur(0)", translate: "0 0" },
+			],
+			{ duration: 580, delay: 110, fill: "both", easing: ease },
+		);
+		// Preserve the already-approved Space. entrance, unchanged.
 		const flourish = animate(
 			get("h1 em"),
 			[
 				{ translate: "0 8px", rotate: "-2deg" },
 				{ translate: "0 0", rotate: "0deg" },
 			],
-			{ duration: 820, delay: 190, fill: "both", easing: "cubic-bezier(.16,.8,.2,1)" },
+			{ duration: 820, delay: 190, fill: "both", easing: ease },
 		);
-		// The incoming snapshot and live DOM were already staged at 8px/-2deg.
-		// WAAPI fill:"both" now holds that exact pose through the 190ms delay;
-		// removing the CSS staging flag cannot cause a downward jump.
-		if (!flourish) return;
+		// Both animations now hold the exact CSS-prepared snapshot poses.
+		// Remove the staging marker only after both WAAPI effects exist.
 		document.documentElement.removeAttribute("data-voyage-return-prepared");
-		void flourish.finished.then(() => flourish.cancel(), () => {});
+		void first?.finished.then(() => first.cancel(), () => {});
+		void flourish?.finished.then(() => flourish.cancel(), () => {});
 	}
 
 	function attachHomeInteractions() {
