@@ -35,8 +35,10 @@
   const postCache = new Map();
   const pageCacheTime = new Map();
   const postCacheTime = new Map();
-  // Static HTML changes after deployment; never retain a warmed document indefinitely.
-  const documentCacheTtlMs = 5 * 60 * 1000;
+  // Revalidate a stale HTML snapshot without delaying a warm navigation.
+  // Very old snapshots must be fetched again to avoid broken deployment assets.
+  const softTtlMs = 5 * 60 * 1000;
+  const maxStaleMs = 60 * 60 * 1000;
   const warmedAssets = new Set();
   let hoverTimer = 0;
   const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
@@ -60,9 +62,111 @@
       }
     } catch {}
   };
+
+  // Keep Astro's early inline listener registration. Only HTML is cached here;
+  // immutable, hashed assets continue through the browser's normal HTTP cache.
+  const refreshQueue = [];
+  const refreshQueued = new Set();
+  const retryAfter = new Map();
+  let refreshBusy = false;
+  let refreshTimer = 0;
+  let serverBackoffUntil = 0;
+  const conserveData = () => {
+    const connection = typeof navigator !== 'undefined' ? navigator.connection : null;
+    return Boolean(connection?.saveData || connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g');
+  };
+  const canWarm = () => !document.hidden && !conserveData()
+    && (typeof navigator === 'undefined' || navigator.onLine !== false);
+  const stale = (times, key) => Date.now() - (times.get(key) ?? 0) > softTtlMs;
+  const tooOld = (times, key) => Date.now() - (times.get(key) ?? 0) > maxStaleMs;
+
+  // A single low-priority refresh at a time, with spacing and a retry backoff,
+  // prevents a foreground return from causing concurrent CDN requests.
+  const drainRefreshQueue = () => {
+    refreshTimer = 0;
+    if (refreshBusy || !refreshQueue.length) return;
+    if (!canWarm()) {
+      refreshQueue.splice(0).forEach(task => refreshQueued.delete(task.key));
+      return;
+    }
+    if (Date.now() < serverBackoffUntil) {
+      refreshTimer = setTimeout(drainRefreshQueue, serverBackoffUntil - Date.now());
+      return;
+    }
+    const { key, cache, times, snapshot } = refreshQueue.shift();
+    if (cache.get(key) !== snapshot) {
+      refreshQueued.delete(key);
+      if (refreshQueue.length) refreshTimer = setTimeout(drainRefreshQueue, 400);
+      return;
+    }
+    refreshBusy = true;
+    const postpone = () => retryAfter.set(key, Date.now() + 60 * 1000);
+    void nativeFetch(new URL(key, location.origin).href, {
+      cache: 'no-cache', credentials: 'same-origin', priority: 'low',
+    }).then(async res => {
+      if (cache.get(key) !== snapshot) return;
+      // A 304 is normally resolved by the browser HTTP cache into a 200.
+      if (res.status === 304) {
+        times.set(key, Date.now());
+        return;
+      }
+      if (res.status === 404 || res.status === 410) {
+        cache.delete(key);
+        times.delete(key);
+        retryAfter.delete(key);
+        return;
+      }
+      const type = res.headers?.get?.('content-type') || '';
+      if (!res.ok || res.redirected || !type.includes('text/html')) {
+        postpone();
+        if (res.status >= 500) serverBackoffUntil = Date.now() + 60 * 1000;
+        return;
+      }
+      const body = await res.text();
+      if (cache.get(key) !== snapshot) return;
+      const entry = { body, status: res.status, statusText: res.statusText, headers: { 'content-type': type } };
+      cache.set(key, Promise.resolve(entry));
+      times.set(key, Date.now());
+      retryAfter.delete(key);
+      warmStyles(body);
+    }).catch(postpone).finally(() => {
+      refreshBusy = false;
+      refreshQueued.delete(key);
+      if (refreshQueue.length) refreshTimer = setTimeout(drainRefreshQueue, 400);
+    });
+  };
+  const queueRefresh = (key, cache, times) => {
+    if (!cache.has(key) || !canWarm() || refreshQueued.has(key) ||
+        Date.now() < serverBackoffUntil || Date.now() < (retryAfter.get(key) || 0)) return;
+    refreshQueued.add(key);
+    refreshQueue.push({ key, cache, times, snapshot: cache.get(key) });
+    if (!refreshBusy && !refreshTimer) refreshTimer = setTimeout(drainRefreshQueue, 0);
+  };
+  const checkAge = (key, cache, times) => {
+    if (!cache.has(key)) return;
+    if (tooOld(times, key) && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
+      cache.delete(key);
+      times.delete(key);
+      retryAfter.delete(key);
+      return;
+    }
+    if (stale(times, key)) queueRefresh(key, cache, times);
+  };
+  const refreshStaleTabs = () => {
+    if (!canWarm()) return;
+    tabs.forEach(key => {
+      if (pageCache.has(key) && stale(pageCacheTime, key)) queueRefresh(key, pageCache, pageCacheTime);
+    });
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshStaleTabs();
+  });
+  window.addEventListener?.('pageshow', event => {
+    if (event.persisted) refreshStaleTabs();
+  });
   if (nativeFetch && typeof Response === 'function') {
     const fetchTab = (key, init) => {
-      if (pageCache.has(key) && Date.now() - (pageCacheTime.get(key) || 0) > documentCacheTtlMs) pageCache.delete(key);
+      checkAge(key, pageCache, pageCacheTime);
       if (!pageCache.has(key)) {
         pageCacheTime.set(key, Date.now());
         const canonicalUrl = new URL(key, location.origin).href;
@@ -89,7 +193,7 @@
       return pageCache.get(key).then(entry => entry instanceof Response ? entry.clone() : new Response(entry.body, entry));
     };
     const fetchPost = (key, init) => {
-      if (postCache.has(key) && Date.now() - (postCacheTime.get(key) || 0) > documentCacheTtlMs) postCache.delete(key);
+      checkAge(key, postCache, postCacheTime);
       if (!postCache.has(key)) {
         postCacheTime.set(key, Date.now());
         const canonicalUrl = new URL(key, location.origin).href;
@@ -110,6 +214,7 @@
             if (oldest && oldest !== key) {
               postCache.delete(oldest);
               postCacheTime.delete(oldest);
+              retryAfter.delete(oldest);
             }
           }
           return new Response(entry.body, entry);
@@ -148,13 +253,13 @@
       return nativeFetch(input, init);
     };
     const warmPostPath = targetPath => {
-      if (post(targetPath) && !postCache.has(targetPath)) {
+      if (post(targetPath) && (!postCache.has(targetPath) || stale(postCacheTime, targetPath))) {
         void fetchPost(targetPath, { priority: 'low', credentials: 'same-origin' }).catch(() => {});
       }
     };
     let tabsWarmed = false;
     const warmAllTabs = () => {
-      if (tabsWarmed) return;
+      if (tabsWarmed || !canWarm()) return;
       tabsWarmed = true;
       const queue = [];
       document.querySelectorAll?.('[data-entry-route]').forEach((el, idx) => {
@@ -170,7 +275,7 @@
       queue.forEach((route, index) => {
         setTimeout(() => {
           if (tabSet.has(route)) {
-            if (!pageCache.has(route)) void fetchTab(route, { priority: 'low' }).catch(() => {});
+            if (!pageCache.has(route) || stale(pageCacheTime, route)) void fetchTab(route, { priority: 'low' }).catch(() => {});
           } else if (post(route)) {
             warmPostPath(route);
           }
@@ -180,14 +285,15 @@
     if (document.readyState === 'complete') warmAllTabs();
     else window.addEventListener?.('load', warmAllTabs, { once: true, passive: true });
     const warmLinkTarget = event => {
+      if (!canWarm()) return;
       const target = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href], [data-entry-route] a[href], [data-entry-route], .vs-adjacent a[href], [data-source-back]');
       if (target) {
         const anchor = target.matches?.('a[href]') ? target : target.querySelector?.('a[href]');
         const rawHref = anchor?.getAttribute?.('href') || anchor?.href || target.getAttribute?.('data-entry-route') || '';
         const targetPath = rawHref ? path(rawHref) : '/';
-        if (tabSet.has(targetPath) && !pageCache.has(targetPath)) {
+        if (tabSet.has(targetPath) && (!pageCache.has(targetPath) || stale(pageCacheTime, targetPath))) {
           void fetchTab(targetPath).catch(() => {});
-        } else if (post(targetPath) && !postCache.has(targetPath)) {
+        } else if (post(targetPath) && (!postCache.has(targetPath) || stale(postCacheTime, targetPath))) {
           if (event.type === 'pointerover') {
             clearTimeout(hoverTimer);
             hoverTimer = setTimeout(() => warmPostPath(targetPath), 65);
@@ -196,7 +302,7 @@
             warmPostPath(targetPath);
           }
         }
-        if (tabSet.has(location.pathname) && !pageCache.has(location.pathname)) {
+        if (tabSet.has(location.pathname) && (!pageCache.has(location.pathname) || stale(pageCacheTime, location.pathname))) {
           void fetchTab(location.pathname, { priority: 'low' }).catch(() => {});
         }
       }
@@ -213,6 +319,7 @@
     window.addEventListener?.('touchstart', warmLinkTarget, { passive: true });
     window.addEventListener?.('focusin', warmLinkTarget, { passive: true });
     window.addEventListener?.('pointermove', warmAllTabs, { once: true, passive: true });
+    document.addEventListener('astro:page-load', refreshStaleTabs);
   }
   let selected;
   let generation = 0;

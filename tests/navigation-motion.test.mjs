@@ -42,6 +42,8 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  };
  let fetchCalls = 0;
  let fakeNowMs = 1_000_000_000;
+ let responseVersion = 1;
+ const connection = { saveData: false, effectiveType: "4g" };
  class MockResponse {
   constructor(body, init = {}) {
    this.body = body;
@@ -61,7 +63,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   fetch: async (url, init) => {
    fetchedUrls.push({ url, priority: init?.priority });
    if (!String(url).includes("/_astro/")) fetchCalls++;
-   return new MockResponse(`<html><head><link rel="stylesheet" href="/_astro/test.css"><script type="module" src="/_astro/page.js"></script></head><body><astro-island component-url="/_astro/archivePanel.js" renderer-url="/_astro/client.js"></astro-island>${url}</body></html>`);
+   return new MockResponse(`<html data-cache-version="${responseVersion}"><head><link rel="stylesheet" href="/_astro/test.css"><script type="module" src="/_astro/page.js"></script></head><body><astro-island component-url="/_astro/archivePanel.js" renderer-url="/_astro/client.js"></astro-island>${url}</body></html>`);
   },
   addEventListener(name, fn) { windowHandlers[name] = fn; },
  };
@@ -88,7 +90,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  };
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
  const historyObj = { state: { index: 5 }, replaceState(st) { this.state = st; } };
- vm.runInNewContext(source, {window:windowObj,Response:MockResponse,Date:{now:() => fakeNowMs},setTimeout,clearTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
+ vm.runInNewContext(source, {window:windowObj,Response:MockResponse,Date:{now:() => fakeNowMs},setTimeout,clearTimeout,document,location,URL,navigator:{connection,onLine:true},history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
 
  // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for un-warmed posts
  const firstMenuRes = await windowObj.fetch("https://example.com/friends/");
@@ -100,8 +102,20 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  await windowObj.fetch("https://example.com/friends/", { cache: "reload" });
  assert.equal(fetchCalls, 3, "explicit reload requests bypass custom navigation cache");
  fakeNowMs += 5 * 60 * 1000 + 1;
- await windowObj.fetch("https://example.com/friends/");
- assert.equal(fetchCalls, 4, "expired cached HTML is refetched to avoid stale deployments");
+ responseVersion = 2;
+ const staleMenuRes = await windowObj.fetch("https://example.com/friends/");
+ assert.equal(fetchCalls, 3, "a soft-expired menu responds from memory without blocking on the network");
+ assert.equal(await staleMenuRes.text(), await firstMenuRes.text(), "soft expiry preserves an immediately usable snapshot");
+ await new Promise(resolve => setTimeout(resolve, 10));
+ assert.equal(fetchCalls, 4, "the stale menu is revalidated once, in the background");
+ const refreshedMenuRes = await windowObj.fetch("https://example.com/friends/");
+ assert.ok((await refreshedMenuRes.text()).includes('data-cache-version="2"'), "subsequent navigation sees the refreshed HTML");
+ assert.equal(fetchCalls, 4, "freshly revalidated HTML is reused");
+ fakeNowMs += 60 * 60 * 1000 + 1;
+ responseVersion = 3;
+ const tooOldMenuRes = await windowObj.fetch("https://example.com/friends/");
+ assert.ok((await tooOldMenuRes.text()).includes('data-cache-version="3"'), "very old HTML cannot remain stale indefinitely");
+ assert.equal(fetchCalls, 5, "the hard staleness cap requires a new fetch");
  assert.deepEqual(
   fetchedUrls.filter(item => String(item.url).includes("/_astro/")),
   [
@@ -114,7 +128,11 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  );
  await windowObj.fetch("https://example.com/posts/unwarmed/");
  await windowObj.fetch("https://example.com/posts/unwarmed/");
- assert.equal(fetchCalls, 6, "unwarmed post routes are not cached indiscriminately");
+ assert.equal(fetchCalls, 7, "unwarmed post routes are not cached indiscriminately");
+ connection.saveData = true;
+ windowHandlers.load({ type: "load" });
+ assert.equal(fetchCalls, 7, "Save-Data prevents automatic background tab warming");
+ connection.saveData = false;
 
  // Solution A1: pointerdown / hover on a card pre-warms postCache so clicking serves from memory in 0ms
  windowHandlers.pointerdown({ type: "pointerdown", target: { closest: () => link } });
@@ -283,4 +301,101 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  assert.ok(windowObj.__voyageHomeTransition);
  rejectTransition(new Error("view transition cancelled"));
  await windowObj.__voyageHomeTransition.finished;
+});
+
+
+test("mobile soft-expired pages stay instant while refreshes are serialized and back off on 503", async () => {
+ let now = 1_000_000;
+ const timers = [];
+ const requests = [];
+ const pendingRefreshes = [];
+ let activeRefreshes = 0;
+ let peakRefreshes = 0;
+ let saveData = false;
+
+ class CachedResponse {
+  constructor(body, status = 200) {
+   this.body = body;
+   this.status = status;
+   this.statusText = "OK";
+   this.ok = status >= 200 && status < 300;
+   this.redirected = false;
+   this.headers = { get: name => name === "content-type" ? "text/html; charset=utf-8" : null };
+  }
+  text() { return Promise.resolve(this.body); }
+  clone() { return new CachedResponse(this.body, this.status); }
+ }
+ const fetch = (url, init) => {
+  requests.push({ url: String(url), cache: init?.cache });
+  if (init?.cache === "no-cache") {
+   activeRefreshes++;
+   peakRefreshes = Math.max(peakRefreshes, activeRefreshes);
+   return new Promise(resolve => pendingRefreshes.push((status, body) => {
+    activeRefreshes--;
+    resolve(new CachedResponse(body, status));
+   }));
+  }
+  return Promise.resolve(new CachedResponse("initial:" + url));
+ };
+ const windowObj = { fetch, addEventListener() {} };
+ const document = {
+  hidden: false,
+  readyState: "loading",
+  head: { querySelector: () => null },
+  documentElement: { setAttribute() {}, removeAttribute() {}, hasAttribute: () => false },
+  querySelectorAll: () => [],
+  addEventListener() {},
+ };
+ const schedule = (fn, delay) => { timers.push({ fn, delay }); return timers.length; };
+ const settle = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+ const runTimer = async () => {
+  const task = timers.shift();
+  assert.ok(task, "refresh should have a scheduled task");
+  task.fn();
+  await settle();
+ };
+ vm.runInNewContext(source, {
+  window: windowObj, document, Response: CachedResponse, URL,
+  Date: { now: () => now }, setTimeout: schedule, clearTimeout() {},
+  navigator: { connection: { get saveData() { return saveData; }, effectiveType: "4g" }, onLine: true },
+  location: { href: "https://example.com/", origin: "https://example.com", pathname: "/" },
+  history: { state: {} },
+  sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+ });
+
+ const friends = "https://example.com/friends/";
+ const about = "https://example.com/about/";
+ await windowObj.fetch(friends);
+ await windowObj.fetch(about);
+ assert.equal(requests.length, 2);
+ now += 6 * 60 * 1000;
+ assert.equal(await (await windowObj.fetch(friends)).text(), "initial:" + friends);
+ assert.equal(await (await windowObj.fetch(about)).text(), "initial:" + about);
+ assert.equal(requests.length, 2, "touch navigation should not wait for either stale page to revalidate");
+
+ await runTimer();
+ assert.equal(pendingRefreshes.length, 1, "only one background refresh starts");
+ assert.equal(peakRefreshes, 1, "refreshes do not run concurrently");
+ pendingRefreshes.shift()(200, "updated friends");
+ await settle();
+ assert.equal(await (await windowObj.fetch(friends)).text(), "updated friends");
+ await runTimer();
+ assert.equal(pendingRefreshes.length, 1, "second route waits for the first to finish");
+ pendingRefreshes.shift()(200, "updated about");
+ await settle();
+ assert.equal(peakRefreshes, 1);
+ assert.equal(await (await windowObj.fetch(about)).text(), "updated about");
+
+ now += 6 * 60 * 1000;
+ await windowObj.fetch(friends);
+ await runTimer();
+ pendingRefreshes.shift()(503, "temporarily unavailable");
+ await settle();
+ assert.equal(await (await windowObj.fetch(friends)).text(), "updated friends", "503 preserves the last usable snapshot");
+ assert.equal(timers.length, 0, "503 does not cause an immediate retry storm");
+
+ saveData = true;
+ now += 61 * 1000;
+ await windowObj.fetch(friends);
+ assert.equal(timers.length, 0, "Save-Data prevents speculative background refresh");
 });
