@@ -343,6 +343,7 @@
     document.documentElement.removeAttribute("data-voyage-home-transition");
     document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
     document.documentElement.removeAttribute("data-voyage-home-fold-reveal");
+    document.documentElement.removeAttribute('data-voyage-return-prepared');
     document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     const from = path(event.from), to = path(event.to);
     const link = event.sourceElement?.closest?.('a[href]');
@@ -393,6 +394,18 @@
         incoming?.documentElement?.setAttribute?.("data-voyage-home-fold-deferred", "");
       }
       const transition = event.viewTransition;
+      // Prepare the previously visited Home title before Astro captures its
+      // incoming snapshot. The post-transition WAAPI reveal starts from this
+      // same pose, avoiding a visible normal-position -> lower-position snap.
+      if (to === '/' && !selected && !hasHash && transition &&
+          document.documentElement.dataset?.motion !== 'off' &&
+          !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+        try {
+          if (sessionStorage.getItem('voyage:opened') === 'true') {
+            incoming?.documentElement?.setAttribute?.('data-voyage-return-prepared', '');
+          }
+        } catch { /* Skip decorative motion when session storage is blocked. */ }
+      }
       const current = generation;
       const clearHomeFlags = () => {
         if (current !== generation) return;
@@ -406,7 +419,11 @@
           }, 620);
         }
       };
-      if (transition?.finished) void transition.finished.then(clearHomeFlags, clearHomeFlags);
+      if (transition?.finished) void transition.finished.then(clearHomeFlags, () => {
+        if (current !== generation) return;
+        clearHomeFlags();
+        document.documentElement.removeAttribute('data-voyage-return-prepared');
+      });
       else clearHomeFlags();
     }
     if (to === '/' && from !== '/') {
