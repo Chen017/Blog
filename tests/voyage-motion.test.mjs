@@ -295,6 +295,7 @@ test("Home navigation splits initialization into visual state preparation and po
 	const graph = elements.get(".nv-graph-trigger");
 	assert.equal(graph.listeners.focus, undefined, "graph focus deferred until transition finished");
 	assert.ok(!events.includes("twilight:page:loaded"), "announcePageReady deferred until transition finished");
+	assert.equal(elements.has("h1 em"), false, "return flourish cannot start inside a View Transition screenshot");
 
 	// Now transition finishes
 	resolveTransition();
@@ -305,6 +306,15 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.ok(typeof devBtn.listeners.click === "function", "click listener attached after transition finishes");
 	assert.ok(typeof graph.listeners.focus === "function", "graph focus listener attached after transition finishes");
 	assert.ok(events.includes("twilight:page:loaded"), "announcePageReady fired after transition finishes");
+	const flourish = elements.get("h1 em")?.animations[0];
+	assert.ok(flourish, "Space. resumes its decorative entrance after returning Home");
+	assert.equal(flourish.options.duration, 820, "the short return flourish never replays the full opening");
+	assert.equal(flourish.options.easing, "cubic-bezier(.16,.8,.2,1)");
+	assert.equal(flourish.options.fill, undefined, "return animation leaves no persistent overlay");
+	assert.equal(flourish.keyframes[0].translate, "0 0", "return animation starts at the resting position");
+	assert.equal(flourish.keyframes.at(-1).translate, "0 0", "return animation settles without a position jump");
+	assert.ok(flourish.keyframes.every(frame => !("opacity" in frame) && !("filter" in frame)),
+		"return flourish never dims or blurs the plus-lighter lettering");
 
 	// Double resolution should not re-initialize or throw
 	resolveTransition();
@@ -391,6 +401,7 @@ test("navigation abort before transition finished cancels stage 2 initialization
 	// Stage 2 must NOT have run
 	assert.equal(devBtn.listeners.click, undefined, "aborted transition leaves stage 2 unattached");
 	assert.ok(!events.includes("twilight:page:loaded"), "aborted transition does not announce page ready");
+	assert.equal(elements.has("h1 em"), false, "aborted navigation does not replay the Space. flourish");
 });
 
 test("opening animation on direct visit uses original timing and easing", async () => {
@@ -474,6 +485,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.equal(titleFirst.animations[0].options.delay, 450);
 	assert.equal(titleFirst.animations[0].options.easing, "cubic-bezier(.16,.8,.2,1)");
 	assert.equal(titleEm.animations[0].options.duration, 2100);
+	assert.equal(titleEm.animations.length, 1, "direct first visit must not also run the return flourish");
 	assert.equal(titleEm.animations[0].options.delay, 550);
 	assert.equal(horizon.animations[0].options.duration, 2300);
 	assert.equal(horizon.animations[0].options.delay, 450);
