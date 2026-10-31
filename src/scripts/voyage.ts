@@ -96,14 +96,21 @@ function initializeVoyage(
 
 	function saveState() {
 		try {
+			if (typeof location !== "undefined" && location.pathname !== "/") return;
+			const currentScroll = typeof window.scrollY === "number" ? window.scrollY : 0;
+			const fallbackScroll = Number.isFinite(history.state?.voyage?.scroll)
+				? history.state.voyage.scroll
+				: 0;
+			const effectiveScroll = currentScroll > 0 ? currentScroll : fallbackScroll;
 			history.replaceState(
 				{
 					...history.state,
+					...(effectiveScroll > 0 ? { scrollY: effectiveScroll } : {}),
 					voyage: {
 						...history.state?.voyage,
 						category,
 						order: get<HTMLSelectElement>(".nv-order select").value,
-						scroll: window.scrollY,
+						scroll: effectiveScroll,
 					},
 				},
 				"",
@@ -342,12 +349,21 @@ function initializeVoyage(
 			const card = (event.target as Element).closest<HTMLElement>(".nv-card");
 			if (card) {
 				try {
+					const titleEl = card.querySelector<HTMLElement>("[data-entry-title]") || card;
+					const rect = titleEl.getBoundingClientRect?.();
+					const vh = typeof window.innerHeight === "number" ? window.innerHeight : 0;
+					let targetScroll = typeof window.scrollY === "number" ? window.scrollY : 0;
+					if (rect && vh > 0 && (rect.bottom > vh - 24 || rect.top < 88)) {
+						targetScroll = Math.max(0, Math.round(targetScroll + rect.top - vh * 0.6));
+					}
 					history.replaceState(
 						{
 							...history.state,
+							...(targetScroll > 0 ? { scrollY: targetScroll } : {}),
 							voyage: {
 								...history.state?.voyage,
 								source: card.id,
+								scroll: targetScroll,
 								keyboard:
 									document.activeElement === card.querySelector("a") &&
 									(!("detail" in event) || (event as MouseEvent).detail === 0),
@@ -460,23 +476,49 @@ function initializeVoyage(
 
 	syncMotion();
 	const saved = typeof history !== "undefined" ? history.state?.voyage : null;
+	const sessionSource = (() => {
+		try {
+			const parsed = JSON.parse(sessionStorage.getItem("voyage:source") || "null");
+			return parsed && parsed.from === "/" ? parsed : null;
+		} catch {
+			return null;
+		}
+	})();
 	if (saved) {
 		restoreState();
-		const targetScroll = Number.isFinite(saved.scroll) ? saved.scroll : 0;
-		if (window.scrollY !== targetScroll) {
+	}
+	const sourceId = saved?.source || sessionSource?.card || null;
+	const source = sourceId ? document.getElementById(sourceId) : null;
+	const savedScroll = Number.isFinite(saved?.scroll) && saved.scroll > 0
+		? saved.scroll
+		: Number.isFinite(sessionSource?.scrollY) && sessionSource.scrollY > 0
+			? sessionSource.scrollY
+			: Number.isFinite(saved?.scroll)
+				? saved.scroll
+				: null;
+	if (savedScroll !== null && (savedScroll > 0 || !source) && window.scrollY !== savedScroll) {
+		window.scrollTo({
+			top: savedScroll,
+			behavior: "instant",
+		});
+	}
+	if (source && !source.hidden) {
+		source.dataset.returned = "true";
+		const titleEl = source.querySelector<HTMLElement>("[data-entry-title]") || source;
+		const rect = titleEl.getBoundingClientRect?.();
+		const vh = typeof window.innerHeight === "number" ? window.innerHeight : 0;
+		if (rect && vh > 0 && (rect.bottom > vh - 24 || rect.top < 88)) {
+			const currentY = typeof window.scrollY === "number" ? window.scrollY : 0;
+			const targetY = Math.max(0, Math.round(currentY + rect.top - vh * 0.6));
 			window.scrollTo({
-				top: targetScroll,
+				top: targetY,
 				behavior: "instant",
 			});
 		}
-		const source = saved.source ? document.getElementById(saved.source) : null;
-		if (source && !source.hidden) {
-			source.dataset.returned = "true";
-			if (saved.keyboard)
-				source
-					.querySelector<HTMLAnchorElement>("a")
-					?.focus({ preventScroll: true });
-		}
+		if (saved?.keyboard)
+			source
+				.querySelector<HTMLAnchorElement>("a")
+				?.focus({ preventScroll: true });
 	}
 
 	function finishHomeInitialization() {

@@ -19,6 +19,18 @@
       else link.removeAttribute?.('aria-current');
     });
   };
+  const resolveCardScroll = card => {
+    let y = typeof window.scrollY === 'number' ? window.scrollY : 0;
+    try {
+      const titleEl = card?.querySelector?.('[data-entry-title]') || card;
+      const rect = titleEl?.getBoundingClientRect?.();
+      const vh = typeof window.innerHeight === 'number' ? window.innerHeight : 0;
+      if (rect && vh > 0 && (rect.bottom > vh - 24 || rect.top < 88)) {
+        y = Math.max(0, Math.round(y + rect.top - vh * 0.6));
+      }
+    } catch {}
+    return y;
+  };
   const pageCache = new Map();
   const warmedAssets = new Set();
   const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
@@ -115,7 +127,8 @@
     const destination = new URL(link.href, location.href);
     if (destination.origin !== location.origin) return;
     if (card) {
-      write({ post: destination.pathname, current: destination.pathname, from: location.pathname, card: card.id, originIndex: history.state?.index });
+      const scrollY = resolveCardScroll(card);
+      write({ post: destination.pathname, current: destination.pathname, from: location.pathname, card: card.id, originIndex: history.state?.index, scrollY });
       return;
     }
     const from = location.pathname;
@@ -139,7 +152,13 @@
     syncNav(to);
     const link = event.sourceElement?.closest?.('a[href]');
     const card = link?.closest('[data-entry-route]');
-    if (card && !post(from) && post(to)) write({ post: to, current: to, from, card: card.id, originIndex: history.state?.index });
+    if (card && !post(from) && post(to)) {
+      const existing = read();
+      const scrollY = (existing && existing.post === to && existing.card === card.id && typeof existing.scrollY === 'number' && existing.scrollY > 0)
+        ? existing.scrollY
+        : resolveCardScroll(card);
+      write({ post: to, current: to, from, card: card.id, originIndex: history.state?.index, scrollY });
+    }
     let source = read();
     if (source && post(from) && post(to) && source.current === from) { source.current = to; write(source); }
     const fromTab = tabs.indexOf(from), toTab = tabs.indexOf(to);
@@ -219,6 +238,24 @@
       document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     };
     if (transition) void transition.finished.then(cleanup, cleanup); else cleanup();
+  });
+  document.addEventListener('astro:after-swap', () => {
+    if (!selected || location.pathname !== '/') return;
+    try {
+      const cardEl = selected.card ? document.getElementById(selected.card) : null;
+      const titleEl = cardEl?.querySelector?.('[data-entry-title]') || cardEl;
+      if (!titleEl) return;
+      if (typeof selected.scrollY === 'number' && selected.scrollY > 0 && window.scrollY !== selected.scrollY) {
+        window.scrollTo?.({ top: selected.scrollY, behavior: 'instant' });
+      }
+      const rect = titleEl.getBoundingClientRect?.();
+      const vh = typeof window.innerHeight === 'number' ? window.innerHeight : 0;
+      if (rect && vh > 0 && (rect.bottom > vh - 24 || rect.top < 88)) {
+        const currentY = typeof window.scrollY === 'number' ? window.scrollY : 0;
+        const targetY = Math.max(0, Math.round(currentY + rect.top - vh * 0.6));
+        window.scrollTo?.({ top: targetY, behavior: 'instant' });
+      }
+    } catch {}
   });
   document.addEventListener('astro:page-load', () => {
     if (!post(location.pathname)) { try { sessionStorage.removeItem('voyage:source'); } catch {} }

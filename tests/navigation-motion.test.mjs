@@ -7,7 +7,10 @@ const source = (await readFile("src/components/site/NavigationMotion.astro", "ut
 
 test("Astro navigation pairs the selected title, updates active nav state immediately, and caches the 4 menu routes in memory across all pages", async () => {
  const handlers = {}, storage = new Map(), rootAttrs = new Map(), fetchedUrls = [];
- const makeTitle = () => ({style:{removeProperty() { delete this.viewTransitionName; }}});
+ const makeTitle = () => ({
+  style:{removeProperty() { delete this.viewTransitionName; }},
+  getBoundingClientRect: () => ({ left: 400, top: 1075.5, bottom: 1125.5, width: 154, height: 50 }),
+ });
  const makeNavLink = (href, current = false) => ({
   href,
   current: current ? "page" : undefined,
@@ -38,6 +41,9 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   clone() { return new MockResponse(this.body, this); }
  }
  const windowObj = {
+  scrollY: 0,
+  innerHeight: 736,
+  scrollTo(opts) { if (opts && typeof opts.top === "number") this.scrollY = opts.top; },
   fetch: async (url, init) => {
    fetchedUrls.push({ url, priority: init?.priority });
    if (!String(url).includes("/_astro/")) fetchCalls++;
@@ -62,7 +68,8 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   querySelectorAll:selector => selector.includes(".nv-nav") ? navLinks : [cardTitle, articleTitle].filter(x => x.style.viewTransitionName),
  };
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
- vm.runInNewContext(source, {window:windowObj,Response:MockResponse,setTimeout,document,location,URL,history:{state:{index:5}},sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
+ const historyObj = { state: { index: 5 }, replaceState(st) { this.state = st; } };
+ vm.runInNewContext(source, {window:windowObj,Response:MockResponse,setTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
 
  // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for posts
  const firstMenuRes = await windowObj.fetch("https://example.com/friends/");
@@ -87,6 +94,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  handlers["astro:before-preparation"]({from:new URL("https://example.com/"),to:new URL(link.href)});
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
  assert.equal(rootAttrs.has("data-voyage-home-fold-deferred"), false, "entry title transitions do not hide below-fold cards");
+ assert.equal(JSON.parse(storage.get("voyage:source")).scrollY, 634, "computes and saves viewport-aligned scrollY in voyage:source when clicked card is below fold at scrollY=0");
  assert.equal(navLinks[0].current, undefined);
  assert.equal(navLinks[1].current, "page", "navigating to a post highlights Writing immediately");
  let finish;
@@ -103,11 +111,14 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  assert.equal(postToLinks.direction, "forward");
  assert.equal(navLinks[2].current, "page");
 
+ windowObj.scrollY = 0;
  handlers["astro:before-preparation"]({from:new URL(link.href),to:new URL("https://example.com/")});
  assert.equal(navLinks[0].page ?? navLinks[0].current, "page", "returning home highlights Home immediately");
  assert.equal(navLinks[2].current, undefined);
  handlers["astro:before-swap"]({to:new URL("https://example.com/"),newDocument:{getElementById:() => card},viewTransition:{finished:new Promise(() => {})}});
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
+ handlers["astro:after-swap"]();
+ assert.ok(windowObj.scrollY > 0, "Post -> Home astro:after-swap aligns scrollY so target card is inside viewport before snapshot capture");
  const previous = { from:new URL(link.href), to:new URL('https://example.com/posts/older/'), direction:'forward', sourceElement:{closest:() => ({dataset:{direction:'previous'}, closest:() => null})} };
  handlers['astro:before-preparation'](previous);
  assert.equal(previous.direction, 'back');

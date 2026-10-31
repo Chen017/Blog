@@ -469,7 +469,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.ok(events.includes("twilight:page:loaded"));
 });
 
-test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointer origin anchoring, in-place star pause, and 110ms overlapping heading reveal", async () => {
+test("Solutions 1A + 2A + 3A and Post -> Home exit title morph: unclipped overscan, zero-jump pointer, star pause, heading reveal, and viewport scroll alignment", async () => {
 	const raw = await readFile("src/scripts/voyage.ts", "utf8");
 	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("let homeController")), {
 		mode: "transform",
@@ -483,7 +483,10 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 		return elements.get(selector);
 	};
 	root.querySelectorAll = () => [devBtn];
-	root.querySelector(".nv-grid").querySelectorAll = () => [];
+	const returnedCard = new ElementStub();
+	returnedCard.id = "entry-1";
+	returnedCard.getBoundingClientRect = () => ({ left: 400, top: 1075.5, bottom: 1125.5, width: 154, height: 50 });
+	root.querySelector(".nv-grid").querySelectorAll = () => [returnedCard];
 	root.querySelector(".nv-graph-trigger").querySelectorAll = () => [];
 	const hero = root.querySelector(".nv-hero");
 	hero.getBoundingClientRect = () => ({ left: 0, top: 86, width: 1280, height: 760 });
@@ -498,16 +501,19 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 	});
 	const homeTransition = {
 		id: 4,
-		from: "/archive/",
+		from: "/posts/test/",
 		finished: transitionPromise,
 	};
 
 	const docEl = new ElementStub();
 	docEl.setAttribute("data-voyage-home-transition", "");
-	docEl.setAttribute("data-voyage-home-fold-deferred", "");
+	docEl.setAttribute("data-voyage-entry-transition", "");
 
 	const windowObj = {
 		__voyageHomeTransition: homeTransition,
+		scrollY: 0,
+		innerHeight: 736,
+		scrollTo(opts) { if (opts && typeof opts.top === "number") this.scrollY = opts.top; },
 		matchMedia: () => media,
 		location: { pathname: "/", hash: "" },
 		addEventListener: () => {},
@@ -521,17 +527,17 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 		document: {
 			hidden: false,
 			documentElement: docEl,
-			getElementById: (id) => (id === "voyage-afterhours" ? root : null),
+			getElementById: (id) => (id === "voyage-afterhours" ? root : id === "entry-1" ? returnedCard : null),
 			addEventListener: () => {},
 			dispatchEvent: () => {},
 		},
 		window: windowObj,
 		location: { pathname: "/", hash: "" },
 		sessionStorage: {
-			getItem: () => "true",
+			getItem: (key) => key === "voyage:source" ? JSON.stringify({ post: "/posts/test/", current: "/posts/test/", from: "/", card: "entry-1" }) : "true",
 			setItem: () => {},
 		},
-		history: { state: null },
+		history: { state: { voyage: { category: "All", order: "recent", source: "entry-1", scroll: 0 } } },
 		ResizeObserver: class { observe() {} disconnect() {} },
 		AbortController,
 		cancelAnimationFrame() {},
@@ -541,6 +547,10 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 	});
 
 	vm.runInContext(program, context);
+
+	// Stage 1 immediately aligns scrollY so an offscreen returned card (top=1075.5px in 736px viewport) is brought into view before snapshot capture
+	assert.equal(returnedCard.dataset.returned, "true");
+	assert.equal(windowObj.scrollY, 634, "Stage 1 scrolls offscreen returned card into viewport before View Transition snapshot");
 
 	resolveTransition();
 	await transitionPromise;
@@ -567,5 +577,7 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 	assert.match(css, /#voyage-afterhours\s+\.archive-title\[data-entry-title\]\s*\{\s*justify-self:\s*start;\s*width:\s*fit-content;/);
 	assert.match(css, /#voyage-afterhours\s+\.nv-entry:focus-within:not\(:hover\):not\(:has\(:focus-visible\)\)\s*\{[^}]*transform:\s*none;/);
 	assert.match(css, /html,\s*body\s*\{\s*scroll-behavior:\s*auto\s*!important;\s*\}/);
+	assert.match(css, /html\[data-voyage-entry-transition\]\s+#voyage-afterhours\s+:is\(\.nv-main,\s*\.nv-grid,\s*\.nv-entry\)\s*\{\s*content-visibility:\s*visible\s*!important;\s*\}/);
+	assert.doesNotMatch(css, /\.voyage-home\s+#voyage-afterhours\s+\.nv-grid\s*\{\s*content-visibility:\s*auto;/);
 	assert.match(css, /@keyframes\s+voyageFoldReveal/);
 });
