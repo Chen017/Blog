@@ -347,7 +347,15 @@ export class TableOfContents extends HTMLElement {
                 this.querySelector<HTMLButtonElement>('.toc-floating-btn')?.focus();
             }
         }, { signal });
-        this.queueInit();
+        const root = document.documentElement;
+        const inTransition = Boolean(
+            root?.hasAttribute?.('data-astro-transition') ||
+            root?.hasAttribute?.('data-voyage-entry-transition') ||
+            root?.hasAttribute?.('data-voyage-home-transition')
+        );
+        if (!inTransition) {
+            this.queueInit();
+        }
     };
 
     disconnectedCallback() {

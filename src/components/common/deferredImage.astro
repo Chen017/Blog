@@ -11,6 +11,8 @@ const markup = await Astro.slots.render("default");
 ) : <Fragment set:html={markup} />}
 
 <script>
+    const loadedCovers = window.__voyageLoadedCovers || (window.__voyageLoadedCovers = new Set<string>());
+
     class DeferredCover extends HTMLElement {
         static observer = "IntersectionObserver" in window ? new IntersectionObserver(entries => {
             for (const entry of entries) {
@@ -18,15 +20,33 @@ const markup = await Astro.slots.render("default");
             }
         }, { rootMargin: "350px 0px" }) : null;
 
+        coverKey(): string {
+            const card = this.closest("[id]");
+            if (card?.id) return card.id;
+            const tpl = this.querySelector("template");
+            return tpl?.innerHTML.slice(0, 120) || "";
+        }
+
         connectedCallback() {
             if (!this.querySelector("template")) return;
+            const key = this.coverKey();
+            const isFoldDeferred = document.documentElement.hasAttribute("data-voyage-home-fold-deferred");
+            const isEntryTransition = document.documentElement.hasAttribute("data-voyage-entry-transition");
+            if (!isFoldDeferred && ((key && loadedCovers.has(key)) || isEntryTransition)) {
+                this.reveal(true);
+                return;
+            }
             const startObserve = () => {
                 if (!this.isConnected || !this.querySelector("template")) return;
+                if (key && loadedCovers.has(key)) {
+                    this.reveal(true);
+                    return;
+                }
                 if (DeferredCover.observer) DeferredCover.observer.observe(this);
                 else this.reveal();
             };
             const homeTransition = window.__voyageHomeTransition;
-            if (homeTransition?.finished) {
+            if (homeTransition?.finished && isFoldDeferred) {
                 void homeTransition.finished.then(startObserve, startObserve);
             } else {
                 startObserve();
@@ -35,11 +55,24 @@ const markup = await Astro.slots.render("default");
 
         disconnectedCallback() { DeferredCover.observer?.unobserve(this); }
 
-        reveal() {
+        reveal(immediate = false) {
             const template = this.querySelector("template");
             if (!template) return;
+            const key = this.coverKey();
             const content = template.content.cloneNode(true) as DocumentFragment;
             const image = content.querySelector("img");
+            if (immediate) {
+                if (image) {
+                    image.decoding = "sync";
+                    image.loading = "eager";
+                }
+                this.insertBefore(content, template);
+                template.remove();
+                this.dataset.loaded = "true";
+                if (key) loadedCovers.add(key);
+                DeferredCover.observer?.unobserve(this);
+                return;
+            }
             if (image) {
                 this.dataset.loading = "true";
                 const cleanup = () => {
@@ -53,6 +86,7 @@ const markup = await Astro.slots.render("default");
                     try { await image.decode(); } catch { /* A responsive source may change while decoding. */ }
                     delete this.dataset.loading;
                     this.dataset.ready = "true";
+                    if (key) loadedCovers.add(key);
                 };
                 const failed = () => {
                     cleanup();
@@ -66,7 +100,10 @@ const markup = await Astro.slots.render("default");
                     if (image.naturalWidth > 0) void loaded();
                     else failed();
                 }
-            } else this.insertBefore(content, template);
+            } else {
+                this.insertBefore(content, template);
+                if (key) loadedCovers.add(key);
+            }
             template.remove();
             this.dataset.loaded = "true";
             DeferredCover.observer?.unobserve(this);

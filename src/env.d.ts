@@ -9,4 +9,6 @@ interface Window {
 		from: string;
 		finished: Promise<void>;
 	} | null;
+	__voyageTransitionFinished?: Promise<void> | null;
+	__voyageLoadedCovers?: Set<string>;
 }

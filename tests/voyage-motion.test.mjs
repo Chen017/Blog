@@ -579,5 +579,15 @@ test("Solutions 1A + 2A + 3A and Post -> Home exit title morph: unclipped oversc
 	assert.match(css, /html,\s*body\s*\{\s*scroll-behavior:\s*auto\s*!important;\s*\}/);
 	assert.match(css, /html\[data-voyage-entry-transition\]\s+#voyage-afterhours\s+:is\(\.nv-main,\s*\.nv-grid,\s*\.nv-entry\)\s*\{\s*content-visibility:\s*visible\s*!important;\s*\}/);
 	assert.doesNotMatch(css, /\.voyage-home\s+#voyage-afterhours\s+\.nv-grid\s*\{\s*content-visibility:\s*auto;/);
+	assert.match(css, /::view-transition-old\(voyage-header\),\s*::view-transition-new\(voyage-header\)\s*\{\s*animation:\s*none\s*!important;/);
+	assert.match(css, /html\[data-voyage-entry-transition\]:not\(\[data-motion="off"\]\)::view-transition-old\(root\)\s*\{\s*animation:\s*360ms/);
+	assert.match(css, /html\[data-voyage-entry-transition\]:not\(\[data-motion="off"\]\)::view-transition-new\(root\)\s*\{\s*animation:\s*420ms/);
+	const tocTs = await readFile("src/components/sidebar/toc.ts", "utf8");
+	assert.match(tocTs, /if\s*\(!inTransition\)\s*\{\s*this\.queueInit\(\);\s*\}/);
+	const siteTs = await readFile("src/scripts/site.ts", "utf8");
+	assert.match(siteTs, /window\.__voyageTransitionFinished\s*\?\?\s*transitionFinished/);
+	const deferredAstro = await readFile("src/components/common/deferredImage.astro", "utf8");
+	assert.match(deferredAstro, /window\.__voyageLoadedCovers/);
+	assert.match(deferredAstro, /if\s*\(homeTransition\?\.finished\s*&&\s*isFoldDeferred\)/);
 	assert.match(css, /@keyframes\s+voyageFoldReveal/);
 });

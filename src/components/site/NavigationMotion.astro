@@ -32,7 +32,9 @@
     return y;
   };
   const pageCache = new Map();
+  const postCache = new Map();
   const warmedAssets = new Set();
+  let hoverTimer = 0;
   const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
   const warmStyles = html => {
     try {
@@ -78,41 +80,118 @@
       }
       return pageCache.get(key).then(entry => entry instanceof Response ? entry.clone() : new Response(entry.body, entry));
     };
+    const fetchPost = (key, init) => {
+      if (!postCache.has(key)) {
+        const canonicalUrl = new URL(key, location.origin).href;
+        const request = nativeFetch(canonicalUrl, init).then(async res => {
+          const contentType = res.headers?.get?.('content-type') || 'text/html; charset=utf-8';
+          if (!res.ok || res.redirected || !contentType.includes('text/html')) {
+            postCache.delete(key);
+            return res;
+          }
+          const body = await res.text();
+          warmStyles(body);
+          const entry = { body, status: res.status, statusText: res.statusText, headers: { 'content-type': contentType } };
+          postCache.delete(key);
+          postCache.set(key, Promise.resolve(entry));
+          if (postCache.size > 6) {
+            const oldest = postCache.keys().next().value;
+            if (oldest && oldest !== key) postCache.delete(oldest);
+          }
+          return new Response(entry.body, entry);
+        }).catch(err => {
+          postCache.delete(key);
+          throw err;
+        });
+        postCache.set(key, request);
+        return request;
+      }
+      const cached = postCache.get(key);
+      postCache.delete(key);
+      postCache.set(key, cached);
+      return cached.then(entry => entry instanceof Response ? entry.clone() : new Response(entry.body, entry));
+    };
     window.fetch = (input, init) => {
       const method = (init?.method || (typeof Request === 'function' && input instanceof Request ? input.method : 'GET')).toUpperCase();
       if (method === 'GET') {
         const rawUrl = typeof input === 'string' || input instanceof URL ? String(input) : input?.url || '';
         try {
           const parsed = new URL(rawUrl, location.href);
-          if (parsed.origin === location.origin && tabSet.has(parsed.pathname)) {
-            return fetchTab(parsed.pathname, init);
+          if (parsed.origin === location.origin) {
+            if (tabSet.has(parsed.pathname)) {
+              return fetchTab(parsed.pathname, init);
+            }
+            if (post(parsed.pathname) && postCache.has(parsed.pathname)) {
+              return fetchPost(parsed.pathname, init);
+            }
           }
         } catch {}
       }
       return nativeFetch(input, init);
     };
+    const warmPostPath = targetPath => {
+      if (post(targetPath) && !postCache.has(targetPath)) {
+        void fetchPost(targetPath, { priority: 'low', credentials: 'same-origin' }).catch(() => {});
+      }
+    };
     let tabsWarmed = false;
     const warmAllTabs = () => {
-      if (tabsWarmed || (typeof navigator !== 'undefined' && navigator.webdriver)) return;
+      if (tabsWarmed) return;
       tabsWarmed = true;
-      tabs.forEach((tab, index) => {
-        if (pageCache.has(tab)) return;
+      const queue = [];
+      document.querySelectorAll?.('[data-entry-route]').forEach((el, idx) => {
+        if (idx < 3) {
+          const route = el.getAttribute?.('data-entry-route') || el.querySelector?.('a[href]')?.getAttribute?.('href') || '';
+          const p = route ? path(route) : '';
+          if (post(p) && !queue.includes(p)) queue.push(p);
+        }
+      });
+      tabs.forEach(tab => {
+        if (!queue.includes(tab)) queue.push(tab);
+      });
+      queue.forEach((route, index) => {
         setTimeout(() => {
-          if (!pageCache.has(tab)) void fetchTab(tab, { priority: 'low' }).catch(() => {});
-        }, index * 200);
+          if (tabSet.has(route)) {
+            if (!pageCache.has(route)) void fetchTab(route, { priority: 'low' }).catch(() => {});
+          } else if (post(route)) {
+            warmPostPath(route);
+          }
+        }, 50 + index * 140);
       });
     };
+    if (document.readyState === 'complete') warmAllTabs();
+    else window.addEventListener?.('load', warmAllTabs, { once: true, passive: true });
     const warmLinkTarget = event => {
-      const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href], [data-entry-route] a[href], [data-source-back]');
-      if (link) {
-        const rawHref = link.getAttribute?.('href') || link.href || '';
+      const target = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href], [data-entry-route] a[href], [data-entry-route], .vs-adjacent a[href], [data-source-back]');
+      if (target) {
+        const anchor = target.matches?.('a[href]') ? target : target.querySelector?.('a[href]');
+        const rawHref = anchor?.getAttribute?.('href') || anchor?.href || target.getAttribute?.('data-entry-route') || '';
         const targetPath = rawHref ? path(rawHref) : '/';
-        if (tabSet.has(targetPath) && !pageCache.has(targetPath)) void fetchTab(targetPath).catch(() => {});
-        if (tabSet.has(location.pathname) && !pageCache.has(location.pathname)) void fetchTab(location.pathname, { priority: 'low' }).catch(() => {});
+        if (tabSet.has(targetPath) && !pageCache.has(targetPath)) {
+          void fetchTab(targetPath).catch(() => {});
+        } else if (post(targetPath) && !postCache.has(targetPath)) {
+          if (event.type === 'pointerover') {
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(() => warmPostPath(targetPath), 65);
+          } else {
+            clearTimeout(hoverTimer);
+            warmPostPath(targetPath);
+          }
+        }
+        if (tabSet.has(location.pathname) && !pageCache.has(location.pathname)) {
+          void fetchTab(location.pathname, { priority: 'low' }).catch(() => {});
+        }
       }
       warmAllTabs();
     };
     window.addEventListener?.('pointerover', warmLinkTarget, { passive: true });
+    window.addEventListener?.('pointerout', event => {
+      if (hoverTimer && event?.target?.closest?.('[data-entry-route], .vs-adjacent a[href]')) {
+        clearTimeout(hoverTimer);
+        hoverTimer = 0;
+      }
+    }, { passive: true });
+    window.addEventListener?.('pointerdown', warmLinkTarget, { passive: true });
     window.addEventListener?.('touchstart', warmLinkTarget, { passive: true });
     window.addEventListener?.('focusin', warmLinkTarget, { passive: true });
     window.addEventListener?.('pointermove', warmAllTabs, { once: true, passive: true });
@@ -127,6 +206,7 @@
     const destination = new URL(link.href, location.href);
     if (destination.origin !== location.origin) return;
     if (card) {
+      card.setAttribute?.('data-entry-pressing', 'true');
       const scrollY = resolveCardScroll(card);
       write({ post: destination.pathname, current: destination.pathname, from: location.pathname, card: card.id, originIndex: history.state?.index, scrollY });
       return;
@@ -143,6 +223,7 @@
   document.addEventListener('astro:before-preparation', event => {
     generation++;
     window.__voyageHomeTransition = null;
+    window.__voyageTransitionFinished = null;
     document.documentElement.removeAttribute("data-voyage-entry-transition");
     document.documentElement.removeAttribute("data-voyage-home-transition");
     document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
@@ -183,6 +264,9 @@
     const from = path(event.from);
     const to = path(event.to);
     const incoming = event.newDocument;
+    const vtFinished = event.viewTransition?.finished;
+    window.__voyageTransitionFinished = vtFinished ? vtFinished.then(() => {}, () => {}) : Promise.resolve();
+    document.querySelectorAll?.('[data-entry-pressing]').forEach(el => el.removeAttribute?.('data-entry-pressing'));
     if (incoming?.head && document.head?.querySelectorAll) {
       document.head.querySelectorAll('link[rel="stylesheet"][href^="/_astro/"]').forEach(link => {
         const href = link.getAttribute?.('href');
@@ -228,6 +312,26 @@
     }
     if (!selected) return;
     incoming.documentElement?.setAttribute("data-voyage-entry-transition", "");
+    if (to === '/' && incoming?.querySelectorAll) {
+      try {
+        const loadedCovers = window.__voyageLoadedCovers || (window.__voyageLoadedCovers = new Set());
+        incoming.querySelectorAll('deferred-cover').forEach(cover => {
+          const tpl = cover.querySelector?.('template');
+          if (!tpl?.content) return;
+          const cardId = cover.closest?.('[id]')?.id || '';
+          const clone = tpl.content.cloneNode(true);
+          const img = clone.querySelector?.('img');
+          if (img) {
+            img.decoding = 'sync';
+            img.loading = 'eager';
+          }
+          cover.insertBefore(clone, tpl);
+          tpl.remove();
+          cover.setAttribute?.('data-loaded', 'true');
+          if (cardId) loadedCovers.add(cardId);
+        });
+      } catch {}
+    }
     const title = post(path(event.to)) ? incoming.querySelector('.vs-article-head h1') : incoming.getElementById(selected.card)?.querySelector('[data-entry-title]');
     if (title) title.style.viewTransitionName = 'voyage-entry-title';
     const transition = event.viewTransition;
@@ -258,6 +362,7 @@
     } catch {}
   });
   document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll?.('[data-entry-pressing]').forEach(el => el.removeAttribute?.('data-entry-pressing'));
     if (!post(location.pathname)) { try { sessionStorage.removeItem('voyage:source'); } catch {} }
   });
 })();

@@ -16,12 +16,13 @@ body.voyage-home { margin: 0; background: #080c17; }
 @keyframes voyageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes voyageFadeOut { from { opacity: 1; } to { opacity: 0; } }
 ::view-transition-group(voyage-header) { animation-duration: 0s; }
+::view-transition-old(voyage-header), ::view-transition-new(voyage-header) { animation: none !important; mix-blend-mode: normal; }
 ::view-transition-old(voyage-page), ::view-transition-new(voyage-page) { mix-blend-mode: normal; }
 html[data-astro-transition] #voyage-afterhours .nv-twinkle { animation-play-state: paused; }
 ::view-transition-group(voyage-entry-title) { animation-duration: 620ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
 ::view-transition-old(voyage-entry-title), ::view-transition-new(voyage-entry-title) { height: 100%; width: 100%; object-fit: contain; object-position: left center; mix-blend-mode: normal; }
-::view-transition-old(voyage-entry-title) { animation-duration: 240ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
-::view-transition-new(voyage-entry-title) { animation-duration: 460ms; animation-delay: 60ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
+::view-transition-old(voyage-entry-title) { animation-duration: 280ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+::view-transition-new(voyage-entry-title) { animation-duration: 480ms; animation-delay: 40ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
 html[data-motion="off"]::view-transition-group(*), html[data-motion="off"]::view-transition-old(*), html[data-motion="off"]::view-transition-new(*) { animation: none !important; }
 html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox__container * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 #voyage-afterhours{width:100%;background:transparent;container-type:inline-size}
@@ -427,6 +428,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 @container (max-width:820px) { #voyage-afterhours .nv-code { transform:rotate(90deg) translateX(25%) rotate(-94deg); } }
 
 #voyage-afterhours .nv-entry-link:active { opacity:.85; }
+#voyage-afterhours .nv-entry:has(.nv-entry-link:active), #voyage-afterhours .nv-entry[data-entry-pressing="true"], #voyage-afterhours .archive-entry:active, #voyage-afterhours .archive-entry[data-entry-pressing="true"] { scale: .992; transition: scale 90ms cubic-bezier(.2,.8,.2,1); }
 
 /* Entry navigation follows its title; the entire long page need not slide too. */
 html[data-voyage-entry-transition] #voyage-afterhours .nv-page { view-transition-name:none; }
@@ -434,8 +436,8 @@ html[data-voyage-entry-transition] #voyage-afterhours .nv-page { view-transition
 #voyage-afterhours .nv-photograph,
 #voyage-afterhours .nv-sky :is(picture, img) { max-width: none !important; }
 /* Entry navigation follows its title; root uses a calm 260ms fade while the shared title flies along its 620ms trajectory. */
-html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 220ms ease-out both voyageFadeOut !important; }
-html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 280ms ease-out both voyageFadeIn !important; }
+html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 360ms cubic-bezier(.22,1,.36,1) both voyageFadeOut !important; }
+html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 420ms cubic-bezier(.22,1,.36,1) 60ms both voyageFadeIn !important; }
 /* Wrap shared title elements tightly to their glyphs so empty grid/block width does not distort aspect-ratio morphing. */
 #voyage-afterhours .archive-title[data-entry-title] { justify-self: start; width: fit-content; max-width: 100%; }
 #voyage-afterhours .nv-entry h3[data-entry-title] { width: fit-content; max-width: 100%; }

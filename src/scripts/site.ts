@@ -10,7 +10,7 @@ import {
 import { initScrollControls } from "../utils/scroll-controls";
 
 let pageController: AbortController | undefined;
-let transitionFinished: Promise<unknown> = Promise.resolve();
+let transitionFinished: Promise<unknown> = window.__voyageTransitionFinished ?? Promise.resolve();
 function initializePage() {
  const page = document.querySelector<HTMLElement>(".vs-interior");
  if (!page || page.dataset.siteInitialized === "true") return;
@@ -22,11 +22,13 @@ function initializePage() {
  const label = page.querySelector<HTMLOutputElement>("[data-progress-value]");
  const progress = page.querySelector<HTMLInputElement>("[data-progress-input]");
  const article = page.querySelector<HTMLElement>(".vs-article");
+ let scheduleProgress: (() => void) | undefined;
  if (bar && label && article && progress) {
   progress.disabled = false;
   let frame = 0;
   const update = () => { frame = 0; const rect = article.getBoundingClientRect(); const value = Math.round(100 * Math.max(0, Math.min(1, (innerHeight * .35 - rect.top) / Math.max(1, rect.height - innerHeight * .65)))); bar.style.transform = `scaleY(${value / 100})`; label.value = `${value}%`; progress.value = String(value); progress.setAttribute('aria-valuetext', `${value}%`); progress.parentElement?.style.setProperty('--reading-progress', `${value}%`); };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+  scheduleProgress = schedule;
   const seek = () => { const rect = article.getBoundingClientRect(); const start = scrollY + rect.top - innerHeight * .35; const length = Math.max(1, rect.height - innerHeight * .65); scrollTo({top: start + Number(progress.value) / 100 * length, behavior:'instant'}); schedule(); };
   progress.addEventListener('input', seek, {signal});
   let drag: { pointerId:number; y:number; value:number; height:number } | undefined;
@@ -57,7 +59,7 @@ function initializePage() {
    progress.value = String(Math.max(0, Math.min(100, values[event.key])));
    seek();
   }, {signal});
-  addEventListener("scroll", schedule, {passive:true, signal}); addEventListener("resize", schedule, {signal}); addEventListener("pageshow", schedule, {signal}); signal.addEventListener("abort", () => { if (frame) cancelAnimationFrame(frame); }); schedule();
+  addEventListener("scroll", schedule, {passive:true, signal}); addEventListener("resize", schedule, {signal}); addEventListener("pageshow", schedule, {signal}); signal.addEventListener("abort", () => { if (frame) cancelAnimationFrame(frame); });
  }
 
 	const reduced = matchMedia("(prefers-reduced-motion: reduce)");
@@ -146,6 +148,7 @@ function initializePage() {
 		syncMotion();
 		const finishSiteInit = () => {
 			if (signal.aborted || !page.isConnected) return;
+			scheduleProgress?.();
 			page
 				.querySelectorAll<HTMLImageElement>("img[data-fallback-artwork]")
 				.forEach((image) => {
@@ -166,7 +169,8 @@ function initializePage() {
 			});
 			announcePageReady();
 		};
-		void transitionFinished.then(finishSiteInit, finishSiteInit);
+		const activeTransition = window.__voyageTransitionFinished ?? transitionFinished;
+		void activeTransition.then(finishSiteInit, finishSiteInit);
 	};
 	window.addEventListener("content-decrypted", () => {
 		void initFancybox().catch(() => {});

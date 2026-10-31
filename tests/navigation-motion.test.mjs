@@ -5,8 +5,8 @@ import vm from "node:vm";
 
 const source = (await readFile("src/components/site/NavigationMotion.astro", "utf8")).match(/<script is:inline>([\s\S]*?)<\/script>/)[1];
 
-test("Astro navigation pairs the selected title, updates active nav state immediately, and caches the 4 menu routes in memory across all pages", async () => {
- const handlers = {}, storage = new Map(), rootAttrs = new Map(), fetchedUrls = [];
+test("Astro navigation pairs the selected title, updates active nav state immediately, caches the 4 menu routes and hovered post routes, and unwraps covers on Post -> Home", async () => {
+ const handlers = {}, windowHandlers = {}, storage = new Map(), rootAttrs = new Map(), cardAttrs = new Map(), fetchedUrls = [];
  const makeTitle = () => ({
   style:{removeProperty() { delete this.viewTransitionName; }},
   getBoundingClientRect: () => ({ left: 400, top: 1075.5, bottom: 1125.5, width: 154, height: 50 }),
@@ -25,8 +25,21 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   makeNavLink("/about/"),
  ];
  const cardTitle = makeTitle(), articleTitle = makeTitle();
- const card = {id:"selected", querySelector:() => cardTitle};
- const link = {href:"https://example.com/posts/one/", target:"", hasAttribute:() => false, closest:() => card};
+ const card = {
+  id: "selected",
+  querySelector: sel => sel === "a[href]" ? link : cardTitle,
+  setAttribute(k, v) { cardAttrs.set(k, v); },
+  removeAttribute(k) { cardAttrs.delete(k); },
+  getAttribute(k) { return k === "data-entry-route" ? "/posts/one/" : cardAttrs.get(k); },
+ };
+ const link = {
+  href: "https://example.com/posts/one/",
+  target: "",
+  matches: sel => sel === "a[href]",
+  getAttribute: name => name === "href" ? "/posts/one/" : null,
+  hasAttribute: () => false,
+  closest: sel => sel.includes("[data-entry-route]") ? card : link,
+ };
  let fetchCalls = 0;
  class MockResponse {
   constructor(body, init = {}) {
@@ -49,7 +62,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
    if (!String(url).includes("/_astro/")) fetchCalls++;
    return new MockResponse(`<html><head><link rel="stylesheet" href="/_astro/test.css"><script type="module" src="/_astro/page.js"></script></head><body><astro-island component-url="/_astro/archivePanel.js" renderer-url="/_astro/client.js"></astro-island>${url}</body></html>`);
   },
-  addEventListener() {},
+  addEventListener(name, fn) { windowHandlers[name] = fn; },
  };
  const document = {
   readyState: "loading",
@@ -65,13 +78,17 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   addEventListener:(name, fn) => {handlers[name] = fn},
   getElementById:id => id === "selected" ? card : null,
   querySelector:() => articleTitle,
-  querySelectorAll:selector => selector.includes(".nv-nav") ? navLinks : [cardTitle, articleTitle].filter(x => x.style.viewTransitionName),
+  querySelectorAll:selector => {
+   if (selector.includes(".nv-nav")) return navLinks;
+   if (selector === "[data-entry-pressing]") return cardAttrs.has("data-entry-pressing") ? [card] : [];
+   return [cardTitle, articleTitle].filter(x => x.style.viewTransitionName);
+  },
  };
  const location = {href:"https://example.com/",pathname:"/",origin:"https://example.com"};
  const historyObj = { state: { index: 5 }, replaceState(st) { this.state = st; } };
- vm.runInNewContext(source, {window:windowObj,Response:MockResponse,setTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
+ vm.runInNewContext(source, {window:windowObj,Response:MockResponse,setTimeout,clearTimeout,document,location,URL,history:historyObj,sessionStorage:{getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value), removeItem:key => storage.delete(key)}});
 
- // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for posts
+ // Verify in-memory caching for the 4 menu routes, fetch-based subresource warming (no Sec-Purpose: prefetch), and non-caching for un-warmed posts
  const firstMenuRes = await windowObj.fetch("https://example.com/friends/");
  const secondMenuRes = await windowObj.fetch("https://example.com/friends/");
  assert.equal(await firstMenuRes.text(), await secondMenuRes.text());
@@ -86,11 +103,20 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   ],
   "menu route fetch warms stylesheets and Astro scripts via low-priority fetch instead of link rel=prefetch",
  );
- await windowObj.fetch("https://example.com/posts/one/");
- await windowObj.fetch("https://example.com/posts/one/");
- assert.equal(fetchCalls, 3, "post routes are not cached in memory");
+ await windowObj.fetch("https://example.com/posts/unwarmed/");
+ await windowObj.fetch("https://example.com/posts/unwarmed/");
+ assert.equal(fetchCalls, 3, "unwarmed post routes are not cached indiscriminately");
+
+ // Solution A1: pointerdown / hover on a card pre-warms postCache so clicking serves from memory in 0ms
+ windowHandlers.pointerdown({ type: "pointerdown", target: { closest: () => link } });
+ await new Promise(r => setTimeout(r, 5));
+ const callsAfterWarm = fetchCalls;
+ const warmedPostRes = await windowObj.fetch("https://example.com/posts/one/");
+ assert.equal(fetchCalls, callsAfterWarm, "pre-warmed post route is served from postCache without extra network fetch");
+ assert.ok((await warmedPostRes.text()).includes("/posts/one/"));
 
  handlers.click({button:0,target:{closest:() => link}});
+ assert.equal(cardAttrs.get("data-entry-pressing"), "true", "clicking a card sets immediate tactile pressing state");
  handlers["astro:before-preparation"]({from:new URL("https://example.com/"),to:new URL(link.href)});
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
  assert.equal(rootAttrs.has("data-voyage-home-fold-deferred"), false, "entry title transitions do not hide below-fold cards");
@@ -100,6 +126,8 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  let finish;
  const transition = {finished:new Promise(resolve => {finish = resolve;})};
  handlers["astro:before-swap"]({to:new URL(link.href),newDocument:{querySelector:() => articleTitle},viewTransition:transition});
+ assert.equal(cardAttrs.has("data-entry-pressing"), false, "clears pressing state on swap");
+ assert.ok(windowObj.__voyageTransitionFinished instanceof Promise, "exposes global __voyageTransitionFinished promise for interior scripts");
  assert.equal(articleTitle.style.viewTransitionName, "voyage-entry-title");
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
  finish(); await transition.finished; await Promise.resolve();
@@ -111,12 +139,34 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  assert.equal(postToLinks.direction, "forward");
  assert.equal(navLinks[2].current, "page");
 
+ // Solution B1: Post -> Home synchronously unwraps <deferred-cover> templates in incoming document before snapshot capture
  windowObj.scrollY = 0;
+ let coverUnwrapped = false;
+ let coverLoadedAttr = null;
+ const mockImg = { decoding: "async", loading: "lazy" };
+ const mockCover = {
+  closest: () => ({ id: "selected" }),
+  querySelector: sel => sel === "template" ? { content: { cloneNode: () => ({ querySelector: () => mockImg }) }, remove() { coverUnwrapped = true; } } : null,
+  insertBefore() {},
+  setAttribute(k, v) { if (k === "data-loaded") coverLoadedAttr = v; },
+ };
  handlers["astro:before-preparation"]({from:new URL(link.href),to:new URL("https://example.com/")});
  assert.equal(navLinks[0].page ?? navLinks[0].current, "page", "returning home highlights Home immediately");
  assert.equal(navLinks[2].current, undefined);
- handlers["astro:before-swap"]({to:new URL("https://example.com/"),newDocument:{getElementById:() => card},viewTransition:{finished:new Promise(() => {})}});
+ handlers["astro:before-swap"]({
+  to:new URL("https://example.com/"),
+  newDocument:{
+   getElementById:() => card,
+   querySelectorAll: sel => sel === "deferred-cover" ? [mockCover] : [],
+  },
+  viewTransition:{finished:new Promise(() => {})},
+ });
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
+ assert.equal(coverUnwrapped, true, "Post -> Home unwraps <deferred-cover> template before snapshot capture");
+ assert.equal(coverLoadedAttr, "true", "marks unwrapped cover as data-loaded=true to skip 360ms fade replay");
+ assert.equal(mockImg.decoding, "sync");
+ assert.equal(mockImg.loading, "eager");
+ assert.equal(windowObj.__voyageLoadedCovers.has("selected"), true);
  handlers["astro:after-swap"]();
  assert.ok(windowObj.scrollY > 0, "Post -> Home astro:after-swap aligns scrollY so target card is inside viewport before snapshot capture");
  const previous = { from:new URL(link.href), to:new URL('https://example.com/posts/older/'), direction:'forward', sourceElement:{closest:() => ({dataset:{direction:'previous'}, closest:() => null})} };
@@ -139,7 +189,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  handlers['astro:page-load']();
  assert.equal(storage.has('voyage:source'), false);
 
- // Verify Home transition signal capture, invalidation, and rejection safety
+ // Verify Home transition signal capture, invalidation, and rejection safety for top-menu transitions
  const friendsToHomePrep = { from: new URL("https://example.com/friends/"), to: new URL("https://example.com/"), direction: "back" };
  handlers["astro:before-preparation"](friendsToHomePrep);
  assert.equal(friendsToHomePrep.direction, "back", "Home transition setup preserves event.direction");
