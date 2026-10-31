@@ -302,3 +302,100 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  rejectTransition(new Error("view transition cancelled"));
  await windowObj.__voyageHomeTransition.finished;
 });
+
+
+test("mobile soft-expired pages stay instant while refreshes are serialized and back off on 503", async () => {
+ let now = 1_000_000;
+ const timers = [];
+ const requests = [];
+ const pendingRefreshes = [];
+ let activeRefreshes = 0;
+ let peakRefreshes = 0;
+ let saveData = false;
+
+ class CachedResponse {
+  constructor(body, status = 200) {
+   this.body = body;
+   this.status = status;
+   this.statusText = "OK";
+   this.ok = status >= 200 && status < 300;
+   this.redirected = false;
+   this.headers = { get: name => name === "content-type" ? "text/html; charset=utf-8" : null };
+  }
+  text() { return Promise.resolve(this.body); }
+  clone() { return new CachedResponse(this.body, this.status); }
+ }
+ const fetch = (url, init) => {
+  requests.push({ url: String(url), cache: init?.cache });
+  if (init?.cache === "no-cache") {
+   activeRefreshes++;
+   peakRefreshes = Math.max(activeRefreshes, activeRefreshes);
+   return new Promise(resolve => pendingRefreshes.push((status, body) => {
+    activeRefreshes--;
+    resolve(new CachedResponse(body, status));
+   }));
+  }
+  return Promise.resolve(new CachedResponse("initial:" + url));
+ };
+ const windowObj = { fetch, addEventListener() {} };
+ const document = {
+  hidden: false,
+  readyState: "loading",
+  head: { querySelector: () => null },
+  documentElement: { setAttribute() {}, removeAttribute() {}, hasAttribute: () => false },
+  querySelectorAll: () => [],
+  addEventListener() {},
+ };
+ const schedule = (fn, delay) => { timers.push({ fn, delay }); return timers.length; };
+ const settle = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+ const runTimer = async () => {
+  const task = timers.shift();
+  assert.ok(task, "refresh should have a scheduled task");
+  task.fn();
+  await settle();
+ };
+ vm.runInNewContext(source, {
+  window: windowObj, document, Response: CachedResponse, URL,
+  Date: { now: () => now }, setTimeout: schedule, clearTimeout() {},
+  navigator: { connection: { get saveData() { return saveData; }, effectiveType: "4g" }, onLine: true },
+  location: { href: "https://example.com/", origin: "https://example.com", pathname: "/" },
+  history: { state: {} },
+  sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+ });
+
+ const friends = "https://example.com/friends/";
+ const about = "https://example.com/about/";
+ await windowObj.fetch(friends);
+ await windowObj.fetch(about);
+ assert.equal(requests.length, 2);
+ now += 6 * 60 * 1000;
+ assert.equal(await (await windowObj.fetch(friends)).text(), "initial:" + friends);
+ assert.equal(await (await windowObj.fetch(about)).text(), "initial:" + about);
+ assert.equal(requests.length, 2, "touch navigation should not wait for either stale page to revalidate");
+
+ await runTimer();
+ assert.equal(pendingRefreshes.length, 1, "only one background refresh starts");
+ assert.equal(peakRefreshes, 1, "refreshes do not run concurrently");
+ pendingRefreshes.shift()(200, "updated friends");
+ await settle();
+ assert.equal(await (await windowObj.fetch(friends)).text(), "updated friends");
+ await runTimer();
+ assert.equal(pendingRefreshes.length, 1, "second route waits for the first to finish");
+ pendingRefreshes.shift()(200, "updated about");
+ await settle();
+ assert.equal(peakRefreshes, 1);
+ assert.equal(await (await windowObj.fetch(about)).text(), "updated about");
+
+ now += 6 * 60 * 1000;
+ await windowObj.fetch(friends);
+ await runTimer();
+ pendingRefreshes.shift()(503, "temporarily unavailable");
+ await settle();
+ assert.equal(await (await windowObj.fetch(friends)).text(), "updated friends", "503 preserves the last usable snapshot");
+ assert.equal(timers.length, 0, "503 does not cause an immediate retry storm");
+
+ saveData = true;
+ now += 61 * 1000;
+ await windowObj.fetch(friends);
+ assert.equal(timers.length, 0, "Save-Data prevents speculative background refresh");
+});
