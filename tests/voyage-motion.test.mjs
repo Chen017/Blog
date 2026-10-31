@@ -308,13 +308,17 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.ok(events.includes("twilight:page:loaded"), "announcePageReady fired after transition finishes");
 	const flourish = elements.get("h1 em")?.animations[0];
 	assert.ok(flourish, "Space. resumes its decorative entrance after returning Home");
-	assert.equal(flourish.options.duration, 820, "the short return flourish never replays the full opening");
+	assert.equal(flourish.options.duration, 820, "return keeps the original 820ms entrance duration");
+	assert.equal(flourish.options.delay, 190, "return keeps the original 110ms transition + 80ms flourish delay");
 	assert.equal(flourish.options.easing, "cubic-bezier(.16,.8,.2,1)");
-	assert.equal(flourish.options.fill, undefined, "return animation leaves no persistent overlay");
-	assert.equal(flourish.keyframes[0].translate, "0 0", "return animation starts at the resting position");
-	assert.equal(flourish.keyframes.at(-1).translate, "0 0", "return animation settles without a position jump");
+	assert.equal(flourish.options.fill, "both", "hold the starting keyframe during delay to avoid a delayed jump");
+	assert.equal(flourish.keyframes.length, 2, "the original one-way motion has no mid-animation nod");
+	assert.equal(flourish.keyframes[0].translate, "0 8px", "start from the original lower position");
+	assert.equal(flourish.keyframes[0].rotate, "-2deg", "start from the original tilt");
+	assert.equal(flourish.keyframes.at(-1).translate, "0 0", "settle at the resting position");
+	assert.equal(flourish.keyframes.at(-1).rotate, "0deg", "finish upright");
 	assert.ok(flourish.keyframes.every(frame => !("opacity" in frame) && !("filter" in frame)),
-		"return flourish never dims or blurs the plus-lighter lettering");
+		"return flourish must not reintroduce the PR #9 brightness flash");
 
 	// Double resolution should not re-initialize or throw
 	resolveTransition();
