@@ -6,7 +6,6 @@ html:root::-webkit-scrollbar, body.voyage-interior::-webkit-scrollbar { display:
 body.voyage-home { margin: 0; background: #080c17; }
 @media (prefers-reduced-motion:no-preference) {
   html[data-voyage-preparing] #voyage-afterhours :is(.vs-page-head h1,.vs-about-content h1,.nv-writing-heading h2,.nv-signoff > p):not([data-motion-ready]) { opacity:.55; translate:0 9px; }
-  html[data-voyage-preparing]:not([data-voyage-opening]) #voyage-afterhours .nv-titleblock h1:not([data-motion-ready]) em { opacity:.35; translate:0 8px; rotate:-2deg; }
   html[data-voyage-opening] #voyage-afterhours :is(.nv-title-first,.nv-titleblock h1 em) { opacity:.45; filter:blur(3px); translate:0 12px; }
   html[data-voyage-opening] #voyage-afterhours .nv-titleblock h1 em { translate:0 18px; }
   html[data-voyage-opening] #voyage-afterhours .nv-horizon { opacity:.4; translate:0 15px; }
@@ -47,8 +46,10 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-brand svg{width:22px;height:22px;stroke-width:1.2;color:#c1cbdc}
 #voyage-afterhours .nv-nav{display:flex;gap:28px;align-items:center;font-size:12px;color:var(--nv-muted)}
 #voyage-afterhours .nv-nav a{position:relative;padding:9px 0;transition:color 200ms}
-#voyage-afterhours .nv-nav a:hover,#voyage-afterhours .nv-nav a[aria-current]{color:var(--nv-ink)}
-#voyage-afterhours .nv-nav a:active{opacity:.78;translate:0 1px}
+#voyage-afterhours .nv-nav a[aria-current]{color:var(--nv-ink)}
+@media (hover:hover) and (pointer:fine) {
+  #voyage-afterhours .nv-nav a:hover{color:var(--nv-ink)}
+}
 #voyage-afterhours .nv-nav a[aria-current]::after{content:'';position:absolute;height:1px;width:12px;left:50%;bottom:3px;translate:-50% 0;background:#d0d1dc}
 #voyage-afterhours .nv-tools{display:flex;gap:5px}
 #voyage-afterhours .nv-icon{display:grid;place-items:center;width:34px;min-height:34px;border-radius:50%;transition:background 180ms,color 180ms;color:#c3cadd}
@@ -468,4 +469,29 @@ html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhou
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours *::after { transition: none !important; }
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours :is(.nv-twinkle, .nv-sky) { animation-play-state: paused !important; }
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours .nv-horizon-grain { display: none !important; }
-html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours .nv-titleblock h1 { mix-blend-mode: normal !important; }
+/* A returning Home hero is captured independently of root, preventing the
+   baked-in blend of the page snapshot from changing as the snapshot disappears.
+   Preserve the live plus-lighter lettering and backdrop-dependent colour. */
+@media (prefers-reduced-motion:no-preference) {
+  html[data-voyage-hero-capture] .voyage-home #voyage-afterhours .nv-titleblock h1 {
+    view-transition-name: voyage-hero-title;
+  }
+  html[data-voyage-hero-capture]::view-transition-group(voyage-hero-title) {
+    animation: none;
+  }
+  html[data-voyage-hero-capture]::view-transition-new(voyage-hero-title) {
+    mix-blend-mode: plus-lighter;
+    animation: voyageFadeIn 210ms cubic-bezier(.22,1,.36,1) 30ms both,
+               voyageHeroFromLeft 280ms cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes voyageHeroFromLeft {
+    from { transform: translateX(-100vw); }
+    to { transform: translateX(0); }
+  }
+}
+/* Snapshot the title as unblended translucent white, then add its light to
+   the separate root/sky image inside ::view-transition-new(voyage-hero-title).
+   Once the transition ends, the same plus-lighter composition runs on live DOM. */
+html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours .nv-titleblock h1 {
+  mix-blend-mode: normal !important;
+}
