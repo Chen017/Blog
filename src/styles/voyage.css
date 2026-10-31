@@ -479,9 +479,11 @@ html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhou
   }
   html[data-voyage-hero-capture]::view-transition-group(voyage-hero-title) {
     animation: none;
+    /* The image pair isolates its children: blend the group with the sky. */
+    mix-blend-mode: plus-lighter;
   }
   html[data-voyage-hero-capture]::view-transition-new(voyage-hero-title) {
-    mix-blend-mode: plus-lighter;
+    mix-blend-mode: normal;
     animation: voyageFadeIn 210ms cubic-bezier(.22,1,.36,1) 30ms both,
                voyageHeroFromLeft 280ms cubic-bezier(.22,1,.36,1) both;
   }
@@ -492,12 +494,12 @@ html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhou
 }
 }
 @media (prefers-reduced-transparency: reduce) {
-  html[data-voyage-hero-capture]::view-transition-new(voyage-hero-title) {
+  html[data-voyage-hero-capture]::view-transition-group(voyage-hero-title) {
     mix-blend-mode: normal;
   }
 }
 /* Snapshot the title as unblended translucent white, then add its light to
-   the separate root/sky image inside ::view-transition-new(voyage-hero-title).
+   the root/sky snapshot using ::view-transition-group(voyage-hero-title).
    Once the transition ends, the same plus-lighter composition runs on live DOM. */
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours .nv-titleblock h1 {
   mix-blend-mode: normal !important;
