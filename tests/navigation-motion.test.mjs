@@ -227,6 +227,8 @@ test("Astro navigation preserves outgoing menu state, caches main routes and hov
  assert.equal(storage.has('voyage:source'), false);
 
  // Verify Home transition signal capture, invalidation, and rejection safety for top-menu transitions
+ // The Home hero already played once in this tab: stage the return pose in the incoming document.
+ storage.set("voyage:opened", "true");
  const friendsToHomePrep = { from: new URL("https://example.com/friends/"), to: new URL("https://example.com/"), direction: "back" };
  handlers["astro:before-preparation"](friendsToHomePrep);
  assert.equal(friendsToHomePrep.direction, "back", "Home transition setup preserves event.direction");
@@ -248,6 +250,7 @@ test("Astro navigation preserves outgoing menu state, caches main routes and hov
  assert.ok(typeof windowObj.__voyageHomeTransition.id === "number");
  assert.ok(windowObj.__voyageHomeTransition.finished instanceof Promise);
  assert.equal(incomingAttrs.has("data-voyage-home-transition"), true, "marks incoming document for Home boundary transition");
+ assert.equal(incomingAttrs.has("data-voyage-return-prepared"), true, "Space starts below its resting position before the incoming Home snapshot is captured");
  assert.equal(incomingAttrs.has("data-voyage-home-fold-deferred"), true, "marks incoming Home document for below-fold deferral");
  resolveFriendsTransition();
  await vtFriends.finished;
@@ -412,6 +415,7 @@ test("menu keeps correct selection timing and planet texture stays stable across
  assert.doesNotMatch(nav, /data-voyage-hero-capture|voyage-hero-title/, "no abandoned hero snapshot route remains");
  assert.doesNotMatch(css, /data-voyage-hero-capture|voyage-hero-title|voyageHeroFromLeft/, "no orphaned title capture style remains");
  assert.doesNotMatch(css, /\.nv-horizon-grain\s*\{\s*display:\s*none\s*!important/, "planet texture must not disappear during a transition");
+ assert.match(css, /html\[data-voyage-return-prepared\][^{]*\.nv-titleblock h1 em\s*\{[^}]*translate:\s*0 8px;[^}]*rotate:\s*-2deg;/, "return pose is fixed before View Transition screenshot capture");
  assert.match(css, /\.nv-horizon-grain\s*\{[^}]*opacity:\s*\.07/, "planet texture retains original 7% opacity");
  assert.doesNotMatch(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/, "navigation cannot dim the blended Home headline");
 });
@@ -431,6 +435,7 @@ test("Home title keeps additive light on departure and its root snapshot stays o
  assert.match(css, /html\[data-voyage-home-transition\]:has\(> body\.voyage-home\):not\(\[data-voyage-entry-transition\]\):not\(\[data-motion="off"\]\)::view-transition-new\(root\)\s*\{\s*opacity:\s*1\s*!important;/);
  assert.doesNotMatch(css, /::view-transition-new\(voyage-page\)\s*\{\s*opacity:\s*1/, "do not alter unrelated page snapshots");
  assert.match(nav, /incoming\?\.documentElement\?\.setAttribute\?\.\("data-voyage-home-transition",\s*""\)/, "incoming Home gets the boundary marker");
+ assert.match(nav, /incoming\?\.documentElement\?\.setAttribute\?\.\('data-voyage-return-prepared',\s*''\)/, "return pose is applied to incoming document before swap");
  assert.match(slide, /const VOYAGE_SLIDE_DURATION\s*=\s*"280ms"/, "the native horizontal slide timing stays intact");
 
  // Planet grain remains visible across the full transition (PR #8).
