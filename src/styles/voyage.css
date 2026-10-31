@@ -18,10 +18,11 @@ body.voyage-home { margin: 0; background: #080c17; }
 ::view-transition-group(voyage-header) { animation-duration: 0s; }
 ::view-transition-old(voyage-page), ::view-transition-new(voyage-page) { mix-blend-mode: normal; }
 html[data-astro-transition] #voyage-afterhours .nv-twinkle { animation-play-state: paused; }
-::view-transition-group(voyage-entry-title) { animation-duration: 620ms; animation-timing-function: cubic-bezier(.22,1,.36,1); }
-::view-transition-old(voyage-entry-title), ::view-transition-new(voyage-entry-title) { height: 100%; width: 100%; object-fit: contain; object-position: left center; mix-blend-mode: normal; }
-::view-transition-old(voyage-entry-title) { animation-duration: 420ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
-::view-transition-new(voyage-entry-title) { animation-duration: 520ms; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+@keyframes voyageEntryTitleReveal { from { opacity: 0; translate: 0 12px; scale: .985; } to { opacity: 1; translate: 0 0; scale: 1; } }
+::view-transition-group(voyage-entry-title) { animation: none; overflow: visible; }
+::view-transition-old(voyage-entry-title), ::view-transition-new(voyage-entry-title) { width: 100%; height: auto; object-fit: none; mix-blend-mode: normal; }
+::view-transition-old(voyage-entry-title) { animation: 1ms linear both voyageFadeOut; opacity: 0; }
+::view-transition-new(voyage-entry-title) { animation: 280ms cubic-bezier(.22,1,.36,1) both voyageEntryTitleReveal; }
 html[data-motion="off"]::view-transition-group(*), html[data-motion="off"]::view-transition-old(*), html[data-motion="off"]::view-transition-new(*) { animation: none !important; }
 html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox__container * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 #voyage-afterhours{width:100%;background:transparent;container-type:inline-size}
@@ -433,18 +434,25 @@ html[data-voyage-entry-transition] #voyage-afterhours .nv-page { view-transition
 /* Prevent global img { max-width: 100% } resets from clipping the 40px parallax overscan (Solution 1A). */
 #voyage-afterhours .nv-photograph,
 #voyage-afterhours .nv-sky :is(picture, img) { max-width: none !important; }
-/* Entry navigation follows its title; root uses a calm 200ms fade instead of sliding. */
-html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 200ms ease-out both voyageFadeOut !important; }
-html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 200ms ease-out both voyageFadeIn !important; }
+/* Entry navigation follows its title; root uses a synchronized 240ms fade so page and title finish together. */
+html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 180ms ease-out both voyageFadeOut !important; }
+html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 240ms cubic-bezier(.22,1,.36,1) 20ms both voyageFadeIn !important; }
 /* Home boundary transitions: disable group morphing and keep outgoing snapshot opaque long enough to cover the slide. */
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(root),
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(voyage-page) { animation: none; overflow: clip; }
 html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-old(root),
 html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-old(voyage-page) { animation-duration: 200ms, 280ms; animation-delay: 40ms, 0ms; }
-/* Isolate below-the-fold homepage sections and skip their rendering during top-menu transitions while preserving document scroll geometry (Solution 2A). */
+/* Isolate below-the-fold homepage sections during top-menu entrance and play a smooth staggered post-load reveal upon landing. */
+@keyframes voyageFoldReveal { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
 .voyage-home #voyage-afterhours .nv-grid { content-visibility: auto; contain-intrinsic-size: auto 1200px; }
 .voyage-home #voyage-afterhours :is(.nv-signoff, .nv-footer) { content-visibility: auto; contain-intrinsic-size: auto 160px; }
-html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours :is(.nv-grid, .nv-end, .nv-signoff, .nv-footer) { content-visibility: hidden !important; contain-intrinsic-size: auto 1500px; }
+html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours :is(.nv-grid, .nv-end, .nv-signoff, .nv-footer) { content-visibility: hidden !important; contain-intrinsic-size: auto 1500px; opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-voyage-home-fold-reveal]:not([data-motion="off"]) .voyage-home #voyage-afterhours .nv-grid { animation: voyageFoldReveal 380ms cubic-bezier(.22,1,.36,1) both; }
+  html[data-voyage-home-fold-reveal]:not([data-motion="off"]) .voyage-home #voyage-afterhours .nv-grid > .nv-entry:nth-child(-n+3) { animation: voyageFoldReveal 360ms cubic-bezier(.22,1,.36,1) 15ms both; }
+  html[data-voyage-home-fold-reveal]:not([data-motion="off"]) .voyage-home #voyage-afterhours .nv-grid > .nv-entry:nth-child(n+4):nth-child(-n+6) { animation: voyageFoldReveal 400ms cubic-bezier(.22,1,.36,1) 55ms both; }
+  html[data-voyage-home-fold-reveal]:not([data-motion="off"]) .voyage-home #voyage-afterhours :is(.nv-end, .nv-signoff, .nv-footer) { animation: voyageFoldReveal 400ms cubic-bezier(.22,1,.36,1) 75ms both; }
+}
 /* Pause star twinkle in-place (preserving scale/opacity phase without snapping) and suppress internal CSS transitions during View Transitions (Solution 2A). */
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours *,
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours *::before,

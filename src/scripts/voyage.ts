@@ -479,8 +479,15 @@ function initializeVoyage(
 
 	function finishHomeInitialization() {
 		if (signal.aborted) return;
+		const wasDeferred = document.documentElement?.hasAttribute?.("data-voyage-home-fold-deferred");
 		document.documentElement?.removeAttribute("data-voyage-home-transition");
 		document.documentElement?.removeAttribute("data-voyage-home-fold-deferred");
+		if (wasDeferred && !reduced.matches) {
+			document.documentElement?.setAttribute("data-voyage-home-fold-reveal", "");
+			setTimeout(() => {
+				document.documentElement?.removeAttribute("data-voyage-home-fold-reveal");
+			}, 620);
+		}
 		attachHomeInteractions();
 		try {
 			if (

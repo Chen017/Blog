@@ -124,7 +124,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  assert.equal(navLinks[2].current, 'page');
  assert.equal(navLinks[1].current, undefined);
  assert.equal(rootAttrs.has("data-voyage-home-transition"), true, "Home -> interior sets home transition flag");
- assert.equal(rootAttrs.has("data-voyage-home-fold-deferred"), true, "Home -> interior from top defers below-fold content");
+ assert.equal(rootAttrs.has("data-voyage-home-fold-deferred"), false, "leaving Home keeps visible cards intact on tall screens");
  handlers['astro:page-load']();
  assert.equal(storage.has('voyage:source'), false);
 
@@ -156,6 +156,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  await Promise.resolve();
  assert.equal(rootAttrs.has("data-voyage-home-transition"), false, "clears Home boundary flag after transition finishes");
  assert.equal(rootAttrs.has("data-voyage-home-fold-deferred"), false, "clears below-fold deferral flag after transition finishes");
+ assert.equal(rootAttrs.has("data-voyage-home-fold-reveal"), true, "triggers post-load fold reveal animation after Home transition finishes");
 
  handlers["astro:before-preparation"]({ from: new URL("https://example.com/about/"), to: new URL("https://example.com/") });
  assert.equal(windowObj.__voyageHomeTransition, null, "clears record on new preparation");

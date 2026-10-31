@@ -84,17 +84,20 @@
       if (tabsWarmed || (typeof navigator !== 'undefined' && navigator.webdriver)) return;
       tabsWarmed = true;
       tabs.forEach((tab, index) => {
-        if (tab === location.pathname || pageCache.has(tab)) return;
+        if (pageCache.has(tab)) return;
         setTimeout(() => {
           if (!pageCache.has(tab)) void fetchTab(tab, { priority: 'low' }).catch(() => {});
-        }, index * 250);
+        }, index * 200);
       });
     };
     const warmLinkTarget = event => {
-      const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href]');
-      if (!link) return;
-      const targetPath = path(link.getAttribute?.('href') || link.href || '');
-      if (tabSet.has(targetPath) && !pageCache.has(targetPath)) void fetchTab(targetPath).catch(() => {});
+      const link = event?.target?.closest?.('#voyage-afterhours .nv-nav a[href], #voyage-afterhours .nv-brand[href], [data-entry-route] a[href], [data-source-back]');
+      if (link) {
+        const rawHref = link.getAttribute?.('href') || link.href || '';
+        const targetPath = rawHref ? path(rawHref) : '/';
+        if (tabSet.has(targetPath) && !pageCache.has(targetPath)) void fetchTab(targetPath).catch(() => {});
+        if (tabSet.has(location.pathname) && !pageCache.has(location.pathname)) void fetchTab(location.pathname, { priority: 'low' }).catch(() => {});
+      }
       warmAllTabs();
     };
     window.addEventListener?.('pointerover', warmLinkTarget, { passive: true });
@@ -119,8 +122,7 @@
     const to = destination.pathname;
     if ((from === '/' || to === '/') && from !== to) {
       document.documentElement.setAttribute("data-voyage-home-transition", "");
-      const nearTop = typeof window.scrollY !== 'number' || window.scrollY < 200;
-      if (!destination.hash && (from !== '/' || nearTop)) {
+      if (to === '/' && !destination.hash) {
         document.documentElement.setAttribute("data-voyage-home-fold-deferred", "");
       }
     }
@@ -131,6 +133,7 @@
     document.documentElement.removeAttribute("data-voyage-entry-transition");
     document.documentElement.removeAttribute("data-voyage-home-transition");
     document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
+    document.documentElement.removeAttribute("data-voyage-home-fold-reveal");
     document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     const from = path(event.from), to = path(event.to);
     syncNav(to);
@@ -148,8 +151,7 @@
     if (homeBoundary) {
       document.documentElement.setAttribute("data-voyage-home-transition", "");
       const hasHash = Boolean(event.to?.hash);
-      const nearTop = typeof window.scrollY !== 'number' || window.scrollY < 200;
-      if (!selected && !hasHash && (from !== '/' || nearTop)) {
+      if (to === '/' && !selected && !hasHash) {
         document.documentElement.setAttribute("data-voyage-home-fold-deferred", "");
       }
     }
@@ -176,15 +178,23 @@
       incoming?.documentElement?.setAttribute?.("data-voyage-home-transition", "");
       const savedScroll = typeof history !== 'undefined' ? history.state?.voyage?.scroll : 0;
       const hasHash = Boolean(event.to?.hash);
-      if (to === '/' && !selected && !hasHash && !(Number.isFinite(savedScroll) && savedScroll > 120)) {
+      const shouldDeferIncomingFold = to === '/' && !selected && !hasHash && !(Number.isFinite(savedScroll) && savedScroll > 120);
+      if (shouldDeferIncomingFold) {
         incoming?.documentElement?.setAttribute?.("data-voyage-home-fold-deferred", "");
       }
       const transition = event.viewTransition;
       const current = generation;
       const clearHomeFlags = () => {
         if (current !== generation) return;
+        const wasDeferred = document.documentElement.hasAttribute("data-voyage-home-fold-deferred");
         document.documentElement.removeAttribute("data-voyage-home-transition");
         document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
+        if (to === '/' && (wasDeferred || shouldDeferIncomingFold)) {
+          document.documentElement.setAttribute("data-voyage-home-fold-reveal", "");
+          setTimeout(() => {
+            if (current === generation) document.documentElement.removeAttribute("data-voyage-home-fold-reveal");
+          }, 620);
+        }
       };
       if (transition?.finished) void transition.finished.then(clearHomeFlags, clearHomeFlags);
       else clearHomeFlags();

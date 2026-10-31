@@ -563,4 +563,6 @@ test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointe
 
 	const headingMotion = await readFile("src/scripts/heading-motion.ts", "utf8");
 	assert.match(headingMotion, /const\s+baseDelay\s*=\s*inTransition\s*\?\s*110\s*:\s*0/);
+	assert.match(css, /@keyframes\s+voyageEntryTitleReveal/);
+	assert.match(css, /@keyframes\s+voyageFoldReveal/);
 });

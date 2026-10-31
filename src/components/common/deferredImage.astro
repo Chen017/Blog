@@ -26,7 +26,7 @@ const markup = await Astro.slots.render("default");
                 else this.reveal();
             };
             const homeTransition = window.__voyageHomeTransition;
-            if (homeTransition?.finished && document.documentElement.hasAttribute("data-voyage-home-fold-deferred")) {
+            if (homeTransition?.finished) {
                 void homeTransition.finished.then(startObserve, startObserve);
             } else {
                 startObserve();
