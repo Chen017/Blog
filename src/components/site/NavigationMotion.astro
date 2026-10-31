@@ -9,16 +9,6 @@
   const post = value => value.startsWith('/posts/');
   const tabs = ['/', '/archive/', '/friends/', '/about/'];
   const tabSet = new Set(tabs);
-  const activeNavHref = target => target === '/' ? '/' : (post(target) || /^\/\d+\/$/.test(target) ? '/archive/' : target);
-  const syncNav = target => {
-    const current = activeNavHref(target);
-    document.querySelectorAll?.('#voyage-afterhours .nv-nav a[href]').forEach(link => {
-      const href = link.getAttribute?.('href');
-      const active = (current === '/' && (href === '/' || href === '#nv-home')) || href === current;
-      if (active) link.setAttribute?.('aria-current', 'page');
-      else link.removeAttribute?.('aria-current');
-    });
-  };
   const resolveCardScroll = card => {
     let y = typeof window.scrollY === 'number' ? window.scrollY : 0;
     try {
@@ -353,9 +343,9 @@
     document.documentElement.removeAttribute("data-voyage-home-transition");
     document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
     document.documentElement.removeAttribute("data-voyage-home-fold-reveal");
+    document.documentElement.removeAttribute("data-voyage-hero-capture");
     document.querySelectorAll('[style*="voyage-entry-title"]').forEach(node => node.style.removeProperty('view-transition-name'));
     const from = path(event.from), to = path(event.to);
-    syncNav(to);
     const link = event.sourceElement?.closest?.('a[href]');
     const card = link?.closest('[data-entry-route]');
     if (card && !post(from) && post(to)) {
@@ -403,6 +393,12 @@
       if (shouldDeferIncomingFold) {
         incoming?.documentElement?.setAttribute?.("data-voyage-home-fold-deferred", "");
       }
+      // Capture the returning hero title separately from the sliding root image,
+      // so its additive blend is composited against the same sky as the live DOM.
+      // Leave Post -> Home shared-title transitions unchanged.
+      if (to === '/' && !selected && event.viewTransition && document.documentElement.dataset?.motion !== 'off') {
+        incoming?.documentElement?.setAttribute?.("data-voyage-hero-capture", "");
+      }
       const transition = event.viewTransition;
       const current = generation;
       const clearHomeFlags = () => {
@@ -410,6 +406,7 @@
         const wasDeferred = document.documentElement.hasAttribute("data-voyage-home-fold-deferred");
         document.documentElement.removeAttribute("data-voyage-home-transition");
         document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
+        document.documentElement.removeAttribute("data-voyage-hero-capture");
         if (to === '/' && (wasDeferred || shouldDeferIncomingFold)) {
           document.documentElement.setAttribute("data-voyage-home-fold-reveal", "");
           setTimeout(() => {

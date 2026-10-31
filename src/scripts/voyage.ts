@@ -267,8 +267,10 @@ function initializeVoyage(
 
 	function playOpening() {
 		stopMotion();
+		// Keep the opening guard until the longest animation finishes. It must
+		// not be removed immediately after scheduling the delayed animations.
 		const ease = "cubic-bezier(.16,.8,.2,1)";
-		animate(
+		const first = animate(
 			get(".nv-title-first"),
 			[
 				{ opacity: 0.45, filter: "blur(3px)", translate: "0 12px" },
@@ -276,7 +278,7 @@ function initializeVoyage(
 			],
 			{ duration: 1800, delay: 450, fill: "both", easing: ease },
 		);
-		animate(
+		const second = animate(
 			get("h1 em"),
 			[
 				{ opacity: 0.45, filter: "blur(3px)", translate: "0 18px" },
@@ -284,7 +286,7 @@ function initializeVoyage(
 			],
 			{ duration: 2100, delay: 550, fill: "both", easing: ease },
 		);
-		animate(
+		const horizon = animate(
 			get(".nv-horizon"),
 			[
 				{ opacity: 0.4, translate: "0 15px" },
@@ -292,6 +294,15 @@ function initializeVoyage(
 			],
 			{ duration: 2300, delay: 450, fill: "both", easing: ease },
 		);
+		const opening = [first, second, horizon].filter(
+			(animation): animation is Animation => Boolean(animation),
+		);
+		void Promise.allSettled(opening.map((animation) => animation.finished)).then(() => {
+			if (signal.aborted || !root.isConnected) return;
+			// CSS already represents the final frame; discard filled animations.
+			document.documentElement.removeAttribute("data-voyage-opening");
+			for (const animation of opening) animation.cancel();
+		});
 	}
 
 	function attachHomeInteractions() {
@@ -530,6 +541,7 @@ function initializeVoyage(
 		// NavigationMotion.astro exclusively owns fold flags and their timed reveal.
 		// Home only attaches its deferred interactions once the transition settles.
 		attachHomeInteractions();
+		let openingStarted = false;
 		try {
 			if (
 				!sessionStorage.getItem("voyage:opened") &&
@@ -538,12 +550,13 @@ function initializeVoyage(
 				canMove()
 			) {
 				sessionStorage.setItem("voyage:opened", "true");
+				openingStarted = true;
 				playOpening();
 			}
 		} catch {
 			/* A blocked storage area simply skips the opening. */
 		}
-		document.documentElement.removeAttribute("data-voyage-opening");
+		if (!openingStarted) document.documentElement.removeAttribute("data-voyage-opening");
 		announcePageReady();
 	}
 

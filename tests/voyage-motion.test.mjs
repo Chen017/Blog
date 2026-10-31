@@ -416,6 +416,17 @@ test("opening animation on direct visit uses original timing and easing", async 
 	const titleFirst = new ElementStub();
 	const titleEm = new ElementStub();
 	const horizon = new ElementStub();
+	const finishers = [];
+	for (const element of [titleFirst, titleEm, horizon]) {
+		const original = element.animate.bind(element);
+		element.animate = (...args) => {
+			const animation = original(...args);
+			animation.finished = new Promise(resolve => finishers.push(resolve));
+			return animation;
+		};
+	}
+	const html = new ElementStub();
+	html.setAttribute("data-voyage-opening", "");
 	elements.set(".nv-title-first", titleFirst);
 	elements.set("h1 em", titleEm);
 	elements.set(".nv-horizon", horizon);
@@ -436,7 +447,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 		PAGE_BEFORE_REPLACE: "before-replace",
 		document: {
 			hidden: false,
-			documentElement: new ElementStub(),
+			documentElement: html,
 			getElementById: (id) => (id === "voyage-afterhours" ? root : null),
 			addEventListener: () => {},
 			dispatchEvent: (event) => events.push(event.type),
@@ -467,6 +478,11 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.equal(horizon.animations[0].options.duration, 2300);
 	assert.equal(horizon.animations[0].options.delay, 450);
 	assert.ok(events.includes("twilight:page:loaded"));
+	assert.equal(html.attributes["data-voyage-opening"], "", "opening guard must survive the entire running animation");
+	finishers.forEach(resolve => resolve());
+	await new Promise(resolve => setImmediate(resolve));
+	assert.equal(html.attributes["data-voyage-opening"], undefined, "opening guard is removed after completion");
+	assert.equal(titleEm.animations[0].cancelled, true, "completed filled animation no longer overrides final CSS");
 });
 
 test("Solutions 1A + 2A + 3A and Post -> Home exit title morph: unclipped overscan, zero-jump pointer, star pause, heading reveal, and viewport scroll alignment", async () => {
@@ -609,4 +625,14 @@ test("navigation settlement has one reader and page-specific imports are generat
  assert.match(features, /navigationGeneration\+\+/);
  assert.match(features, /if \(!isCurrent\(\)\) return;/);
  assert.doesNotMatch(features, /document\.addEventListener\('astro:before-swap'/);
+});
+
+
+test("Home headline is never targeted by generic heading motion", async () => {
+ const source = await readFile("src/scripts/heading-motion.ts", "utf8");
+ const css = await readFile("src/styles/voyage.css", "utf8");
+ assert.doesNotMatch(source, /\.nv-titleblock h1:not\(\[data-motion-ready\]\)/, "only voyage.ts animates the Home title");
+ assert.doesNotMatch(source, /const hero = el\.matches/, "retired cross-controller Home exception is removed");
+ assert.doesNotMatch(css, /data-voyage-preparing\]:not\(\[data-voyage-opening\]\)[^}]*\.nv-titleblock h1/, "stale generic hero reveal styles are removed");
+ assert.match(css, /data-voyage-opening[^}]*\.nv-titleblock h1 em/, "only the first-visit opening state prepares the hero");
 });
