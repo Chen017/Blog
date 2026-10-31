@@ -9,8 +9,13 @@ body.voyage-home { margin: 0; background: #080c17; }
   html[data-voyage-opening] #voyage-afterhours :is(.nv-title-first,.nv-titleblock h1 em) { opacity:.45; filter:blur(3px); translate:0 12px; }
   html[data-voyage-opening] #voyage-afterhours .nv-titleblock h1 em { translate:0 18px; }
   html[data-voyage-opening] #voyage-afterhours .nv-horizon { opacity:.4; translate:0 15px; }
-  /* Match the returning Space. snapshot to the first frame of its reveal.
-     Keep colour/opacity unchanged to preserve PR #9 additive compositing. */
+  /* Stage both title lines before the incoming Home snapshot, exactly
+     matching their WAAPI first frames to avoid a post-swap position jump. */
+  html[data-voyage-return-prepared] .voyage-home #voyage-afterhours .nv-title-first {
+    opacity: .45;
+    filter: blur(3px);
+    translate: 0 12px;
+  }
   html[data-voyage-return-prepared] .voyage-home #voyage-afterhours .nv-titleblock h1 em {
     translate: 0 8px;
     rotate: -2deg;
