@@ -415,6 +415,7 @@ test("menu keeps correct selection timing and planet texture stays stable across
  assert.doesNotMatch(nav, /data-voyage-hero-capture|voyage-hero-title/, "no abandoned hero snapshot route remains");
  assert.doesNotMatch(css, /data-voyage-hero-capture|voyage-hero-title|voyageHeroFromLeft/, "no orphaned title capture style remains");
  assert.doesNotMatch(css, /\.nv-horizon-grain\s*\{\s*display:\s*none\s*!important/, "planet texture must not disappear during a transition");
+ assert.match(css, /html\[data-voyage-return-prepared\][^{]*\.nv-title-first\s*\{[^}]*opacity:\s*\.45;[^}]*filter:\s*blur\(3px\);[^}]*translate:\s*0 12px;/, "Etalib's is prepared before incoming View Transition snapshot");
  assert.match(css, /html\[data-voyage-return-prepared\][^{]*\.nv-titleblock h1 em\s*\{[^}]*translate:\s*0 8px;[^}]*rotate:\s*-2deg;/, "return pose is fixed before View Transition screenshot capture");
  assert.match(css, /\.nv-horizon-grain\s*\{[^}]*opacity:\s*\.07/, "planet texture retains original 7% opacity");
  assert.doesNotMatch(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/, "navigation cannot dim the blended Home headline");
