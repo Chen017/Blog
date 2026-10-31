@@ -49,6 +49,8 @@ function initializeVoyage(
 	let pointerFrame = 0;
 	let pointerX = 0;
 	let pointerY = 0;
+	let pointerOriginX: number | null = null;
+	let pointerOriginY: number | null = null;
 	const animations = new Set<Animation>();
 	const canMove = () => !reduced.matches && !document.hidden;
 
@@ -66,15 +68,19 @@ function initializeVoyage(
 		return animation;
 	}
 
-	function stopMotion() {
+	function stopMotion(resetParallax = true) {
 		for (const animation of animations) animation.cancel();
 		animations.clear();
 		orbitPlaying = false;
 		cancelAnimationFrame(pointerFrame);
 		pointerFrame = 0;
+		pointerOriginX = null;
+		pointerOriginY = null;
 		stopGraph();
-		page.style.setProperty("--nv-px", "0");
-		page.style.setProperty("--nv-py", "0");
+		if (resetParallax) {
+			page.style.setProperty("--nv-px", "0");
+			page.style.setProperty("--nv-py", "0");
+		}
 	}
 
 	function syncMotion() {
@@ -302,12 +308,21 @@ function initializeVoyage(
 			if (!canMove() || event.pointerType === "touch") return;
 			const bounds = hero.getBoundingClientRect();
 			const clamp = (value: number) => Math.max(-1, Math.min(1, value));
-			pointerX = clamp(
+			const rawX = clamp(
 				((event.clientX - bounds.left) / bounds.width - 0.5) * 2.5,
 			);
-			pointerY = clamp(
+			const rawY = clamp(
 				((event.clientY - bounds.top) / bounds.height - 0.5) * 2.5,
 			);
+			if (pointerOriginX === null || pointerOriginY === null) {
+				pointerOriginX = rawX;
+				pointerOriginY = rawY;
+			} else {
+				pointerOriginX *= 0.92;
+				pointerOriginY *= 0.92;
+			}
+			pointerX = clamp(rawX - pointerOriginX);
+			pointerY = clamp(rawY - pointerOriginY);
 			if (pointerFrame) return;
 			pointerFrame = requestAnimationFrame(() => {
 				pointerFrame = 0;
@@ -318,6 +333,8 @@ function initializeVoyage(
 		hero.addEventListener("pointerleave", () => {
 			cancelAnimationFrame(pointerFrame);
 			pointerFrame = 0;
+			pointerOriginX = null;
+			pointerOriginY = null;
 			page.style.setProperty("--nv-px", "0");
 			page.style.setProperty("--nv-py", "0");
 		});
@@ -411,7 +428,7 @@ function initializeVoyage(
 		"pagehide",
 		(event) => {
 			saveState();
-			stopMotion();
+			stopMotion(false);
 			document.dispatchEvent(new Event(CLOSE_PANELS));
 			document.dispatchEvent(
 				new CustomEvent(PAGE_BEFORE_REPLACE, {
@@ -434,7 +451,7 @@ function initializeVoyage(
 	);
 	signal.addEventListener("abort", () => {
 		saveState();
-		stopMotion();
+		stopMotion(false);
 	});
 	const browse = get<HTMLElement>(".nv-browse");
 	if (browse.hidden) browse.hidden = false;

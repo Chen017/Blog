@@ -430,6 +430,9 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 
 /* Entry navigation follows its title; the entire long page need not slide too. */
 html[data-voyage-entry-transition] #voyage-afterhours .nv-page { view-transition-name:none; }
+/* Prevent global img { max-width: 100% } resets from clipping the 40px parallax overscan (Solution 1A). */
+#voyage-afterhours .nv-photograph,
+#voyage-afterhours .nv-sky :is(picture, img) { max-width: none !important; }
 /* Entry navigation follows its title; root uses a calm 200ms fade instead of sliding. */
 html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-old(root) { animation: 200ms ease-out both voyageFadeOut !important; }
 html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new(root) { animation: 200ms ease-out both voyageFadeIn !important; }
@@ -438,17 +441,14 @@ html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-grou
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(voyage-page) { animation: none; overflow: clip; }
 html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-old(root),
 html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-old(voyage-page) { animation-duration: 200ms, 280ms; animation-delay: 40ms, 0ms; }
-/* Isolate below-the-fold homepage sections and collapse the 2843px DOM to a single 100vh viewport during top-menu transitions. */
+/* Isolate below-the-fold homepage sections and skip their rendering during top-menu transitions while preserving document scroll geometry (Solution 2A). */
 .voyage-home #voyage-afterhours .nv-grid { content-visibility: auto; contain-intrinsic-size: auto 1200px; }
 .voyage-home #voyage-afterhours :is(.nv-signoff, .nv-footer) { content-visibility: auto; contain-intrinsic-size: auto 160px; }
-html[data-voyage-home-fold-deferred] body.voyage-home,
-html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours,
-html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours .nv-page { max-height: 100vh !important; overflow: clip !important; }
-html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours :is(.nv-grid, .nv-end, .nv-signoff, .nv-footer) { display: none !important; content-visibility: hidden; contain-intrinsic-size: auto 1200px; }
-/* Freeze internal DOM transitions, 340 SVG star animations, scroll timelines, and heavy filters while View Transition textures are captured and composited. */
+html[data-voyage-home-fold-deferred] .voyage-home #voyage-afterhours :is(.nv-grid, .nv-end, .nv-signoff, .nv-footer) { content-visibility: hidden !important; contain-intrinsic-size: auto 1500px; }
+/* Pause star twinkle in-place (preserving scale/opacity phase without snapping) and suppress internal CSS transitions during View Transitions (Solution 2A). */
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours *,
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours *::before,
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours *::after { transition: none !important; }
-html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours :is(.nv-twinkle, .nv-sky) { animation: none !important; }
+html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours :is(.nv-twinkle, .nv-sky) { animation-play-state: paused !important; }
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours .nv-horizon-grain { display: none !important; }
 html:is([data-astro-transition], [data-voyage-home-transition]) #voyage-afterhours .nv-titleblock h1 { mix-blend-mode: normal !important; }

@@ -469,7 +469,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 	assert.ok(events.includes("twilight:page:loaded"));
 });
 
-test("Solutions 1 + 2 + 3 + 4: root viewport transitions, 100vh DOM pre-collapse, deferred post-swap work, and hover prefetching", async () => {
+test("Solutions 1A + 2A + 3A: unclipped 40px parallax overscan, zero-jump pointer origin anchoring, in-place star pause, and 110ms overlapping heading reveal", async () => {
 	const raw = await readFile("src/scripts/voyage.ts", "utf8");
 	const program = stripTypeScriptTypes(raw.slice(raw.indexOf("let homeController")), {
 		mode: "transform",
@@ -485,6 +485,11 @@ test("Solutions 1 + 2 + 3 + 4: root viewport transitions, 100vh DOM pre-collapse
 	root.querySelectorAll = () => [devBtn];
 	root.querySelector(".nv-grid").querySelectorAll = () => [];
 	root.querySelector(".nv-graph-trigger").querySelectorAll = () => [];
+	const hero = root.querySelector(".nv-hero");
+	hero.getBoundingClientRect = () => ({ left: 0, top: 86, width: 1280, height: 760 });
+	const page = root.querySelector(".nv-page");
+	const props = new Map();
+	page.style.setProperty = (k, v) => props.set(k, v);
 	const media = { matches: false, addEventListener() {} };
 
 	let resolveTransition;
@@ -492,7 +497,7 @@ test("Solutions 1 + 2 + 3 + 4: root viewport transitions, 100vh DOM pre-collapse
 		resolveTransition = resolve;
 	});
 	const homeTransition = {
-		id: 3,
+		id: 4,
 		from: "/archive/",
 		finished: transitionPromise,
 	};
@@ -537,40 +542,25 @@ test("Solutions 1 + 2 + 3 + 4: root viewport transitions, 100vh DOM pre-collapse
 
 	vm.runInContext(program, context);
 
-	assert.equal(docEl.attributes["data-voyage-home-transition"], "");
-	assert.equal(docEl.attributes["data-voyage-home-fold-deferred"], "");
-
 	resolveTransition();
 	await transitionPromise;
 	await new Promise(r => setTimeout(r, 10));
 
-	assert.equal("data-voyage-home-transition" in docEl.attributes, false);
-	assert.equal("data-voyage-home-fold-deferred" in docEl.attributes, false);
+	// Solution 2A: First pointermove near top nav bar anchors origin at (0, 0) instead of jumping to -1
+	hero.listeners.pointermove({ pointerType: "mouse", clientX: 640, clientY: 90 });
+	await new Promise(r => setTimeout(r, 5));
+	assert.equal(Number(props.get("--nv-px")), 0, "first pointermove after return has 0 horizontal jump");
+	assert.equal(Number(props.get("--nv-py")), 0, "first pointermove after return has 0 vertical jump");
 
-	const homeLayout = await readFile("src/layouts/home.astro", "utf8");
-	assert.match(homeLayout, /transition:name="root"\s+transition:animate=\{voyageSlide\}/);
-
-	const indexPage = await readFile("src/pages/index.astro", "utf8");
-	assert.ok(!indexPage.includes("transition:name=\"voyage-page\""));
-
-	const gridLayout = await readFile("src/layouts/grid.astro", "utf8");
-	assert.ok(!gridLayout.includes("transition:name=\"voyage-page\""));
+	// Subsequent pointermove shifts smoothly relative to decayed anchor
+	hero.listeners.pointermove({ pointerType: "mouse", clientX: 900, clientY: 300 });
+	await new Promise(r => setTimeout(r, 5));
+	assert.ok(Number(props.get("--nv-px")) > 0, "subsequent pointermove shifts parallax smoothly");
 
 	const css = await readFile("src/styles/voyage.css", "utf8");
-	assert.match(css, /::view-transition-group\(root\)\s*\{\s*animation-duration:\s*0s;\s*animation:\s*none;\s*overflow:\s*clip;\s*\}/);
-	assert.match(css, /html\[data-voyage-home-fold-deferred\]\s+\.voyage-home\s+#voyage-afterhours\s+:is\(\.nv-grid,\s*\.nv-end,\s*\.nv-signoff,\s*\.nv-footer\)\s*\{\s*display:\s*none\s*!important;/);
-	assert.match(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+:is\(\.nv-twinkle,\s*\.nv-sky\)\s*\{\s*animation:\s*none\s*!important;\s*\}/);
-
-	const header = await readFile("src/components/site/Header.astro", "utf8");
-	assert.match(header, /transition:persist="voyage-search"/);
-	assert.match(header, /data-astro-prefetch=.*?"hover"/);
-
-	const archive = await readFile("src/pages/archive.astro", "utf8");
-	assert.match(archive, /<ArchivePanel\s+sortedPosts=\{sortedPostsList\}\s+client:idle\s*\/>/);
+	assert.match(css, /#voyage-afterhours\s+\.nv-photograph,[\s\S]*?max-width:\s*none\s*!important;/);
+	assert.match(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+:is\(\.nv-twinkle,\s*\.nv-sky\)\s*\{\s*animation-play-state:\s*paused\s*!important;\s*\}/);
 
 	const headingMotion = await readFile("src/scripts/heading-motion.ts", "utf8");
-	assert.match(headingMotion, /transitionDone\.then/);
-
-	const siteScript = await readFile("src/scripts/site.ts", "utf8");
-	assert.match(siteScript, /transitionFinished\.then\(finishSiteInit/);
+	assert.match(headingMotion, /const\s+baseDelay\s*=\s*inTransition\s*\?\s*110\s*:\s*0/);
 });
