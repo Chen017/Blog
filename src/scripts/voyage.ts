@@ -306,17 +306,18 @@ function initializeVoyage(
 	}
 
 	function playReturnFlourish() {
-		// The transition snapshot has already settled. Start at the resting
-		// pose and preserve opacity so the additive title light never flashes.
-		animate(
+		// Restore the original one-way Space. entrance, not an up-and-down nod.
+		// Keep the text fully opaque to preserve the PR #9 blend/brightness fix.
+		const flourish = animate(
 			get("h1 em"),
 			[
-				{ translate: "0 0", rotate: "0deg", offset: 0 },
-				{ translate: "0 -6px", rotate: "-1.5deg", offset: 0.38 },
-				{ translate: "0 0", rotate: "0deg", offset: 1 },
+				{ translate: "0 8px", rotate: "-2deg" },
+				{ translate: "0 0", rotate: "0deg" },
 			],
-			{ duration: 820, easing: "cubic-bezier(.16,.8,.2,1)" },
+			{ duration: 820, delay: 190, fill: "both", easing: "cubic-bezier(.16,.8,.2,1)" },
 		);
+		// Match the former generic-heading owner: release fill after completion.
+		void flourish?.finished.then(() => flourish.cancel(), () => {});
 	}
 
 	function attachHomeInteractions() {
