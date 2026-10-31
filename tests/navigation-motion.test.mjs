@@ -169,7 +169,6 @@ test("Astro navigation preserves outgoing menu state, caches main routes and hov
  // CSS ownership: Astro ClientRouter must own <head> swaps (no outgoing CSS clones).
  // Solution B1: Post -> Home synchronously unwraps <deferred-cover> templates in incoming document before snapshot capture
  windowObj.scrollY = 0;
- const postIncomingAttrs = new Map();
  let coverUnwrapped = false;
  let unrelatedCoverUnwrapped = false;
  let coverLoadedAttr = null;
@@ -192,14 +191,12 @@ test("Astro navigation preserves outgoing menu state, caches main routes and hov
  handlers["astro:before-swap"]({
   to:new URL("https://example.com/"),
   newDocument:{
-   documentElement: { setAttribute(k, v) { postIncomingAttrs.set(k, v); } },
    getElementById:() => card,
    querySelectorAll: sel => sel === "deferred-cover" ? [mockCover, unrelatedCover] : [],
   },
   viewTransition:{finished:new Promise(() => {})},
  });
  assert.equal(cardTitle.style.viewTransitionName, "voyage-entry-title");
- assert.equal(postIncomingAttrs.has("data-voyage-hero-capture"), false, "Post -> Home preserves the shared-title transition");
  assert.equal(coverUnwrapped, true, "Post -> Home unwraps <deferred-cover> template before snapshot capture");
  assert.equal(unrelatedCoverUnwrapped, false, "Post -> Home preserves unrelated lazy cover templates");
  assert.equal(coverLoadedAttr, "true", "marks unwrapped cover as data-loaded=true to skip 360ms fade replay");
@@ -251,14 +248,12 @@ test("Astro navigation preserves outgoing menu state, caches main routes and hov
  assert.ok(typeof windowObj.__voyageHomeTransition.id === "number");
  assert.ok(windowObj.__voyageHomeTransition.finished instanceof Promise);
  assert.equal(incomingAttrs.has("data-voyage-home-transition"), true, "marks incoming document for Home boundary transition");
- assert.equal(incomingAttrs.has("data-voyage-hero-capture"), true, "menu return captures the Home hero separately");
  assert.equal(incomingAttrs.has("data-voyage-home-fold-deferred"), true, "marks incoming Home document for below-fold deferral");
  resolveFriendsTransition();
  await vtFriends.finished;
  await Promise.resolve();
  assert.equal(rootAttrs.has("data-voyage-home-transition"), false, "clears Home boundary flag after transition finishes");
  assert.equal(rootAttrs.has("data-voyage-home-fold-deferred"), false, "clears below-fold deferral flag after transition finishes");
- assert.equal(rootAttrs.has("data-voyage-hero-capture"), false, "hero capture marker clears after settlement");
  assert.equal(rootAttrs.has("data-voyage-home-fold-reveal"), true, "triggers post-load fold reveal animation after Home transition finishes");
 
  handlers["astro:before-preparation"]({ from: new URL("https://example.com/about/"), to: new URL("https://example.com/") });
@@ -406,7 +401,7 @@ test("mobile soft-expired pages stay instant while refreshes are serialized and 
 });
 
 
-test("menu navigation and returning-Home hero capture avoid the old flash state", async () => {
+test("menu keeps correct selection timing and planet texture stays stable across navigation", async () => {
  const css = await readFile("src/styles/voyage.css", "utf8");
  const header = await readFile("src/components/site/Header.astro", "utf8");
  const nav = await readFile("src/components/site/NavigationMotion.astro", "utf8");
@@ -414,7 +409,9 @@ test("menu navigation and returning-Home hero capture avoid the old flash state"
  assert.match(header, /aria-current=\{link\.active\s*\?\s*"page"/, "the incoming header owns its active state");
  assert.doesNotMatch(css, /\.nv-nav a:active\s*\{\s*opacity:\s*\.78;\s*translate:/, "touch never shifts or fades nav text");
  assert.match(css, /@media\s*\(hover:hover\)\s*and\s*\(pointer:fine\)/, "sticky mobile hover is excluded");
- assert.match(css, /data-voyage-hero-capture[^}]*view-transition-name:\s*voyage-hero-title/s);
- assert.match(css, /::view-transition-group\(voyage-hero-title\)[^{]*\{[^}]*mix-blend-mode:\s*plus-lighter/, "the group blends against the sky outside the isolated image pair");
+ assert.doesNotMatch(nav, /data-voyage-hero-capture|voyage-hero-title/, "no abandoned hero snapshot route remains");
+ assert.doesNotMatch(css, /data-voyage-hero-capture|voyage-hero-title|voyageHeroFromLeft/, "no orphaned title capture style remains");
+ assert.doesNotMatch(css, /\.nv-horizon-grain\s*\{\s*display:\s*none\s*!important/, "planet texture must not disappear during a transition");
+ assert.match(css, /\.nv-horizon-grain\s*\{[^}]*opacity:\s*\.07/, "planet texture retains original 7% opacity");
  assert.match(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/);
 });
