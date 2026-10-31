@@ -113,6 +113,7 @@
       if (res.status === 404 || res.status === 410) {
         cache.delete(key);
         times.delete(key);
+        retryAfter.delete(key);
         return;
       }
       const type = res.headers?.get?.('content-type') || '';
@@ -146,6 +147,7 @@
     if (tooOld(times, key) && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
       cache.delete(key);
       times.delete(key);
+      retryAfter.delete(key);
       return;
     }
     if (stale(times, key)) queueRefresh(key, cache, times);
@@ -212,6 +214,7 @@
             if (oldest && oldest !== key) {
               postCache.delete(oldest);
               postCacheTime.delete(oldest);
+              retryAfter.delete(oldest);
             }
           }
           return new Response(entry.body, entry);
