@@ -267,15 +267,8 @@
     const vtFinished = event.viewTransition?.finished;
     window.__voyageTransitionFinished = vtFinished ? vtFinished.then(() => {}, () => {}) : Promise.resolve();
     document.querySelectorAll?.('[data-entry-pressing]').forEach(el => el.removeAttribute?.('data-entry-pressing'));
-    if (incoming?.head && document.head?.querySelectorAll) {
-      document.head.querySelectorAll('link[rel="stylesheet"][href^="/_astro/"]').forEach(link => {
-        const href = link.getAttribute?.('href');
-        if (href && !incoming.head.querySelector?.(`link[rel="stylesheet"][href="${href}"]`)) {
-          const clone = link.cloneNode ? link.cloneNode(true) : null;
-          if (clone) incoming.head.appendChild?.(clone);
-        }
-      });
-    }
+    // Astro's ClientRouter swaps page-specific stylesheets and preserves shared ones.
+    // Do not copy outgoing CSS into the incoming head: it leaks interior styles to Home.
     const homeBoundary = (from === '/' || to === '/') && from !== to;
     if (homeBoundary) {
       incoming?.documentElement?.setAttribute?.("data-voyage-home-transition", "");
