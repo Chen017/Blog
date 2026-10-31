@@ -591,3 +591,12 @@ test("Solutions 1A + 2A + 3A and Post -> Home exit title morph: unclipped oversc
 	assert.match(deferredAstro, /if\s*\(homeTransition\?\.finished\s*&&\s*isFoldDeferred\)/);
 	assert.match(css, /@keyframes\s+voyageFoldReveal/);
 });
+
+
+test("card scroll target survives both click and teardown saves", async () => {
+ const source = await readFile("src/scripts/voyage.ts", "utf8");
+ assert.match(source, /let pendingEntryScroll: number \| null = null;/);
+ assert.match(source, /const effectiveScroll = pendingEntryScroll \?\? \(currentScroll > 0 \? currentScroll : fallbackScroll\);/);
+ assert.match(source, /pendingEntryScroll = targetScroll;/);
+ assert.match(source, /signal\.addEventListener\("abort", \(\) => \{\s*saveState\(\);/);
+});
