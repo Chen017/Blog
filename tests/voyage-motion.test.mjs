@@ -302,6 +302,20 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.ok(!events.includes("twilight:page:loaded"), "announcePageReady deferred until transition finished");
 	// The live ::view-transition-new(root) image must already contain the
 	// moving Space. heading; controls still wait for the slide to finish.
+	const etalib = elements.get(".nv-title-first")?.animations[0];
+	assert.ok(etalib, "Etalib's begins its entry animation during the incoming Home slide");
+	assert.equal(elements.get(".nv-title-first").animations.length, 1, "Etalib's has only one animation owner");
+	assert.equal(etalib.options.duration, 580, "the Home heading matches other pages' 580ms title reveal");
+	assert.equal(etalib.options.delay, 110, "the Home heading starts with other pages' 110ms navigation delay");
+	assert.equal(etalib.options.fill, "both", "the heading stays at its prepared pose until its reveal starts");
+	assert.equal(etalib.options.easing, "cubic-bezier(.16,.8,.2,1)");
+	assert.equal(etalib.keyframes.length, 2);
+	assert.equal(etalib.keyframes[0].opacity, 0.45, "start with the first-visit heading transparency");
+	assert.equal(etalib.keyframes[0].filter, "blur(3px)", "start with the first-visit heading blur");
+	assert.equal(etalib.keyframes[0].translate, "0 12px", "start below the final line");
+	assert.equal(etalib.keyframes[1].opacity, 1);
+	assert.equal(etalib.keyframes[1].filter, "blur(0)");
+	assert.equal(etalib.keyframes[1].translate, "0 0");
 	const flourish = elements.get("h1 em")?.animations[0];
 	assert.ok(flourish, "Space. begins animating while the page slide is still running");
 	assert.equal(elements.get("h1 em").animations.length, 1, "one animation owner even before transition completion");
@@ -316,6 +330,7 @@ test("Home navigation splits initialization into visual state preparation and po
 	assert.ok(typeof devBtn.listeners.click === "function", "click listener attached after transition finishes");
 	assert.ok(typeof graph.listeners.focus === "function", "graph focus listener attached after transition finishes");
 	assert.ok(events.includes("twilight:page:loaded"), "announcePageReady fired after transition finishes");
+	assert.equal(elements.get(".nv-title-first").animations.length, 1, "finishing the slide must not replay Etalib's reveal");
 	assert.equal(elements.get("h1 em").animations.length, 1, "finishing the page slide must not replay the Space. animation");
 	assert.equal(flourish.options.duration, 820, "return keeps the original 820ms entrance duration");
 	assert.equal(flourish.options.delay, 190, "match the other headings' 110ms navigation + 80ms flourish delay");
@@ -416,6 +431,7 @@ test("navigation abort before transition finished cancels stage 2 initialization
 	assert.equal(devBtn.listeners.click, undefined, "aborted transition leaves stage 2 unattached");
 	assert.ok(!events.includes("twilight:page:loaded"), "aborted transition does not announce page ready");
 	assert.equal(elements.has("h1 em"), false, "aborted navigation does not replay the Space. flourish");
+	assert.equal(elements.has(".nv-title-first"), false, "aborted navigation does not replay the Etalib's reveal");
 });
 
 test("opening animation on direct visit uses original timing and easing", async () => {
@@ -495,6 +511,7 @@ test("opening animation on direct visit uses original timing and easing", async 
 	vm.runInContext(program, context);
 
 	assert.equal(storage.get("voyage:opened"), "true");
+	assert.equal(titleFirst.animations.length, 1, "first load retains exactly one original Etalib's opening effect");
 	assert.equal(titleFirst.animations[0].options.duration, 1800);
 	assert.equal(titleFirst.animations[0].options.delay, 450);
 	assert.equal(titleFirst.animations[0].options.easing, "cubic-bezier(.16,.8,.2,1)");
