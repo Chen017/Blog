@@ -412,6 +412,6 @@ test("menu navigation and returning-Home hero capture avoid the old flash state"
  assert.doesNotMatch(css, /\.nv-nav a:active\s*\{\s*opacity:\s*\.78;\s*translate:/, "touch never shifts or fades nav text");
  assert.match(css, /@media\s*\(hover:hover\)\s*and\s*\(pointer:fine\)/, "sticky mobile hover is excluded");
  assert.match(css, /data-voyage-hero-capture[^}]*view-transition-name:\s*voyage-hero-title/s);
- assert.match(css, /::view-transition-new\(voyage-hero-title\)[^{]*\{[^}]*mix-blend-mode:\s*plus-lighter/);
+ assert.match(css, /::view-transition-group\(voyage-hero-title\)[^{]*\{[^}]*mix-blend-mode:\s*plus-lighter/, "the group blends against the sky outside the isolated image pair");
  assert.match(css, /html:is\(\[data-astro-transition\],\s*\[data-voyage-home-transition\]\)\s+#voyage-afterhours\s+\.nv-titleblock h1\s*\{\s*mix-blend-mode:\s*normal/);
 });
