@@ -42,6 +42,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  };
  let fetchCalls = 0;
  let fakeNowMs = 1_000_000_000;
+ let responseVersion = 1;
  class MockResponse {
   constructor(body, init = {}) {
    this.body = body;
@@ -61,7 +62,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
   fetch: async (url, init) => {
    fetchedUrls.push({ url, priority: init?.priority });
    if (!String(url).includes("/_astro/")) fetchCalls++;
-   return new MockResponse(`<html><head><link rel="stylesheet" href="/_astro/test.css"><script type="module" src="/_astro/page.js"></script></head><body><astro-island component-url="/_astro/archivePanel.js" renderer-url="/_astro/client.js"></astro-island>${url}</body></html>`);
+   return new MockResponse(`<html data-cache-version="${responseVersion}"><head><link rel="stylesheet" href="/_astro/test.css"><script type="module" src="/_astro/page.js"></script></head><body><astro-island component-url="/_astro/archivePanel.js" renderer-url="/_astro/client.js"></astro-island>${url}</body></html>`);
   },
   addEventListener(name, fn) { windowHandlers[name] = fn; },
  };
@@ -100,8 +101,20 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  await windowObj.fetch("https://example.com/friends/", { cache: "reload" });
  assert.equal(fetchCalls, 3, "explicit reload requests bypass custom navigation cache");
  fakeNowMs += 5 * 60 * 1000 + 1;
- await windowObj.fetch("https://example.com/friends/");
- assert.equal(fetchCalls, 4, "expired cached HTML is refetched to avoid stale deployments");
+ responseVersion = 2;
+ const staleMenuRes = await windowObj.fetch("https://example.com/friends/");
+ assert.equal(fetchCalls, 3, "a soft-expired menu responds from memory without blocking on the network");
+ assert.equal(await staleMenuRes.text(), await firstMenuRes.text(), "soft expiry preserves an immediately usable snapshot");
+ await new Promise(resolve => setTimeout(resolve, 10));
+ assert.equal(fetchCalls, 4, "the stale menu is revalidated once, in the background");
+ const refreshedMenuRes = await windowObj.fetch("https://example.com/friends/");
+ assert.ok((await refreshedMenuRes.text()).includes('data-cache-version="2"'), "subsequent navigation sees the refreshed HTML");
+ assert.equal(fetchCalls, 4, "freshly revalidated HTML is reused");
+ fakeNowMs += 60 * 60 * 1000 + 1;
+ responseVersion = 3;
+ const tooOldMenuRes = await windowObj.fetch("https://example.com/friends/");
+ assert.ok((await tooOldMenuRes.text()).includes('data-cache-version="3"'), "very old HTML cannot remain stale indefinitely");
+ assert.equal(fetchCalls, 5, "the hard staleness cap requires a new fetch");
  assert.deepEqual(
   fetchedUrls.filter(item => String(item.url).includes("/_astro/")),
   [
@@ -114,7 +127,7 @@ test("Astro navigation pairs the selected title, updates active nav state immedi
  );
  await windowObj.fetch("https://example.com/posts/unwarmed/");
  await windowObj.fetch("https://example.com/posts/unwarmed/");
- assert.equal(fetchCalls, 6, "unwarmed post routes are not cached indiscriminately");
+ assert.equal(fetchCalls, 7, "unwarmed post routes are not cached indiscriminately");
 
  // Solution A1: pointerdown / hover on a card pre-warms postCache so clicking serves from memory in 0ms
  windowHandlers.pointerdown({ type: "pointerdown", target: { closest: () => link } });
