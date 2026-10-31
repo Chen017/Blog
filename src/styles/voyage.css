@@ -9,6 +9,12 @@ body.voyage-home { margin: 0; background: #080c17; }
   html[data-voyage-opening] #voyage-afterhours :is(.nv-title-first,.nv-titleblock h1 em) { opacity:.45; filter:blur(3px); translate:0 12px; }
   html[data-voyage-opening] #voyage-afterhours .nv-titleblock h1 em { translate:0 18px; }
   html[data-voyage-opening] #voyage-afterhours .nv-horizon { opacity:.4; translate:0 15px; }
+  /* Match the returning Space. snapshot to the first frame of its reveal.
+     Keep colour/opacity unchanged to preserve PR #9 additive compositing. */
+  html[data-voyage-return-prepared] .voyage-home #voyage-afterhours .nv-titleblock h1 em {
+    translate: 0 8px;
+    rotate: -2deg;
+  }
 }
 ::view-transition-group(root) { animation-duration: 0s; animation: none; overflow: clip; }
 ::view-transition-old(root), ::view-transition-new(root) { mix-blend-mode: normal; }
