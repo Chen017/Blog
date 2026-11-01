@@ -84,4 +84,4 @@ Run these sequentially: integration and production builds both write `dist/`. Br
 
 `src/`, `public/`, `cms/`, `scripts/`, and `tests/` contain maintained project files. `dist/`, `.astro/`, and `.vercel/` are generated output or local caches and can be removed when not in use. One-off investigation reports and logs stay out of Git.
 
-OAuth credentials are stored in GitHub Actions encrypted Secrets and delivered to the server's `.env`. Keep local credentials out of Git. PRs run validation; main pushes validate once and deploy the tested static artifact through Docker/Nginx. Weekly/manual checks add browser engines. See the maintenance guide for workflow details and required Secrets.
+OAuth credentials are stored in GitHub Actions encrypted Secrets and delivered to the server's `.env`. Keep local credentials out of Git. PRs run full validation; main pushes containing only posts or supported media build and deploy directly, while other changes run full validation first. Weekly/manual checks add browser engines. See the maintenance guide for workflow details and required Secrets.
