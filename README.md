@@ -1,42 +1,40 @@
-# Blog
+# Etalib’s Space
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A CMS integrated static blog template built with Astro framework and based on [Upstream](https://github.com/Spr-Aachen/Twilight)
+A personal space for mathematics, code, and the rest of life. Built with [Astro](https://astro.build/), Etalib’s Space brings writing, music, and small interactive details together under a quiet, celestial design.
 
-[**🖥️ Live Demo**](https://www.etalib.space)
-[**📝 Documentation**](https://docs.twilight.spr-aachen.com/en)
+[**🖥️ Visit the blog**](https://www.etalib.space) · [**📖 Writing**](https://www.etalib.space/archive/) · [**🎵 About & music**](https://www.etalib.space/about/)
 
-## ✨ Features
+![Desktop view of the Etalib’s Space home page, with a starry sky and a planetary horizon](docs/screenshots/home.jpg)
 
-Based on upstream, I have added some modifications and new features: 
+## ✨ The experience
 
-1. **Music card**
-   Feature **Gaussian blur**, **color picking**, **lyric scrolling vivid animation**, **song covers**, **customizable playback bars**. See the specific effects on [demo](https://www.etalib.space/about/)
+**A little space to wander.** The Voyage interface pairs a photographic night sky, a planet’s horizon, subtle grain and stars with expressive serif and sans-serif typography. Home, Writing, Links and About share the same visual language while giving each page room to breathe.
 
-   ![](image.png)
+**Motion with a sense of continuity.** Horizontal page transitions connect the main pages, while the Home title, editorial headings and article titles have their own carefully timed entrances. The Home lettering blends with the actual sky behind it. Keyboard, touch and browser history are supported, and reduced-motion preferences are respected.
 
-2. Remove translation and theme
+**Writing that is easy to explore.** Browse by year or subject, filter and sort the home collection, search the production site with Pagefind, and return to a previous reading position. Responsive layouts bring the same character to smaller screens.
 
-3. Change `Friend` to `Link`
+![Desktop view of the Writing archive and its year-by-year article list](docs/screenshots/writing.jpg)
 
-4. Optimize the Skill Cards
+**Music, made part of the page.** Custom music cards combine cover art, colors sampled from the cover, a softly blurred background, timed scrolling lyrics and playback controls. They support uploaded audio as well as external audio links. [See one on About →](https://www.etalib.space/about/)
 
-5. Media lazy loading
-   Integrated automated lazy loading for images, videos, and iframes across markdown and MDX.
+![Desktop view of the music card and its playback controls on the About page](docs/screenshots/music.jpg)
 
-6. Disable Exhibition
-   Disabled the exhibition module, closed the navigation entry point, and prevented its page and associated resources from loading.
+**A richer writing toolkit.** Markdown and MDX support mathematics, Mermaid diagrams, highlighted code, callouts, spoilers and image lightboxes. Articles can include media, and images, videos and embeds load lazily where appropriate. The writing dashboard offers forms for common components, image and audio uploads, draft management, and source editing for advanced content.
+
+**Modern foundations, maintained deliberately.** The site currently runs on Astro 7.4, using static generation, Astro View Transitions and Pagefind. Responsive images and locally hosted Latin fonts support the experience; unit, integration and real-browser regression checks help protect it as the project evolves. Versions are pinned in the project rather than implied to be permanently latest.
 
 ## 🙏 Acknowledgements
-[Upstream](https://github.com/Spr-Aachen/Twilight)
 
+This blog began with [Twilight](https://github.com/Spr-Aachen/Twilight), which provided a valuable foundation and helped the project get started. Thank you to Spr-Aachen and the contributors. Since then, the interface, motion, writing experience and much of the implementation have been extensively redesigned and developed independently. The project is maintained on its own, while retaining its upstream attribution and license.
 
 ---
 
 ## 📝 Writing & Maintenance
 
-This blog is independently maintained. The sections above introduce its custom features; the following sections cover the current writing dashboard and maintenance workflow.
+The writing dashboard and maintenance tools are part of this independently maintained blog.
 
 ### Write and publish online
 

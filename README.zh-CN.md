@@ -1,42 +1,40 @@
-# Blog
+# Etalib’s Space
 
 [简体中文](README.zh-CN.md) | [English](README.md)
 
-一个基于 Astro 框架、集成内容管理后台的静态博客，修改自 [Twilight 上游项目](https://github.com/Spr-Aachen/Twilight)。
+一个记录数学、代码与生活的个人空间。博客基于 [Astro](https://astro.build/) 构建，将文字、音乐和细小的交互放进一片安静的星空。
 
-[**🖥️ 在线演示**](https://www.etalib.space)
-[**📝 上游文档（英文）**](https://docs.twilight.spr-aachen.com/en)
+[**🖥️ 访问博客**](https://www.etalib.space) · [**📖 文章归档**](https://www.etalib.space/archive/) · [**🎵 关于与音乐**](https://www.etalib.space/about/)
 
-## ✨ 特性
+![Etalib’s Space 桌面端首页：星空、艺术字与星球地平线](docs/screenshots/home.jpg)
 
-在上游项目的基础上，我做了一些修改并增加了新特性：
+## ✨ 博客体验
 
-1. **音乐卡片**
-   支持**高斯模糊**、**封面取色**、**生动的歌词滚动动画**、**歌曲封面**和**可自定义的播放进度条**。具体效果见[演示页面](https://www.etalib.space/about/)。
+**在星空中漫游。** Voyage 视觉语言以真实星空、星球地平线、细腻的纹理和星点为背景，结合无衬线与衬线艺术字。Home、Writing、Links 和 About 使用统一的设计语言，也各自保留适合内容的节奏。
 
-   ![](image.png)
+**让动效保持连贯。** 主页面之间以横向滑动衔接，首页艺术字、内页标题和文章标题各有经过调整的入场与切换动效。首页文字与背后的真实星空混色；导航同时支持键盘、触摸、浏览器历史记录与减少动态效果设置。
 
-2. 移除翻译和主题切换。
+**从容地寻找文章。** 按年份和主题浏览文章，在首页筛选、排序，通过 Pagefind 搜索，并在返回时恢复原来的阅读位置。响应式布局让不同屏幕上的阅读保持一致的气质。
 
-3. 将友情链接页改为链接页。
+![Writing 桌面端归档页面，展示按年份排列的文章](docs/screenshots/writing.jpg)
 
-4. 优化技能卡片。
+**让音乐成为页面的一部分。** 自定义音乐卡片结合封面取色、柔和模糊背景、同步滚动歌词和播放控制，支持上传音频或使用已有外链。[前往 About 查看 →](https://www.etalib.space/about/)
 
-5. **媒体懒加载**
-   为 Markdown 和 MDX 中的图片、视频及内嵌页面集成自动懒加载。
+![About 桌面端的音乐卡片与播放控件](docs/screenshots/music.jpg)
 
-6. **关闭展示模块**
-   关闭展示模块及其导航入口，防止相关页面和资源加载。
+**为写作准备更多工具。** Markdown 和 MDX 支持数学公式、Mermaid 图表、代码高亮、提示框、遮罩文字和图片灯箱；文章可嵌入媒体，图片、视频和嵌入内容在适用时延迟加载。写作后台提供常用组件表单、图片与音频上传、草稿管理，以及适合高级内容的源码编辑。
+
+**保持现代，也认真维护。** 博客目前使用 Astro 7.4，结合静态生成、Astro View Transitions 和 Pagefind。响应式图片与本地拉丁字体服务于阅读体验；单元、集成和真实浏览器回归测试帮助保护持续演进中的交互与视觉效果。具体版本以项目锁定的依赖为准。
 
 ## 🙏 致谢
 
-[Twilight 上游项目](https://github.com/Spr-Aachen/Twilight)
+博客早期基于 [Twilight](https://github.com/Spr-Aachen/Twilight) 建立，它提供了宝贵的基础，也为项目起步带来了很多帮助。感谢 Spr-Aachen 和所有贡献者。此后，界面、动效、写作体验和大量实现都经过持续重做与独立开发；现在的博客由我独立维护，同时保留上游署名与许可。
 
 ---
 
 ## 📝 写作与维护
 
-本博客独立维护。上文介绍个人新增的特性，下文说明当前写作后台的使用方法和维护流程。
+博客独立维护，下面介绍写作后台与日常维护方式。
 
 ### 在线写作与发布
 
@@ -84,4 +82,4 @@ pnpm test:browser
 
 `src/`、`public/`、`cms/`、`scripts/` 和 `tests/` 是持续维护的项目文件。`dist/`、`.astro/` 和 `.vercel/` 是构建产物或本地缓存，不使用时可以删除。一次性排查报告和日志不纳入 Git。
 
-OAuth 凭据保存在 GitHub Actions 加密 Secrets 中，并在部署时写入服务器的 `.env`，不要提交到 Git。PR 自动验证；main 推送只执行一次完整验证，再通过 Docker/Nginx 部署同一份已测试的静态产物。每周和手动扩展检查增加浏览器引擎，具体触发条件、Secrets 和排查方法以维护指南为准。
+OAuth 凭据保存在 GitHub Actions 加密 Secrets 中，并在部署时写入服务器的 `.env`，不要提交到 Git。PR 自动运行完整验证；main 上的纯文章或支持的媒体更新构建后部署，其他改动通过完整验证后再部署。每周和手动扩展检查增加浏览器引擎，具体触发条件、Secrets 和排查方法以维护指南为准。
