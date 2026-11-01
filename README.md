@@ -53,10 +53,11 @@ See [CMS_SETUP.md](CMS_SETUP.md) (Chinese) for the complete writing guide, music
 
 ### Write locally
 
-Requires Node.js 22.22+ and pnpm 10.29.2.
+Requires Node.js 22.22+ and pnpm 10.29.2; use Node.js 24.13.0 to match CI.
 
 ```bash
-pnpm install
+corepack enable
+pnpm install --frozen-lockfile
 pnpm cms:local
 ```
 
@@ -67,17 +68,20 @@ Open <http://127.0.0.1:4321/admin/>. Local saves write articles and images into 
 Blog settings live in `twilight.config.yaml`, site content in `src/content`, and writing-dashboard collections in `public/admin/config.yml`. See [CMS_SETUP.md](CMS_SETUP.md) for the current authentication and deployment configuration.
 
 ```bash
-pnpm check
 pnpm test:unit
+pnpm type-check
 pnpm test:markdown
 pnpm build
+pnpm exec playwright install chromium
+pnpm test:browser
 ```
 
-Run a normal build after the Markdown integration checks so temporary test pages stay out of the release. The production output is `dist/`, including the Pagefind search index.
+Run these sequentially: integration and production builds both write `dist/`. Browser tests start their own production preview and compare real animation/interaction behavior and reviewed screenshots. `pnpm check` is an alias of the type check. The production output includes the Pagefind search index.
 
-- [MAINTENANCE.md](MAINTENANCE.md): retained features and maintenance boundaries.
+- [MAINTENANCE.md](MAINTENANCE.md): module ownership, motion regression history, development, CI/CD and troubleshooting.
+- [Browser testing](tests/browser/README.md): viewport/engine coverage, animation evidence, golden review and failure diagnostics.
 - [CMS_SETUP.md](CMS_SETUP.md): writing, media uploads, authentication, and deployment.
 
 `src/`, `public/`, `cms/`, `scripts/`, and `tests/` contain maintained project files. `dist/`, `.astro/`, and `.vercel/` are generated output or local caches and can be removed when not in use. One-off investigation reports and logs stay out of Git.
 
-OAuth credentials are stored in GitHub Actions encrypted Secrets and delivered to the server's `.env`. Keep local credentials out of Git. The existing VPS deployment uses Docker, Nginx, and GitHub Actions.
+OAuth credentials are stored in GitHub Actions encrypted Secrets and delivered to the server's `.env`. Keep local credentials out of Git. PRs run validation; main pushes validate once and deploy the tested static artifact through Docker/Nginx. Weekly/manual checks add browser engines. See the maintenance guide for workflow details and required Secrets.

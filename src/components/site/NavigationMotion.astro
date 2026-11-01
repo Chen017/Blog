@@ -395,7 +395,7 @@
       }
       const transition = event.viewTransition;
       // Prepare the previously visited Home title before Astro captures its
-      // incoming snapshot. The post-transition WAAPI reveal starts from this
+      // incoming snapshot. The after-swap WAAPI reveal starts from this
       // same pose, avoiding a visible normal-position -> lower-position snap.
       if (to === '/' && !selected && !hasHash && transition &&
           document.documentElement.dataset?.motion !== 'off' &&

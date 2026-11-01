@@ -88,3 +88,5 @@ GitHub OAuth 应用设置：
 认证服务仅在 Docker 内网开放，Nginx 转发 /oauth 与 /oauth/callback；/oauth/health 可检查服务是否已读取凭据。登录只允许 Chen017，并检查目标仓库写权限。OAuth 的 public_repo 授权范围并不只限这一个公开仓库；改私有仓库或增加编辑账号需相应调整并复核。
 
 部署会同步代码删除，保留服务器 .env、Git、依赖和缓存目录。缺少 rsync 时，root 权限的 Debian/Ubuntu 主机会自动安装；其他系统需自行提供 rsync。
+
+main 推送先调用共享验证流程，依次完成单元、类型、Markdown/MDX、正常生产构建与浏览器回归检查；验证通过后，部署下载同一次运行的 `validated-dist`，不在服务器重复构建。检查失败时网站不会进入后续部署步骤。工作流触发条件、必要 Secrets、诊断产物与回退方法统一记录在 [MAINTENANCE.md](MAINTENANCE.md) 的 CI/CD 部分。

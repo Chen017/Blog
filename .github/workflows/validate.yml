@@ -1,0 +1,99 @@
+name: Validate blog
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      extended:
+        description: Also test Firefox and WebKit
+        type: boolean
+        default: true
+  schedule:
+    - cron: '20 20 * * 0' # Monday 04:20 in Singapore
+  workflow_call:
+    inputs:
+      upload-dist:
+        type: boolean
+        default: false
+      extended:
+        type: boolean
+        default: false
+    secrets:
+      UMAMI_API_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    # Goldens and compositor captures use Windows, matching local reviewed baselines.
+    # Deploy still runs on Linux and consumes this exact validated static directory.
+    runs-on: windows-2025
+    timeout-minutes: 30
+    env:
+      BROWSER_MATRIX: ${{ (github.event_name == 'schedule' || inputs.extended) && 'extended' || 'primary' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          persist-credentials: false
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24.13.0'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Cache Astro assets
+        uses: actions/cache@v5
+        with:
+          path: node_modules/.astro
+          key: ${{ runner.os }}-astro-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-astro-${{ hashFiles('pnpm-lock.yaml') }}-
+      - name: Unit tests
+        run: pnpm test:unit
+      - name: Astro type checks
+        run: pnpm type-check
+      - name: Markdown and MDX integration
+        run: pnpm test:markdown
+      # Both commands write dist: this clean build must follow integration, never overlap it.
+      - name: Build production site and verify output
+        env:
+          UMAMI_API_KEY: ${{ secrets.UMAMI_API_KEY }}
+        run: pnpm build
+      - name: Install Chromium
+        run: pnpm exec playwright install chromium
+      - name: Install additional engines
+        if: env.BROWSER_MATRIX == 'extended'
+        run: pnpm exec playwright install firefox webkit
+      - name: Browser interaction, motion and visual regression
+        run: pnpm test:browser
+      - name: Preserve browser diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7, Node 24
+        with:
+          name: browser-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 0 # PNG/video/trace files are already compressed.
+      - name: Preserve validated site for deployment
+        if: inputs.upload-dist
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7, Node 24
+        with:
+          name: validated-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0

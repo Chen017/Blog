@@ -1,0 +1,7 @@
+/* Screenshot-only normalization of changing editorial counts.
+   Never hide the hero, its sky/texture or any animated title. */
+#voyage-afterhours .nv-filters button span,
+#voyage-afterhours .nv-count,
+#voyage-afterhours .vs-page-head .vs-kicker {
+  visibility: hidden !important;
+}
