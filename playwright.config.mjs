@@ -13,7 +13,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   failOnFlakyTests: !!process.env.CI,
   updateSnapshots: process.env.CI ? 'none' : 'missing',
-  workers: process.env.CI ? 2 : 3,
+  // Native compositing/touch capture shares runner resources. Serialize CI
+  // rather than letting concurrent rendering stalls masquerade as regressions.
+  workers: process.env.CI ? 1 : 3,
   timeout: 45_000,
   expect: { timeout: 8_000, toHaveScreenshot: { animations: 'allow', threshold: 0.2, maxDiffPixelRatio: 0.003 } },
   reporter: [['list'], ['html', { open: 'never' }]],

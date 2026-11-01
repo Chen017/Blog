@@ -52,7 +52,15 @@ const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlu
                     try {
                         if (location.pathname === '/' && !location.hash && !history.state?.voyage && !sessionStorage.getItem('voyage:opened')) document.documentElement.setAttribute('data-voyage-opening', '');
                     } catch { /* Keep the opening visible if storage is unavailable. */ }
-                    setTimeout(() => { if (!document.documentElement.hasAttribute('data-voyage-observing')) document.documentElement.removeAttribute('data-voyage-preparing'); document.documentElement.removeAttribute('data-voyage-opening'); }, 5000);
+                    // Astro reuses <html>; this initial-document recovery timer
+                    // must not clear preparation on a later, still-loading page.
+                    const cancelFallback = () => clearTimeout(fallback);
+                    const fallback = setTimeout(() => {
+                        document.removeEventListener('astro:before-swap', cancelFallback);
+                        if (!document.documentElement.hasAttribute('data-voyage-observing')) document.documentElement.removeAttribute('data-voyage-preparing');
+                        document.documentElement.removeAttribute('data-voyage-opening');
+                    }, 5000);
+                    document.addEventListener('astro:before-swap', cancelFallback, { once: true });
                 }
             } catch { /* CSS also respects the system preference. */ }
         </script>

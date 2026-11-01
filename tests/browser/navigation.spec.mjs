@@ -145,6 +145,43 @@ test('a failed speculative tab fetch is not cached as a successful destination',
   await expect(page.locator('.vs-page-head h1')).toContainText('years.');
 });
 
+test('the initial safety timeout cannot disable a slow incoming heading', async ({ page }) => {
+  let releaseModule;
+  let moduleStarted;
+  const gate = new Promise(resolve => { releaseModule = resolve; });
+  const started = new Promise(resolve => { moduleStarted = resolve; });
+  // Delay the interior layout's first execution, while HTML and the native swap stay real.
+  await page.route('**/_astro/grid.*.js', async route => {
+    if (route.request().resourceType() === 'script') { moduleStarted(); await gate; }
+    await route.continue();
+  });
+  await visit(page);
+  // Cross the real initial 5s recovery deadline after swap but before page-load.
+  await page.evaluate(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 4400 - performance.now()))));
+  const activation = page.locator('.nv-nav').getByRole('link', { name: 'Writing', exact: true }).click();
+  try {
+    await started;
+    await expect(page).toHaveURL(/\/archive\/$/);
+    await page.evaluate(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 5500 - performance.now()))));
+    await expect(page.locator('html')).toHaveAttribute('data-voyage-preparing', '');
+  } finally {
+    releaseModule();
+    await activation;
+  }
+  await settled(page);
+  await expect(page.locator('.vs-page-head h1')).toHaveAttribute('data-motion-ready', 'true');
+});
+
+test('the initial safety timeout still reveals Home when enhancement modules fail', async ({ page }) => {
+  await page.route('**/_astro/*.js', route => route.request().resourceType() === 'script' ? route.abort('failed') : route.continue());
+  await page.goto('/');
+  await expect(page.locator('.nv-title-first')).toHaveCSS('opacity', '0.45');
+  await expect(page.locator('html')).not.toHaveAttribute('data-voyage-opening', '', { timeout: 6500 });
+  await expect(page.locator('html')).not.toHaveAttribute('data-voyage-preparing', '');
+  await expect(page.locator('.nv-title-first')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.nv-title-first')).toHaveCSS('translate', 'none');
+});
+
 test('reduced transparency replaces additive text with solid readable lettering', async ({ page, browserName, context }) => {
   test.skip(browserName !== 'chromium', 'CDP media emulation is Chromium-specific.');
   const session = await context.newCDPSession(page);
