@@ -8,7 +8,7 @@ cover: gravity.png
 coverInContent: false
 textAlign: center
 pinned: false
-draft: true
+draft: false
 comment: false
 encrypted: false
 copyProtection:
