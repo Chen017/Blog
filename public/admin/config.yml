@@ -94,7 +94,7 @@ collections:
         name: draft
         widget: boolean
         required: false
-        default: true
+        default: false
         hint: 打开时文章不会出现在公开网站中。关闭后发布才能上线。
       - label: 文章语言
         name: lang
@@ -255,7 +255,7 @@ collections:
         name: draft
         widget: boolean
         required: false
-        default: true
+        default: false
         hint: 打开时文章不会出现在公开网站中。关闭后发布才能上线。
       - label: 文章语言
         name: lang

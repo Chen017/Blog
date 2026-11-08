@@ -43,7 +43,7 @@ Open [the writing dashboard](https://www.etalib.space/admin/) and sign in with y
 1. Select the **articles** collection to create a Markdown article, or the **MDX articles** collection for content that uses imports and custom layouts.
 2. Fill in the title, publication date, summary, and category. Upload the cover and body images directly in the editor.
 3. Use the **common component forms** for music cards, images, admonitions, spoilers, formulas, and Mermaid diagrams. Music cards support both uploads and existing external audio links; external audio does not need to be downloaded into the repository.
-4. Keep the **draft** switch enabled and choose **Publish → Publish now** to save a draft. Turn the draft switch off before publishing an article publicly.
+4. New articles have the **draft** switch off by default: choose **Publish → Publish now** to publish publicly. To save a draft, turn the switch on first; turn it off to publish an existing draft.
 
 Online saves commit to `main` and trigger GitHub Actions deployment. A saved article appears on the website after deployment succeeds. Existing advanced Markdown and MDX use source editing to preserve their syntax; the final rendering is shown on the blog.
 

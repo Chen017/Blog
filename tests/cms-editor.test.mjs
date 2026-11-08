@@ -84,7 +84,7 @@ test('new article switches match site habits while existing article data is not 
         for (const key of ['comment', 'encrypted', 'coverInContent', 'pinned']) {
             assert.equal(fields.find(field => field.name === key).default, false, `${name}.${key}`);
         }
-        assert.equal(fields.find(field => field.name === 'draft').default, true);
+        assert.equal(fields.find(field => field.name === 'draft').default, false, `${name}.draft`);
         const copy = fields.find(field => field.name === 'copyProtection');
         assert.equal(copy.collapsed, true);
         assert.ok(copy.fields.every(field => field.default === false));
