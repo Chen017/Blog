@@ -3,6 +3,7 @@ title: 一瞬间的引力
 directoryTitle: ""
 published: 2026-11-08
 displayTitle: The Gravity of a Moment
+category: Life
 cover: gravity.png
 coverInContent: false
 textAlign: center
