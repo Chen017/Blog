@@ -20,7 +20,7 @@ Song forms can update one existing card without rewriting the rest of the articl
 
 The editor preview does not reproduce the complete Astro rendering pipeline. Validate advanced content with the real site build. Do not introduce a parser that silently rewrites custom syntax.
 
-Posts live in `src/content/posts/<slug>/index.md` or `index.mdx`, with images beside the article. Preserve existing paths. New content defaults to a draft. Local editing writes files without committing or pushing; the online GitHub backend commits to `main`, triggering deployment.
+Posts live in `src/content/posts/<slug>/index.md` or `index.mdx`, with images beside the article. Preserve existing paths. New Markdown and MDX articles in the web CMS default to public (`draft: false`); use the draft switch to save them privately. The `pnpm new-post` CLI still creates drafts, and existing posts retain their saved draft state. Local editing writes files without committing or pushing; the online GitHub backend commits to `main`, triggering deployment.
 
 Keep functional article fields in the schema. Unreferenced tags/attribution metadata may remain in historical Markdown, but must not restore the removed tag interface, filtering or hydrated payloads. Interface labels stay in the small English dictionary; runtime language switching is absent.
 
