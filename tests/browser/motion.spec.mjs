@@ -18,7 +18,7 @@ test('fresh Home opens each title line once at the established slow timing', asy
   expect(durations.filter(duration => duration === 1800 || duration === 2100)).toHaveLength(2);
 });
 
-test('both return lines are staged before paint and start before the tab handoff finishes', async ({ page }) => {
+test('both return lines are staged before paint and start before the slide finishes', async ({ page }) => {
   await visit(page);
   for (const name of ['Writing', 'Links', 'About']) {
     await navigate(page, name);
@@ -59,20 +59,26 @@ test('both return lines are staged before paint and start before the tab handoff
   }
 });
 
-test('main tabs hold both root snapshots in place and move only incoming interior content', async ({ page }) => {
+test('both root snapshots slide in tab order over the reused sky', async ({ page }) => {
   await visit(page);
-  for (const [name, offset] of [['About', '16px'], ['Writing', '-16px'], ['Links', '16px'], ['Home', null]]) {
+  for (const [name, side] of [['About', 'Right'], ['Writing', 'Left'], ['Links', 'Right'], ['Home', 'Left']]) {
+    const sky = await page.locator('.nv-sky img').evaluate(async image => { await image.decode(); return image.currentSrc; });
     await navigate(page, name);
     const transition = await page.evaluate(() => window.__motionProbe.transitions.at(-1));
     expect(transition?.ready).toBeGreaterThan(0);
     const root = transition.animations.filter(animation => animation.pseudo.endsWith('(root)'));
-    expect(root.map(animation => animation.name).sort()).toEqual(['voyageFadeOut', 'voyageTabHold']);
-    expect(root.every(animation => animation.timing.duration === 280 && animation.frames.every(frame => !frame.transform))).toBe(true);
-    const hold = root.find(animation => animation.name === 'voyageTabHold');
-    expect(hold.frames.map(frame => Number(frame.opacity))).toEqual([1, 1]);
-    if (offset) expect(transition.contentEntrance).toMatchObject({ offset, duration: 280 });
-    else expect(transition.contentEntrance).toBeUndefined();
-    await expect(page.locator('html')).not.toHaveAttribute('data-voyage-tab-transition', /.+/);
+    const incoming = root.find(animation => animation.name === `astroSlideFrom${side}`);
+    const outgoing = root.find(animation => animation.name === `astroSlideTo${side === 'Right' ? 'Left' : 'Right'}`);
+    expect(incoming).toMatchObject({ pseudo: '::view-transition-new(root)', timing: { duration: 280 } });
+    expect(outgoing).toMatchObject({ pseudo: '::view-transition-old(root)', timing: { duration: 280 } });
+    expect(incoming.frames[0].transform).toMatch(side === 'Right' ? /^translate(?:X)?\(100%\)$/ : /^translate(?:X)?\(-100%\)$/);
+    expect(outgoing.frames.at(-1).transform).toMatch(side === 'Right' ? /^translate(?:X)?\(-100%\)$/ : /^translate(?:X)?\(100%\)$/);
+    expect(root.find(animation => animation.name === 'voyageFadeIn')?.timing).toMatchObject({ delay: 30, duration: 210 });
+    expect(root.find(animation => animation.name === 'voyageFadeOut')?.timing).toMatchObject(
+      ['About', 'Home'].includes(name) ? { delay: 40, duration: 200 } : { delay: 0, duration: 90 },
+    );
+    expect(transition.slideSky).toContain(sky);
+    expect(await page.locator('html').evaluate(el => el.style.getPropertyValue('--voyage-slide-sky'))).toBe('');
   }
 });
 

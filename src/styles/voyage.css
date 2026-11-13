@@ -1,7 +1,6 @@
 html { background: #080c17; color-scheme: dark; --voyage-cjk: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; --voyage-ease: cubic-bezier(.2,.8,.2,1); }
 /* Keep the viewport width identical across Astro transitions without an empty gutter. */
 html:root { overflow-y:scroll; scrollbar-gutter:auto; scrollbar-width:none; -ms-overflow-style:none; }
-html[data-voyage-scroll-edge="contained"] { overscroll-behavior-y: none; }
 body.voyage-interior { scrollbar-width:none; -ms-overflow-style:none; }
 html:root::-webkit-scrollbar, body.voyage-interior::-webkit-scrollbar { display:none; }
 body.voyage-home { margin: 0; background: #080c17; }
@@ -23,6 +22,12 @@ body.voyage-home { margin: 0; background: #080c17; }
   }
 }
 ::view-transition-group(root) { animation-duration: 0s; animation: none; overflow: clip; }
+/* A still copy of the loaded sky fills the gap behind both moving snapshots. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-astro-transition]:not([data-motion="off"])::view-transition-group(root) {
+    background: linear-gradient(180deg, #080c17ad, #080c17e6 72%, #080c17), var(--voyage-slide-sky) center top / cover no-repeat;
+  }
+}
 ::view-transition-old(root), ::view-transition-new(root) { mix-blend-mode: normal; }
 @keyframes voyageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes voyageFadeOut { from { opacity: 1; } to { opacity: 0; } }
@@ -468,7 +473,7 @@ html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new
 #voyage-afterhours .nv-entry:focus-within:not(:hover):not(:has(:focus-visible)) :is(.nv-entry-image, .nv-entry-cover img) { transform: none; filter: brightness(.67) saturate(.65); }
 /* Ensure history scroll restoration is always instant rather than replaying a 350ms smooth scroll (Issue 3). */
 html, body { scroll-behavior: auto !important; }
-/* Home boundary transitions retain their existing timing outside the main tabs. */
+/* Home boundary transitions: disable group morphing and keep outgoing snapshot opaque long enough to cover the slide. */
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(root),
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(voyage-page) { animation: none; overflow: clip; }
 html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-old(root),
@@ -476,34 +481,12 @@ html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-
 /* Preserve the Home headline's plus-lighter blend when leaving; do not switch
    it to normal while the outgoing snapshot is captured. On a menu return to
    Home, render the incoming root snapshot at full opacity to avoid a luminance
-   jump when the snapshot is replaced by live blended lettering. */
+   jump when the snapshot is replaced by live blended lettering. Only the fade
+   is suppressed: Astro's 280ms horizontal slide continues unchanged. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-voyage-home-transition]:has(> body.voyage-home):not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-new(root) {
     opacity: 1 !important;
   }
-}
-/* Main tabs keep the incoming root fully painted. The stationary outgoing
-   snapshot fades above it, and only the incoming interior content moves. */
-@keyframes voyageTabHold { from, to { opacity: 1; } }
-@keyframes voyageTabEnter { from { opacity: 0; translate: var(--voyage-tab-offset) 0; } to { opacity: 1; translate: 0 0; } }
-@media (prefers-reduced-motion: no-preference) {
-  html[data-voyage-tab-transition="incoming"]::view-transition-image-pair(root) { isolation: isolate; }
-  html[data-voyage-tab-transition="incoming"]:not([data-motion="off"])::view-transition-old(root) {
-    z-index: 1;
-    animation: voyageFadeOut 280ms cubic-bezier(.22,1,.36,1) both !important;
-  }
-  html[data-voyage-tab-transition="incoming"]:not([data-motion="off"])::view-transition-new(root) {
-    animation: voyageTabHold 280ms both !important;
-  }
-  html[data-voyage-tab-transition="incoming"]::view-transition-old(voyage-header) { opacity: 0; }
-  html[data-voyage-tab-transition]:not([data-motion="off"])[data-astro-transition-fallback][data-astro-transition-scope] {
-    animation: none !important;
-  }
-  html[data-voyage-tab-transition="incoming"]:not([data-motion="off"]) #site-main {
-    --voyage-tab-offset: 16px;
-    animation: voyageTabEnter 280ms cubic-bezier(.22,1,.36,1) both;
-  }
-  html[data-voyage-tab-transition="incoming"][data-astro-transition="back"] #site-main { --voyage-tab-offset: -16px; }
 }
 /* Isolate below-the-fold homepage sections during top-menu entrance and play a smooth staggered post-load reveal upon landing. */
 @keyframes voyageFoldReveal { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }

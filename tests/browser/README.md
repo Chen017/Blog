@@ -60,15 +60,15 @@ Headless/virtual GPU results cannot establish all physical GPU/OS behavior.
   page's heading entrance. Its deliberate timed wait reproduces that boundary;
   it is not a generic sleep used to make other tests pass.
   A complementary failed-module case keeps the original direct-load recovery.
-  Additional cases verify the centered Home sign-off, Links root overscroll across
-  history, the Writing period chevron and keyboard selection, and the search
+  Additional cases verify the centered Home sign-off, default document overscroll
+  on Links and Writing across history, the Writing period chevron and keyboard selection, and the search
   results scroller without input movement. About covers slow decode, failure,
   reduced motion, and back/forward navigation with a reserved photo area.
 - `motion.spec.mjs`: actual native WAAPI effects and computed starting poses,
   effect counts and original opening/return timing; rAF samples during natural
   return animation; no downward restart; return effects created before native
-  transition completion; stationary, fully covered root handoff and the short
-  directional entrance on incoming interior content.
+  transition completion; the original full-width slides on both root snapshots
+  and reuse of the already loaded sky in the transition group.
 - `visual.spec.mjs`: production viewport PNGs and selected compositor frames.
   Real native animations are paused/searched at selected times for repeatable
   screenshots; they are not replaced by mocked animations. Natural playback is

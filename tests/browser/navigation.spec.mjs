@@ -14,7 +14,7 @@ test('all twelve directed tab routes preserve headings, header and current page'
   }
 });
 
-test('the Home sign-off stays centered and Links keeps native scrolling inside the viewport', async ({ page, viewport }) => {
+test('the Home sign-off stays centered and Links and Writing keep default overscroll', async ({ page, viewport }) => {
   await visit(page);
   const signoff = page.getByRole('region', { name: 'About the author' });
   const author = signoff.getByRole('link', { name: 'AI', exact: true });
@@ -30,18 +30,15 @@ test('the Home sign-off stays centered and Links keeps native scrolling inside t
   await visit(page, '/friends/');
   const root = page.locator('html');
   const supportsOverscroll = await page.evaluate(() => CSS.supports('overscroll-behavior-y: none'));
-  await expect(root).toHaveAttribute('data-voyage-scroll-edge', 'contained');
-  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'none');
+  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'auto');
   await expect(root).toHaveCSS('background-color', 'rgb(8, 12, 23)');
   expect(await page.evaluate(() => document.scrollingElement === document.documentElement)).toBe(true);
   await expect(page.locator('.vs-page-head p')).toHaveCount(0);
   await navigate(page, 'Writing');
-  await expect(root).not.toHaveAttribute('data-voyage-scroll-edge', /.+/);
   if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'auto');
   await page.goBack();
   await settled(page);
-  await expect(root).toHaveAttribute('data-voyage-scroll-edge', 'contained');
-  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'none');
+  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'auto');
 });
 
 test('Writing activity uses the shared chevron and supports keyboard selection', async ({ page }) => {

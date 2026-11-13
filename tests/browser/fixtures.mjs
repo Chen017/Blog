@@ -78,12 +78,7 @@ export const test = base.extend({
             item.animations = document.getAnimations().filter(a => a.effect?.pseudoElement).map(a => ({
               pseudo: a.effect.pseudoElement, name: a.animationName, timing: a.effect.getTiming(), frames: a.effect.getKeyframes(),
             }));
-            const content = document.querySelector('#site-main');
-            const entrance = content?.getAnimations().find(animation => animation.animationName === 'voyageTabEnter');
-            if (entrance) item.contentEntrance = {
-              offset: getComputedStyle(content).getPropertyValue('--voyage-tab-offset').trim(),
-              duration: entrance.effect.getTiming().duration,
-            };
+            item.slideSky = getComputedStyle(document.documentElement, '::view-transition-group(root)').backgroundImage;
           }, () => { item.skipped = true; });
           void transition.finished.then(() => { item.end = performance.now(); }, () => { item.end = performance.now(); });
           return transition;
@@ -109,7 +104,6 @@ export { expect };
 export async function settled(page) {
   await page.waitForFunction(() => !!document.querySelector('.nv-page') && !document.documentElement.hasAttribute('data-astro-transition') &&
     !document.documentElement.hasAttribute('data-voyage-home-transition') &&
-    !document.documentElement.hasAttribute('data-voyage-tab-transition') &&
     !document.documentElement.hasAttribute('data-voyage-return-prepared') &&
     !document.documentElement.hasAttribute('data-voyage-opening'));
   // IntersectionObserver delivery can follow native transition completion.
@@ -146,8 +140,7 @@ export async function armCompositorCapture(page) {
       document.addEventListener('astro:after-swap', () => queueMicrotask(async () => {
         await window.__nativeTransition.ready;
         window.__capturedAnimations = document.getAnimations().filter(animation =>
-          animation.effect?.pseudoElement || animation.animationName === 'voyageTabEnter' ||
-          animation.effect?.target?.matches?.('.nv-title-first, .nv-titleblock h1 em'));
+          animation.effect?.pseudoElement || animation.effect?.target?.matches?.('.nv-title-first, .nv-titleblock h1 em'));
         for (const animation of window.__capturedAnimations) animation.pause();
         resolve(window.__capturedAnimations.length);
       }), { once: true });

@@ -250,7 +250,6 @@ test("Astro navigation preserves outgoing menu state, caches main routes and hov
  assert.ok(typeof windowObj.__voyageHomeTransition.id === "number");
  assert.ok(windowObj.__voyageHomeTransition.finished instanceof Promise);
  assert.equal(incomingAttrs.has("data-voyage-home-transition"), true, "marks incoming document for Home boundary transition");
- assert.equal(incomingAttrs.get("data-voyage-tab-transition"), "incoming", "stages the stationary tab snapshots before swap");
  assert.equal(incomingAttrs.has("data-voyage-return-prepared"), true, "Space starts below its resting position before the incoming Home snapshot is captured");
  assert.equal(incomingAttrs.has("data-voyage-home-fold-deferred"), true, "marks incoming Home document for below-fold deferral");
  resolveFriendsTransition();

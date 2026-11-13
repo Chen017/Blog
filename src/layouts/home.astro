@@ -15,7 +15,7 @@ const favicons = siteConfig.favicon.length ? siteConfig.favicon : defaultFavicon
 const ogImage = siteConfig.generateOgImages && postSlug ? new URL(`/og/${postSlug}.png`, Astro.site).toString() : undefined;
 ---
 <!doctype html>
-<html lang={lang.replace("_", "-")} class="dark" data-theme="github-dark" data-voyage-scroll-edge={Astro.url.pathname === "/friends/" ? "contained" : undefined} transition:name="root" transition:animate={voyageSlide}>
+<html lang={lang.replace("_", "-")} class="dark" data-theme="github-dark" transition:name="root" transition:animate={voyageSlide}>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
