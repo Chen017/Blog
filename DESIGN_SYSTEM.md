@@ -124,7 +124,8 @@ static rendering and its ClientRouter transitions over a new animation framework
 | Filter or sort entries | Surviving cards move from their previous positions; new entries settle locally | About 320ms, interruptible. Persist category, order and source position in the current history entry. Do not animate unrelated content. |
 | Open an entry and return | The selected title continues into the article masthead and returns to its source | Astro ClientRouter transitions, about 620ms with a smooth ease-out. Keep the shared header stable. Map only the selected title; never assign one identity to different articles. Restore the selection and scroll position; links work without this enhancement. |
 | Move to an adjacent entry | Short directional movement of the reading composition | About 260ms. Previous and next have opposite directions; direct visits do not slide. |
-| Navigate between Home, Writing, Links and About | Slide in the direction of the destination in the navigation | About 300ms, with the header stable. |
+| Navigate between Home, Writing, Links and About | Keep the sky and header in place while incoming interior content settles 16px in the direction of the destination | 280ms, with a fully painted incoming background throughout. Home uses its own title entrance. |
+| About photo finishes loading | Fade in once decoded, inside its reserved image area | About 180ms. A ready cached image appears immediately. |
 | Open the homepage for the first time in a session | Display text settles and the horizon becomes clear | A 450ms anticipation, then a 1800–2300ms settle; text stays visible and the sequence is finite. Never force this sequence on every visit. |
 | Move a fine pointer over the hero | Photographic sky moves up to 16×10px; stars up to 10×6px in the opposite direction | About 550–700ms response, pointer sensitivity 1.25 with clamped limits. Text remains stable. No touch-pointer imitation. |
 | Activate the two-star ornament | One complete shared orbit | About 2400ms, then rest. The ornament does not run an endless loop. |
@@ -141,7 +142,7 @@ without a replay control. Scroll-linked decoration follows native scrolling
 and never captures wheel or touch input.
 The shorter Home return entrance is separate from that first-session opening:
 both `Etalib’s` and `Space.` start from their prepared poses during the incoming
-slide. Preserve the existing stagger (110ms + 580ms and 190ms + 820ms), without
+handoff. Preserve the existing stagger (110ms + 580ms and 190ms + 820ms), without
 restarting at transition completion. CSS must establish the initial poses before
 snapshot capture; removing that preparation creates a visible downward jump.
 See `MAINTENANCE.md` for ownership and the historical regression decisions.

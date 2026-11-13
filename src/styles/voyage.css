@@ -1,6 +1,7 @@
 html { background: #080c17; color-scheme: dark; --voyage-cjk: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; --voyage-ease: cubic-bezier(.2,.8,.2,1); }
 /* Keep the viewport width identical across Astro transitions without an empty gutter. */
 html:root { overflow-y:scroll; scrollbar-gutter:auto; scrollbar-width:none; -ms-overflow-style:none; }
+html[data-voyage-scroll-edge="contained"] { overscroll-behavior-y: none; }
 body.voyage-interior { scrollbar-width:none; -ms-overflow-style:none; }
 html:root::-webkit-scrollbar, body.voyage-interior::-webkit-scrollbar { display:none; }
 body.voyage-home { margin: 0; background: #080c17; }
@@ -161,7 +162,6 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-person{display:flex;gap:12px;align-items:center}
 #voyage-afterhours .nv-avatar{object-fit:cover;border-radius:50%;border:1px solid #bac9df30}
 #voyage-afterhours .nv-person strong{display:block;font-size:12px;font-weight:500}
-#voyage-afterhours .nv-person small{display:block;font-size:10px;color:#8f9eb6;margin-top:3px}
 #voyage-afterhours .nv-person>svg{width:12px;height:12px;color:#a5b3c7;margin-left:5px}
 #voyage-afterhours .nv-signoff>p{font:16px/1.15 var(--font-voyage-serif),Georgia,serif;color:#939eb6;transform:rotate(-4deg)}
 #voyage-afterhours .nv-signoff>p em{font-size:22px;color:#b7bacd}
@@ -227,7 +227,15 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-footer nav { display: flex; flex-wrap: wrap; gap: 10px 18px; }
 #voyage-afterhours .nv-footer .vs-credits { color: #7f8da5; }
 #voyage-afterhours .voyage-search[aria-hidden="true"] { opacity:0; visibility:hidden; pointer-events:none; translate:0 -8px; scale:.985; transition:opacity 180ms var(--voyage-ease), translate 180ms var(--voyage-ease), scale 180ms var(--voyage-ease), visibility 0s 180ms !important; }
-#voyage-afterhours .voyage-search { position: absolute; z-index: 30; inset: 76px 38px auto auto; width: min(540px, calc(100vw - 44px)); max-height: min(75vh, 640px); overflow-y: auto; padding: 20px; border: 1px solid #b0c2dc3c; border-radius: 9px; background: #111a2b; color: #eef0f6; box-shadow: 0 25px 90px #0009; }
+#voyage-afterhours .voyage-search { position: absolute; z-index: 30; inset: 76px 38px auto auto; display: flex; flex-direction: column; width: min(540px, calc(100vw - 44px)); max-height: min(75vh, 640px); overflow: clip; padding: 20px; border: 1px solid #b0c2dc3c; border-radius: 9px; background: #111a2b; color: #eef0f6; box-shadow: 0 25px 90px #0009; }
+#voyage-afterhours .voyage-search > :is(.voyage-search-heading, .search-field) { flex: none; }
+#voyage-afterhours .voyage-search .search-results { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; scrollbar-color: #7086a0 #111a2b; }
+@supports selector(::-webkit-scrollbar) {
+  #voyage-afterhours .voyage-search .search-results { scrollbar-width: auto; scrollbar-color: auto; }
+  #voyage-afterhours .voyage-search .search-results::-webkit-scrollbar { width: 7px; }
+  #voyage-afterhours .voyage-search .search-results::-webkit-scrollbar-thumb { background: #7086a0; border-radius: 8px; }
+  #voyage-afterhours .voyage-search .search-results::-webkit-scrollbar-button { display: none; }
+}
 #voyage-afterhours .voyage-search-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 15px; font: 27px/1.2 var(--font-voyage-serif), Georgia, serif; }
 #voyage-afterhours .voyage-search input { font: 16px/1.5 var(--font-voyage-sans), sans-serif; border: 0; background: transparent; }
 #voyage-afterhours .voyage-search .search-field { border: 1px solid #aabfd238; }
@@ -290,11 +298,14 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 @keyframes card-return { from { border-color: #abdcd1; box-shadow: 0 0 0 4px #abdcd114; } }
 #voyage-afterhours .voyage-search { transform-origin:top right; visibility:visible; opacity:1; translate:0 0; scale:1; transition:opacity 200ms var(--voyage-ease), translate 200ms var(--voyage-ease), scale 200ms var(--voyage-ease), visibility 0s !important; }
 @media (prefers-reduced-motion:reduce) { #voyage-afterhours .voyage-search, #voyage-afterhours .voyage-search[aria-hidden="true"] { transition:none !important; } }
-#voyage-afterhours .nv-signoff { padding-block: 52px; gap: 32px; }
+#voyage-afterhours .nv-signoff { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); padding-block: 52px; gap: 24px; }
+#voyage-afterhours .nv-signoff .nv-person { width: auto; min-height: 44px; justify-self: start; }
+#voyage-afterhours .nv-signoff .nv-person > svg { margin-left: 0; }
+#voyage-afterhours .nv-signoff .nv-github { margin-left: 0; min-height: 44px; justify-self: end; font-size: 15px; color: var(--nv-ink); }
+#voyage-afterhours .nv-signoff .nv-github svg { width: 18px; height: 18px; flex: none; }
 #voyage-afterhours .nv-avatar { width: 56px; height: 56px; }
 #voyage-afterhours .nv-person strong { font-size: 16px; letter-spacing: -.3px; }
-#voyage-afterhours .nv-person small { font-size: 12px; margin-top: 5px; }
-#voyage-afterhours .nv-signoff > p { font-size: 26px; line-height: 1.2; transform: none; color: #c3c9d7; }
+#voyage-afterhours .nv-signoff > p { margin: 0; text-align: center; font-size: 26px; line-height: 1.2; transform: none; color: #c3c9d7; }
 #voyage-afterhours .nv-signoff > p em { font-size: 36px; color: #ddd8e3; }
 #voyage-afterhours .nv-footer { padding-block: 24px 40px; color: #96a5be; align-items: center; }
 #voyage-afterhours .nv-footer .vs-credits { color: #96a5be; }
@@ -323,8 +334,6 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
   #voyage-afterhours .nv-complex { top: 370px; width: 175px; }
   #voyage-afterhours .nv-code { top: 425px; left: 40px; }
   #voyage-afterhours .nv-horizon { top: 630px; }
-  #voyage-afterhours .nv-signoff { flex-wrap: wrap; }
-  #voyage-afterhours .nv-signoff > p { margin-left: auto; }
 }
 @container (max-width: 570px) {
   #voyage-afterhours .nv-grid { grid-template-columns:1fr; }
@@ -339,8 +348,8 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
   #voyage-afterhours .nv-horizon-caption { right: 25px; bottom: 73px; }
   #voyage-afterhours .nv-scroll { bottom: -2px; gap: 8px; }
   #voyage-afterhours .nv-scroll-line { height: 34px; }
-  #voyage-afterhours .nv-signoff { padding-block: 36px; gap: 28px; }
-  #voyage-afterhours .nv-signoff > p { margin-left: 0; }
+  #voyage-afterhours .nv-signoff { grid-template-columns: repeat(2, minmax(0,1fr)); padding-block: 36px; gap: 20px; }
+  #voyage-afterhours .nv-signoff > p { grid-column: 1 / -1; grid-row: 2; }
   #voyage-afterhours .nv-signoff > p em { font-size: 32px; }
   #voyage-afterhours .nv-footer > * { width: 100%; }
   #voyage-afterhours .nv-footer-tools { justify-content: space-between; }
@@ -373,8 +382,8 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-order[data-enhanced] .nv-order-menu { display:block; }
 #voyage-afterhours .nv-order-menu summary { cursor:pointer; list-style:none; min-height:44px; display:flex; align-items:center; gap:12px; padding:0 12px; border:1px solid #a7bedb44; border-radius:5px; color:#d9e4e6; background:#111a2b; }
 #voyage-afterhours .nv-order-menu summary::-webkit-details-marker { display:none; }
-#voyage-afterhours .nv-order-menu summary::after { content:""; display:block; flex:none; width:7px; height:7px; margin:0 2px 3px auto; border-right:1.5px solid #abdcd1; border-bottom:1.5px solid #abdcd1; transform:rotate(45deg); transition:transform 200ms, margin 200ms; }
-#voyage-afterhours .nv-order-menu[open] summary::after { transform:rotate(225deg); margin-top:3px; margin-bottom:0; }
+#voyage-afterhours .nv-disclosure > summary::after { content:""; display:block; flex:none; width:7px; height:7px; margin:0 2px 3px auto; border-right:1.5px solid var(--nv-mint); border-bottom:1.5px solid var(--nv-mint); transform:rotate(45deg); transition:transform 200ms, margin 200ms; }
+#voyage-afterhours .nv-disclosure[open] > summary::after { transform:rotate(225deg); margin-top:3px; margin-bottom:0; }
 #voyage-afterhours .nv-order-options { position:absolute; right:0; top:calc(100% + 6px); z-index:12; min-width:160px; padding:5px; background:#111a2b; border:1px solid #a7bedb44; border-radius:6px; box-shadow:0 12px 30px #0008; }
 #voyage-afterhours .nv-order-options button { display:block; width:100%; min-height:42px; text-align:left; padding:8px 12px; border-radius:4px; }
 #voyage-afterhours .nv-order-options button:hover, #voyage-afterhours .nv-order-options button[aria-pressed=true] { background:#abdcd11c; color:#d9eee7; }
@@ -459,7 +468,7 @@ html[data-voyage-entry-transition]:not([data-motion="off"])::view-transition-new
 #voyage-afterhours .nv-entry:focus-within:not(:hover):not(:has(:focus-visible)) :is(.nv-entry-image, .nv-entry-cover img) { transform: none; filter: brightness(.67) saturate(.65); }
 /* Ensure history scroll restoration is always instant rather than replaying a 350ms smooth scroll (Issue 3). */
 html, body { scroll-behavior: auto !important; }
-/* Home boundary transitions: disable group morphing and keep outgoing snapshot opaque long enough to cover the slide. */
+/* Home boundary transitions retain their existing timing outside the main tabs. */
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(root),
 html[data-voyage-home-transition]:not([data-motion="off"])::view-transition-group(voyage-page) { animation: none; overflow: clip; }
 html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-old(root),
@@ -467,12 +476,34 @@ html[data-voyage-home-transition]:not([data-voyage-entry-transition]):not([data-
 /* Preserve the Home headline's plus-lighter blend when leaving; do not switch
    it to normal while the outgoing snapshot is captured. On a menu return to
    Home, render the incoming root snapshot at full opacity to avoid a luminance
-   jump when the snapshot is replaced by live blended lettering. Only the fade
-   is suppressed: Astro's 280ms horizontal slide continues unchanged. */
+   jump when the snapshot is replaced by live blended lettering. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-voyage-home-transition]:has(> body.voyage-home):not([data-voyage-entry-transition]):not([data-motion="off"])::view-transition-new(root) {
     opacity: 1 !important;
   }
+}
+/* Main tabs keep the incoming root fully painted. The stationary outgoing
+   snapshot fades above it, and only the incoming interior content moves. */
+@keyframes voyageTabHold { from, to { opacity: 1; } }
+@keyframes voyageTabEnter { from { opacity: 0; translate: var(--voyage-tab-offset) 0; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-voyage-tab-transition="incoming"]::view-transition-image-pair(root) { isolation: isolate; }
+  html[data-voyage-tab-transition="incoming"]:not([data-motion="off"])::view-transition-old(root) {
+    z-index: 1;
+    animation: voyageFadeOut 280ms cubic-bezier(.22,1,.36,1) both !important;
+  }
+  html[data-voyage-tab-transition="incoming"]:not([data-motion="off"])::view-transition-new(root) {
+    animation: voyageTabHold 280ms both !important;
+  }
+  html[data-voyage-tab-transition="incoming"]::view-transition-old(voyage-header) { opacity: 0; }
+  html[data-voyage-tab-transition]:not([data-motion="off"])[data-astro-transition-fallback][data-astro-transition-scope] {
+    animation: none !important;
+  }
+  html[data-voyage-tab-transition="incoming"]:not([data-motion="off"]) #site-main {
+    --voyage-tab-offset: 16px;
+    animation: voyageTabEnter 280ms cubic-bezier(.22,1,.36,1) both;
+  }
+  html[data-voyage-tab-transition="incoming"][data-astro-transition="back"] #site-main { --voyage-tab-offset: -16px; }
 }
 /* Isolate below-the-fold homepage sections during top-menu entrance and play a smooth staggered post-load reveal upon landing. */
 @keyframes voyageFoldReveal { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }

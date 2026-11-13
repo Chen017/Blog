@@ -11,6 +11,41 @@ import {
 import { initScrollControls } from "../utils/scroll-controls";
 
 let pageController: AbortController | undefined;
+
+function initializeAboutPhotos(page: HTMLElement, signal: AbortSignal) {
+ for (const image of page.querySelectorAll<HTMLImageElement>("img[data-about-photo]")) {
+  const frame = image.parentElement;
+  if (!frame || frame.dataset.photoState) continue;
+  // Fancybox reads data-src instead of the smaller inline fallback.
+  const largest = image.srcset.split(",").at(-1)?.trim().split(/\s+/)[0];
+  if (largest) image.dataset.src = largest;
+  const finish = (failed: boolean) => {
+   if (signal.aborted || !image.isConnected || frame.dataset.photoState === "error") return;
+   if (failed) {
+    frame.dataset.photoState = "error";
+    image.hidden = true;
+    const message = document.createElement("span");
+    message.className = "vs-photo-error";
+    message.setAttribute("role", "status");
+    message.textContent = "Photo could not load.";
+    frame.append(message);
+   } else if (frame.dataset.photoState === "loading") {
+    frame.dataset.photoState = "ready";
+   }
+  };
+  if (image.complete) {
+   finish(image.naturalWidth === 0);
+   continue;
+  }
+  frame.dataset.photoState = "loading";
+  image.addEventListener("load", async () => {
+   try { await image.decode(); } catch { /* A responsive source can change after load. */ }
+   finish(image.naturalWidth === 0);
+  }, { signal, once: true });
+  image.addEventListener("error", () => finish(true), { signal, once: true });
+ }
+}
+
 function initializePage() {
  const page = document.querySelector<HTMLElement>(".vs-interior");
  if (!page || page.dataset.siteInitialized === "true") return;
@@ -18,6 +53,7 @@ function initializePage() {
  pageController?.abort();
  pageController = new AbortController();
  const signal = pageController.signal;
+ initializeAboutPhotos(page, signal);
  const bar = page.querySelector<HTMLElement>("[data-progress-bar]");
  const label = page.querySelector<HTMLOutputElement>("[data-progress-value]");
  const progress = page.querySelector<HTMLInputElement>("[data-progress-input]");
@@ -204,7 +240,7 @@ function initializePage() {
 		document.addEventListener("DOMContentLoaded", ready, { once: true });
 	else ready();
 }
-document.addEventListener("astro:before-swap", event => {
+document.addEventListener("astro:before-swap", () => {
  document.dispatchEvent(new Event(CLOSE_PANELS));
  document.dispatchEvent(new CustomEvent(PAGE_BEFORE_REPLACE, { detail: { persisted: false } }));
  document.querySelectorAll<HTMLMediaElement>("#content-wrapper audio, #content-wrapper video").forEach(media => media.pause());
@@ -212,4 +248,7 @@ document.addEventListener("astro:before-swap", event => {
  cleanupFancybox();
 });
 document.addEventListener("astro:page-load", initializePage);
+document.addEventListener("astro:after-swap", () => {
+ if (document.querySelector(".vs-about")) initializePage();
+});
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initializePage, {once:true}); else initializePage();

@@ -339,6 +339,7 @@
     generation++;
     window.__voyageHomeTransition = null;
     window.__voyageTransitionFinished = null;
+    document.documentElement.removeAttribute('data-voyage-tab-transition');
     document.documentElement.removeAttribute("data-voyage-entry-transition");
     document.documentElement.removeAttribute("data-voyage-home-transition");
     document.documentElement.removeAttribute("data-voyage-home-fold-deferred");
@@ -358,6 +359,9 @@
     let source = read();
     if (source && post(from) && post(to) && source.current === from) { source.current = to; write(source); }
     const fromTab = tabs.indexOf(from), toTab = tabs.indexOf(to);
+    if (fromTab >= 0 && toTab >= 0 && fromTab !== toTab) {
+      document.documentElement.setAttribute('data-voyage-tab-transition', 'outgoing');
+    }
     const effectiveFromTab = fromTab >= 0 ? fromTab : (post(from) || /^\/\d+\/$/.test(from) ? 1 : -1);
     if (effectiveFromTab >= 0 && toTab >= 0 && effectiveFromTab !== toTab) event.direction = toTab < effectiveFromTab ? 'back' : 'forward';
     else if (post(from) && post(to) && link?.dataset.direction) event.direction = link.dataset.direction === 'previous' ? 'back' : 'forward';
@@ -381,6 +385,14 @@
     const incoming = event.newDocument;
     const vtFinished = event.viewTransition?.finished;
     window.__voyageTransitionFinished = vtFinished ? vtFinished.then(() => {}, () => {}) : Promise.resolve();
+    if (from !== to && tabSet.has(from) && tabSet.has(to)) {
+      incoming.documentElement.setAttribute('data-voyage-tab-transition', 'incoming');
+      const current = generation;
+      const clearTabTransition = () => {
+        if (current === generation) document.documentElement.removeAttribute('data-voyage-tab-transition');
+      };
+      void window.__voyageTransitionFinished.then(clearTabTransition);
+    }
     document.querySelectorAll?.('[data-entry-pressing]').forEach(el => el.removeAttribute?.('data-entry-pressing'));
     // Astro's ClientRouter swaps page-specific stylesheets and preserves shared ones.
     // Do not copy outgoing CSS into the incoming head: it leaks interior styles to Home.

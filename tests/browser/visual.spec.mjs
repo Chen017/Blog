@@ -24,7 +24,7 @@ test('four production page viewports retain the approved composition', async ({ 
   }
 });
 
-test('native return filmstrip protects blending, grain and slide/title coordination', async ({ page }, testInfo) => {
+test('native return filmstrip protects blending, grain and title handoff', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'One full compositor filmstrip; other widths have behavior and resting pixels.');
   await visit(page);
   await navigate(page, 'About');
@@ -56,6 +56,21 @@ test('native return filmstrip protects blending, grain and slide/title coordinat
   await page.evaluate(() => {
     for (const animation of window.__capturedAnimations) if (!animation.effect?.pseudoElement) animation.finish();
   });
+});
+
+test('interior handoff keeps the sky painted during the old blank interval', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'One compositor frame for the reported full-width gap.');
+  await visit(page, '/archive/');
+  await freezeDecorations(page);
+  await armCompositorCapture(page);
+  await page.locator('.nv-nav').getByRole('link', { name: 'Links', exact: true }).click();
+  expect(await page.evaluate(() => window.__captureReady)).toBeGreaterThan(1);
+  await seekCaptured(page, 65);
+  await expect(page).toHaveScreenshot('writing-links-65ms.png', {
+    clip: { x: 0, y: 98, width: page.viewportSize().width, height: 48 },
+  });
+  await page.evaluate(() => window.__capturedAnimations.forEach(animation => animation.finish()));
+  await page.evaluate(() => window.__nativeTransition.finished);
 });
 
 test('native departure filmstrip protects outgoing additive lettering and planet', async ({ page }, testInfo) => {

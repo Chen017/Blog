@@ -18,7 +18,7 @@ test('fresh Home opens each title line once at the established slow timing', asy
   expect(durations.filter(duration => duration === 1800 || duration === 2100)).toHaveLength(2);
 });
 
-test('both return lines are staged before paint and start before the slide finishes', async ({ page }) => {
+test('both return lines are staged before paint and start before the tab handoff finishes', async ({ page }) => {
   await visit(page);
   for (const name of ['Writing', 'Links', 'About']) {
     await navigate(page, name);
@@ -41,10 +41,10 @@ test('both return lines are staged before paint and start before the slide finis
     }
     const frames = probe.frames.filter(frame => frame.path === '/' && frame.space);
     expect(frames.length).toBeGreaterThan(3);
-    const duringSlide = frames.filter(frame => frame.time < transition.end);
-    expect(duringSlide.some(frame => frame.first.opacity > 0.46), 'Etalib’s must visibly progress during the slide').toBe(true);
-    expect(duringSlide.some(frame => (Number.parseFloat(frame.space.translate.split(' ').at(-1)) || 0) < 7.9),
-      'Space. must visibly progress before the slide completes').toBe(true);
+    const duringHandoff = frames.filter(frame => frame.time < transition.end);
+    expect(duringHandoff.some(frame => frame.first.opacity > 0.46), 'Etalib’s must visibly progress during the handoff').toBe(true);
+    expect(duringHandoff.some(frame => (Number.parseFloat(frame.space.translate.split(' ').at(-1)) || 0) < 7.9),
+      'Space. must visibly progress before the handoff completes').toBe(true);
     for (const frame of frames) {
       expect(frame.title.blend).toBe('plus-lighter');
       expect(frame.grain.display).not.toBe('none');
@@ -59,19 +59,20 @@ test('both return lines are staged before paint and start before the slide finis
   }
 });
 
-test('native slide direction follows the tab order in both directions', async ({ page }) => {
+test('main tabs hold both root snapshots in place and move only incoming interior content', async ({ page }) => {
   await visit(page);
-  for (const [name, slide] of [['About', 'astroSlideFromRight'], ['Writing', 'astroSlideFromLeft'], ['Links', 'astroSlideFromRight'], ['Home', 'astroSlideFromLeft']]) {
+  for (const [name, offset] of [['About', '16px'], ['Writing', '-16px'], ['Links', '16px'], ['Home', null]]) {
     await navigate(page, name);
     const transition = await page.evaluate(() => window.__motionProbe.transitions.at(-1));
     expect(transition?.ready).toBeGreaterThan(0);
-    const animation = transition.animations.find(animation => animation.name === slide);
-    expect(animation, JSON.stringify(transition.animations)).toBeTruthy();
-    expect(animation.timing.duration).toBe(280);
-    const xs = animation.frames.map(frame => frame.transform);
-    expect(xs[0]).not.toBe(xs.at(-1));
-    // Engines serialize translateX as translate when the Y coordinate is zero.
-    expect(xs[0]).toMatch(slide.endsWith('Right') ? /^translate(?:X)?\(100%\)$/ : /^translate(?:X)?\(-100%\)$/);
+    const root = transition.animations.filter(animation => animation.pseudo.endsWith('(root)'));
+    expect(root.map(animation => animation.name).sort()).toEqual(['voyageFadeOut', 'voyageTabHold']);
+    expect(root.every(animation => animation.timing.duration === 280 && animation.frames.every(frame => !frame.transform))).toBe(true);
+    const hold = root.find(animation => animation.name === 'voyageTabHold');
+    expect(hold.frames.map(frame => Number(frame.opacity))).toEqual([1, 1]);
+    if (offset) expect(transition.contentEntrance).toMatchObject({ offset, duration: 280 });
+    else expect(transition.contentEntrance).toBeUndefined();
+    await expect(page.locator('html')).not.toHaveAttribute('data-voyage-tab-transition', /.+/);
   }
 });
 

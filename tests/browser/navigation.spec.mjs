@@ -14,6 +14,135 @@ test('all twelve directed tab routes preserve headings, header and current page'
   }
 });
 
+test('the Home sign-off stays centered and Links keeps native scrolling inside the viewport', async ({ page, viewport }) => {
+  await visit(page);
+  const signoff = page.getByRole('region', { name: 'About the author' });
+  const author = signoff.getByRole('link', { name: 'AI', exact: true });
+  const github = signoff.getByRole('link', { name: 'GitHub', exact: true });
+  await expect(author).toHaveAttribute('href', '/about/');
+  await expect(author.locator('svg')).toHaveCount(1);
+  await expect(github.locator('svg')).toHaveAttribute('data-icon', 'fa6-brands:github');
+  await expect(github).toHaveCSS('font-size', '15px');
+  await signoff.scrollIntoViewIfNeeded();
+  const quote = await signoff.locator('p').boundingBox();
+  expect(quote.x + quote.width / 2).toBeCloseTo(viewport.width / 2, 0);
+  expect((await author.boundingBox()).x).toBeLessThan((await github.boundingBox()).x);
+  await visit(page, '/friends/');
+  const root = page.locator('html');
+  const supportsOverscroll = await page.evaluate(() => CSS.supports('overscroll-behavior-y: none'));
+  await expect(root).toHaveAttribute('data-voyage-scroll-edge', 'contained');
+  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'none');
+  await expect(root).toHaveCSS('background-color', 'rgb(8, 12, 23)');
+  expect(await page.evaluate(() => document.scrollingElement === document.documentElement)).toBe(true);
+  await expect(page.locator('.vs-page-head p')).toHaveCount(0);
+  await navigate(page, 'Writing');
+  await expect(root).not.toHaveAttribute('data-voyage-scroll-edge', /.+/);
+  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'auto');
+  await page.goBack();
+  await settled(page);
+  await expect(root).toHaveAttribute('data-voyage-scroll-edge', 'contained');
+  if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'none');
+});
+
+test('Writing activity uses the shared chevron and supports keyboard selection', async ({ page }) => {
+  await visit(page, '/archive/');
+  await expect(page.locator('.vs-page-head p')).toHaveCount(0);
+  const menu = page.locator('.period-menu');
+  const trigger = menu.locator('summary');
+  await trigger.scrollIntoViewIfNeeded();
+  await expect(page.locator('#statistics').locator('xpath=..')).not.toHaveAttribute('ssr', '');
+  await trigger.focus();
+  const chevron = () => trigger.evaluate(el => getComputedStyle(el, '::after').transform);
+  const closed = await chevron();
+  expect(closed).not.toBe('none');
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveAttribute('open', '');
+  await expect.poll(chevron).not.toBe(closed);
+  for (const [label, scale] of [['Month', 'month'], ['Day', 'day'], ['Year', 'year']]) {
+    await menu.getByRole('button', { name: label, exact: true }).press('Enter');
+    await expect(page.getByRole('img', { name: `Posts by ${scale}` })).toBeVisible();
+    await expect(trigger).toBeFocused();
+    await expect(menu).not.toHaveAttribute('open', '');
+    await trigger.press('Enter');
+  }
+  await menu.getByRole('button', { name: 'Day', exact: true }).press('Escape');
+  await expect(menu).not.toHaveAttribute('open', '');
+  await expect(trigger).toBeFocused();
+});
+
+test('the search scrollbar moves results and keeps the search input stationary', async ({ page }) => {
+  await visit(page);
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  const input = page.locator('#search-input');
+  await input.fill('code');
+  const results = page.locator('.search-results');
+  await expect(results.locator('.search-result').nth(3)).toBeAttached();
+  const position = (await input.boundingBox()).y;
+  expect(await results.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+  expect(await results.evaluate(el => CSS.supports('selector(::-webkit-scrollbar)')
+    ? getComputedStyle(el, '::-webkit-scrollbar').width === '7px'
+    : getComputedStyle(el).scrollbarWidth === 'thin')).toBe(true);
+  const documentScroll = await page.evaluate(() => scrollY);
+  await results.locator('.search-result').last().focus();
+  await expect.poll(() => results.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  expect((await input.boundingBox()).y).toBeCloseTo(position, 0);
+  expect(await page.evaluate(() => scrollY)).toBe(documentScroll);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeFocused();
+});
+
+test('About reserves photo space and reveals decoded pixels after a slow load', async ({ page }) => {
+  let releasePhoto;
+  const gate = new Promise(resolve => { releasePhoto = resolve; });
+  await page.route('**/_astro/IMG_20260308_093323*', async route => {
+    await gate;
+    await route.continue();
+  });
+  await visit(page, '/friends/');
+  const photo = page.locator('img[data-about-photo]');
+  try {
+    await page.locator('.nv-nav').getByRole('link', { name: 'About', exact: true }).click();
+    await expect(page).toHaveURL(/\/about\/$/);
+    await expect(page.locator('.vs-about-intro p')).toHaveCount(0);
+    await expect(photo).toHaveAttribute('srcset', /480w.*704w.*1024w.*1440w/);
+    await expect(photo.locator('..')).toHaveAttribute('data-photo-state', 'loading');
+    await expect(photo).toHaveCSS('opacity', '0');
+    const reserved = await photo.boundingBox();
+    expect(reserved.height).toBeGreaterThan(180);
+    releasePhoto();
+    await expect(photo.locator('..')).toHaveAttribute('data-photo-state', 'ready');
+    await expect(photo).toHaveCSS('opacity', '1');
+    expect((await photo.boundingBox()).height).toBeCloseTo(reserved.height, 0);
+  } finally {
+    releasePhoto();
+  }
+  await page.unroute('**/_astro/IMG_20260308_093323*');
+  await page.goBack();
+  await settled(page);
+  await page.goForward();
+  await settled(page);
+  await expect(photo).toHaveCSS('opacity', '1');
+  const viewerSource = await photo.getAttribute('data-src');
+  expect(viewerSource).toBe((await photo.getAttribute('srcset')).split(',').at(-1).trim().split(/\s+/)[0]);
+  await expect.poll(() => page.evaluate(() => [...document.styleSheets].some(sheet => /fancybox/.test(sheet.href ?? '')))).toBe(true);
+  await photo.click();
+  await expect(page.locator('.voyage-viewer img').first()).toHaveAttribute('src', viewerSource);
+});
+
+test('About photo failure is readable and reduced motion leaves a decoded photo visible', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/_astro/IMG_20260308_093323*', route => route.abort('failed'));
+  await visit(page, '/about/');
+  const photo = page.locator('img[data-about-photo]');
+  await expect(photo.locator('..').getByRole('status')).toHaveText('Photo could not load.');
+  await expect(photo).toBeHidden();
+  await page.unroute('**/_astro/IMG_20260308_093323*');
+  await page.reload();
+  await expect.poll(() => photo.evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+  await expect(photo).toHaveCSS('opacity', '1');
+  await expect(photo).toHaveCSS('animation-name', 'none');
+});
+
 test('keyboard navigation and search failure/retry restore focus and remain usable after history', async ({ page }) => {
   await visit(page);
   const writing = page.locator('.nv-nav').getByRole('link', { name: 'Writing', exact: true });

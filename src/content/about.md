@@ -1,6 +1,6 @@
 # About <em>me.</em>
 
-![](IMG_20260308_093323.jpg)
+![「宇宙」，一张带有星云图和性格描述的卡片](IMG_20260308_093323.jpg)
 
 :::song{title="在夜里跳舞" artist="唐汉霄" cover="https://resource.etalib.space/%E5%9C%A8%E5%A4%9C%E9%87%8C%E8%B7%B3%E8%88%9E%20-%20%E5%94%90%E6%B1%89%E9%9C%84.jpg" audio="https://resource.etalib.space/%E5%9C%A8%E5%A4%9C%E9%87%8C%E8%B7%B3%E8%88%9E%20-%20%E5%94%90%E6%B1%89%E9%9C%84.mp3"}
 ```lrc

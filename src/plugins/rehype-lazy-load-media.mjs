@@ -7,8 +7,9 @@ import { visit } from "unist-util-visit";
  * - Adds `preload="none"` and IntersectionObserver-based lazy loading to <video> and <audio> tags.
  */
 export function rehypeLazyLoadMedia() {
-    return (tree) => {
+    return (tree, file) => {
         let hasLazyMedia = false;
+        const aboutPage = file.path?.replaceAll("\\", "/").endsWith("/src/content/about.md");
 
         visit(tree, "element", (node) => {
             if (node.tagName === "img") {
@@ -18,6 +19,14 @@ export function rehypeLazyLoadMedia() {
                 }
                 if (!node.properties.decoding) {
                     node.properties.decoding = "async";
+                }
+                if (aboutPage && file.data.astro?.localImagePaths?.includes(node.properties.src)) {
+                    // Astro passes these Markdown image options to its asset service.
+                    node.properties.width = 704;
+                    node.properties.widths = [480, 704, 1024, 1440];
+                    node.properties.sizes = "(max-width: 570px) calc(100vw - 40px), (max-width: 760px) calc(100vw - 56px), 704px";
+                    node.properties["data-about-photo"] = "";
+                    node.properties.loading = "eager";
                 }
             } else if (node.tagName === "iframe") {
                 node.properties = node.properties || {};

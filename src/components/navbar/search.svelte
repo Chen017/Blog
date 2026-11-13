@@ -91,7 +91,8 @@ $effect(() => {
         <Icon icon={icons["material-symbols:search"]} class="text-xl shrink-0" />
         <input id="search-input" aria-label="Search" type="search" autocomplete="off" placeholder="Search posts" bind:value={keyword} />
     </label>
-    <div class="search-status" role="status" aria-live="polite" aria-atomic="true">
+    <div class="search-results">
+      <div class="search-status" role="status" aria-live="polite" aria-atomic="true">
         {#if indexState === 'loading'}Loading search index…
         {:else if indexState === 'error'}{import.meta.env.DEV ? 'Search is available in the production preview.' : 'Search could not load.'}
         {:else if queryError}Search failed. Try another query or refresh the page.
@@ -100,17 +101,18 @@ $effect(() => {
         {:else if searched}{results.length} {results.length === 1 ? 'result' : 'results'}
         {:else}Search titles and article content.
         {/if}
-    </div>
-    {#if indexState === 'error' && !import.meta.env.DEV}
+      </div>
+      {#if indexState === 'error' && !import.meta.env.DEV}
         <button type="button" class="btn-regular rounded-lg px-3 py-2 text-sm" onclick={() => { document.getElementById('search-input')?.focus(); void initializeSearch(); }}>Retry loading search</button>
-    {/if}
-    <div aria-busy={searching}>
+      {/if}
+      <div aria-busy={searching}>
         {#each results as item}
             <a href={item.url} class="search-result" onclick={close}>
                 <span class="search-result-title">{titles[item.url] || item.meta.title}</span>
                 <span class="search-result-excerpt">{@html item.excerpt}</span>
             </a>
         {/each}
+      </div>
     </div>
 </section>
 <style>

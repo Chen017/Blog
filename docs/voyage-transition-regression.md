@@ -23,7 +23,7 @@ Use the same Chrome version, device, network profile, cache state, and deployed 
 
 | Path | Mandatory invariant |
 | --- | --- |
-| Home → Writing / Links / About | 280ms directional slide; stable header/search; active tab correct; no blank frame |
+| Home → Writing / Links / About | 280ms handoff with stationary sky; 16px incoming content motion; stable header/search and correct active tab |
 | Writing ↔ Links ↔ About | Navigation direction follows tab ordering; native/head styles correct |
 | Any inner page → Home | No blank lower half, no duplicate folded-section reveal; stars resume |
 | Home card → Post → browser Back | Selected title morphs ~620ms; return focus/scroll correct; only relevant deferred cover eagerly decoded |
