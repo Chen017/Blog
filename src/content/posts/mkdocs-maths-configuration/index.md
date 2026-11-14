@@ -1,9 +1,7 @@
 ---
-displayDescription: "Making room for mathematics on the page."
 title: "Recommending Configuration of MkDocs for Maths"
 directoryTitle: "MkDocs Maths Setup"
 published: 2025-02-27
-description: "Recommended MkDocs setup for math rendering, file ordering, and list formatting fixes."
 category: "Development"
 cover: "mkdocs-2025-02-27-213409.png"
 ---

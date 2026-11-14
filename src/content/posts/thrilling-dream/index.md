@@ -1,10 +1,8 @@
 ---
 displayTitle: "A Frightening Dream"
-displayDescription: "An elevator, an impossible height, and a restless exam season."
 title: "惊险梦境"
 directoryTitle: "惊险梦境"
 published: 2026-06-24
-description: "Thrilling dream during the final exam period."
 category: "Life"
 cover: "image-thrilling-dream.png"
 ---

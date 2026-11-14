@@ -76,7 +76,7 @@ for (const file of publicDocuments) {
 }
 const archive = parse(await readFile(resolve(output,'archive/index.html'),'utf8'));
 assert.equal(archive.querySelectorAll('.archive-entry').length, sourcePosts.length, 'Archive must preserve all public entries');
-assert.equal(archive.querySelectorAll('astro-island[component-url*="statistics"]').length,1,'Writing activity remains accessible on the archive');
+assert.equal(archive.querySelector('.vs-activity, #statistics'), null, 'Archive must not render the removed activity charts');
 for (const file of ['index.html', 'archive/index.html']) {
   const page = parse(await readFile(resolve(output, file), 'utf8'));
   for (const island of page.querySelectorAll('astro-island[props]')) {

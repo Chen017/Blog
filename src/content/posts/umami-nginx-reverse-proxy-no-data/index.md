@@ -1,9 +1,7 @@
 ---
-displayDescription: "Finding out why the analytics stopped arriving."
 title: "Solve Umami No Data with NGINX Reverse Proxy"
 directoryTitle: "Umami NGINX CORS"
 published: 2025-02-24
-description: "Fix Umami analytics not receiving data after NGINX reverse proxy by handling CORS correctly."
 category: "Development"
 cover: "umami-2025-02-24-194029.png"
 ---

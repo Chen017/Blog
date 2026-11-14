@@ -41,30 +41,19 @@ test('the Home sign-off stays centered and Links and Writing keep default oversc
   if (supportsOverscroll) await expect(root).toHaveCSS('overscroll-behavior-y', 'auto');
 });
 
-test('Writing activity uses the shared chevron and supports keyboard selection', async ({ page }) => {
+test('Writing ends after the archive list and the order menu separates its options', async ({ page }) => {
   await visit(page, '/archive/');
-  await expect(page.locator('.vs-page-head p')).toHaveCount(0);
-  const menu = page.locator('.period-menu');
-  const trigger = menu.locator('summary');
-  await trigger.scrollIntoViewIfNeeded();
-  await expect(page.locator('#statistics').locator('xpath=..')).not.toHaveAttribute('ssr', '');
-  await trigger.focus();
-  const chevron = () => trigger.evaluate(el => getComputedStyle(el, '::after').transform);
-  const closed = await chevron();
-  expect(closed).not.toBe('none');
-  await page.keyboard.press('Enter');
-  await expect(menu).toHaveAttribute('open', '');
-  await expect.poll(chevron).not.toBe(closed);
-  for (const [label, scale] of [['Month', 'month'], ['Day', 'day'], ['Year', 'year']]) {
-    await menu.getByRole('button', { name: label, exact: true }).press('Enter');
-    await expect(page.getByRole('img', { name: `Posts by ${scale}` })).toBeVisible();
-    await expect(trigger).toBeFocused();
-    await expect(menu).not.toHaveAttribute('open', '');
-    await trigger.press('Enter');
-  }
-  await menu.getByRole('button', { name: 'Day', exact: true }).press('Escape');
-  await expect(menu).not.toHaveAttribute('open', '');
-  await expect(trigger).toBeFocused();
+  await expect(page.locator('.vs-activity, #statistics')).toHaveCount(0);
+  await expect(page.locator('[data-route="/archive/"] .vs-shell')).toHaveCSS('min-height', '0px');
+  await visit(page);
+  const menu = page.locator('.nv-order-menu');
+  await menu.locator('summary').click();
+  const newest = menu.getByRole('button', { name: 'Newest first' });
+  const oldest = menu.getByRole('button', { name: 'Oldest first' });
+  await oldest.hover();
+  const firstBox = await newest.boundingBox();
+  const secondBox = await oldest.boundingBox();
+  expect(secondBox.y - (firstBox.y + firstBox.height)).toBeGreaterThanOrEqual(4);
 });
 
 test('the search scrollbar moves results and keeps the search input stationary', async ({ page }) => {

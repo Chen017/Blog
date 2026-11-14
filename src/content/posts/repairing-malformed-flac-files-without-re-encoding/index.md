@@ -1,9 +1,7 @@
 ---
-displayDescription: "Restoring the music without changing the audio."
 title: "Repairing Malformed FLAC Files for Navidrome Without Re-encoding"
 directoryTitle: "Navidrome FLAC Repair"
 published: 2026-09-20
-description: "Repair malformed FLAC files containing corrupted garbage bytes between metadata and audio frames without re-encoding to restore compatibility with Navidrome and FFmpeg."
 category: "Development"
 cover: "cover.png"
 draft: false

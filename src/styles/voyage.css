@@ -389,7 +389,7 @@ html[data-motion="off"] .fancybox__container, html[data-motion="off"] .fancybox_
 #voyage-afterhours .nv-order-menu summary::-webkit-details-marker { display:none; }
 #voyage-afterhours .nv-disclosure > summary::after { content:""; display:block; flex:none; width:7px; height:7px; margin:0 2px 3px auto; border-right:1.5px solid var(--nv-mint); border-bottom:1.5px solid var(--nv-mint); transform:rotate(45deg); transition:transform 200ms, margin 200ms; }
 #voyage-afterhours .nv-disclosure[open] > summary::after { transform:rotate(225deg); margin-top:3px; margin-bottom:0; }
-#voyage-afterhours .nv-order-options { position:absolute; right:0; top:calc(100% + 6px); z-index:12; min-width:160px; padding:5px; background:#111a2b; border:1px solid #a7bedb44; border-radius:6px; box-shadow:0 12px 30px #0008; }
+#voyage-afterhours .nv-order-options { position:absolute; right:0; top:calc(100% + 6px); z-index:12; min-width:160px; padding:5px; display:grid; gap:4px; background:#111a2b; border:1px solid #a7bedb44; border-radius:6px; box-shadow:0 12px 30px #0008; }
 #voyage-afterhours .nv-order-options button { display:block; width:100%; min-height:42px; text-align:left; padding:8px 12px; border-radius:4px; }
 #voyage-afterhours .nv-order-options button:hover, #voyage-afterhours .nv-order-options button[aria-pressed=true] { background:#abdcd11c; color:#d9eee7; }
 #voyage-afterhours .nv-eyebrow span { position:relative; display:inline-block; transition:color 250ms, translate 250ms; }

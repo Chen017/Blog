@@ -1,9 +1,7 @@
 ---
-displayDescription: "A personal Open WebUI setup for multiple language model APIs."
 title: "ChatGPT (Self-built)"
 directoryTitle: "Self-built ChatGPT"
 published: 2024-12-15
-description: "Built a personal AI chatbot site with Open WebUI to access multiple LLM APIs."
 category: "Development"
 draft: false
 cover: "image-nfez.png"

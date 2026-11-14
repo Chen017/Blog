@@ -83,15 +83,11 @@ The article's "All writing" link returns to the homepage's full writing section
 at `/#nv-writing`. The chronological archive remains a separate destination.
 The global navigation item "Writing" always opens `/archive/`, including on the
 homepage. Do not make this navigation item a homepage section shortcut.
-Archive statistics are a compact supporting section, with a fixed 124px plot
-and HTML axis labels that do not grow with SVG scaling. Place activity and
-subject distribution beside each other when space allows; stack below 720px
-of component width. Preserve time-scale selection and accessible exact counts.
 
 ## Choosing interface patterns
 
 - Use a normal link for navigation and a native button for an action.
-- Use underlined text filters for categories and a themed, keyboard-accessible menu for activity periods.
+- Use underlined text filters for categories and a themed, keyboard-accessible menu for writing order.
 - Use cinematic image cards to browse writing visually; use chronological rows
   to locate entries by date. Neither should truncate essential titles.
 - Use a raised, opaque panel for search, menus, or transient controls. Reserve

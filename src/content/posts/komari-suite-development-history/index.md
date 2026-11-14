@@ -1,9 +1,7 @@
 ---
-displayDescription: "The mistakes, repairs, and small victories behind the Komari suite."
 title: "From a Single Tool to Four Projects: The Development Chronicle of Komari Theme & Plugins — A Wrap-Up Gift to Myself"
 directoryTitle: "Komari Suite Journey"
 published: 2026-09-22
-description: "A retrospective on evolving Komari from a humble IP quality logging script into a coordinated 4-project monitoring and observability ecosystem."
 category: "Development"
 cover: "https://raw.githubusercontent.com/Chen017/komari-emerald-suite/main/docs/ecosystem.png"
 coverInContent: true

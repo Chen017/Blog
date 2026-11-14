@@ -1,9 +1,7 @@
 ---
-displayDescription: "Taking old notes somewhere new, with Python and an API."
 title: "Immigrate from markdown to memos efficiently"
 directoryTitle: "Markdown to Memos"
 published: 2026-02-14
-description: "Using API of memos and python scripts to immigrate to memos"
 category: "Development"
 draft: false
 cover: "2026-02-14-151558.png"

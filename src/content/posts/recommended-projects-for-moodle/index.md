@@ -1,9 +1,7 @@
 ---
-displayDescription: "Useful tools for spending less time on Moodle."
 title: "Recommended Projects for Moodle"
 directoryTitle: "Moodle Tools"
 published: 2026-02-15
-description: "Share some useful and efficient tools for moodle"
 category: "Recommended Projects"
 draft: false
 ---

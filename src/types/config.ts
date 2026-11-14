@@ -161,7 +161,6 @@ export type NavbarConfig = {
 export type WidgetComponentType =
     | "profile"
     | "categories"
-    | "statistics"
     | "toc"
     | "custom";
 

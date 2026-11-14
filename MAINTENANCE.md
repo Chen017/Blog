@@ -105,7 +105,7 @@ The hero adds 68% neutral white light to the **real sky** with `plus-lighter`; f
 
 Main tabs use the original 280ms Astro full-width slides with the original root fades and Home title timing. Before swap, `NavigationMotion.astro` passes the outgoing sky image's already loaded `currentSrc` to the incoming root. A darkened copy fills the transition group behind both moving snapshots. This only paints a background on the native compositor pseudo-element, so the Home hero, its blend context and the Astro fallback keep their original behavior. Generation-guarded settlement clears the temporary source. Links and Writing use the browser's default document overscroll.
 
-The shared search header and input are outside the results scroller. Keep Pagefind results, status, and retry inside it and preserve panel focus restoration. The archive period menu shares the CSS disclosure chevron with Home ordering while keeping its native details and existing chart data.
+The shared search header and input are outside the results scroller. Keep Pagefind results, status, and retry inside it and preserve panel focus restoration.
 
 Article-title morphs are a separate 620ms transition. `voyage:source` pairs one card/title with its route, origin history index and target scroll; shared names must stay unique. Restore filter/order before source lookup and scroll instantly before capture, then restore keyboard focus without scrolling. Similar scroll calculations in the coordinator and Home initializer occur at different lifecycle phases. The pending target survives click-time and teardown saves. Return only the selected/already-loaded covers eagerly; preserve other lazy covers.
 

@@ -80,8 +80,6 @@ sidebar:
         position: sticky
         customProps:
           depth: 6
-      - type: statistics
-        position: sticky
 profile:
   avatar: /assets/images/avatar.jpg
   name: Eta Lib.

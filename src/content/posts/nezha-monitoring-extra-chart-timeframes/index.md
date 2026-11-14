@@ -1,9 +1,7 @@
 ---
-displayDescription: "A little more perspective on the same monitoring data."
 title: "Nezha Monitoring: Extra Chart Timeframes"
 directoryTitle: "Nezha Timeframes"
 published: 2026-04-12
-description: "Sharing code injection snippets to add more time-range charts for Nezha Monitoring"
 category: "Development"
 cover: "3ePpUK9uhvBHLX6tkp6tXRq5M9aYXbPc.webp"
 ---
