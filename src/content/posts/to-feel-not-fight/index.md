@@ -1,10 +1,11 @@
 ---
-displayTitle: "It Is All the Same"
-title: "其实是一样的"
-directoryTitle: "回头看"
+title: 其实是一样的
+directoryTitle: 回头看
 published: 2026-10-16
-category: "Life"
-cover: "cover.png"
+displayTitle: It Is All the Same
+category: Life
+cover: cover.png
+textAlign: center
 ---
 
 放过自己吧，其实都是一样的。
