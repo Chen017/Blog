@@ -250,6 +250,12 @@
         line-height: 2rem;
     }
 
+    .song-card__time {
+        min-width: 6ch;
+        text-align: right;
+        white-space: nowrap;
+    }
+
     /* Custom high-performance progress slider - strictly themed */
     .song-card__progress-wrap {
         position: relative;
