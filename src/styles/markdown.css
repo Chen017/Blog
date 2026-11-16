@@ -250,8 +250,11 @@
         line-height: 2rem;
     }
 
-    .song-card__time[data-player-current="true"] {
+    .song-card__time {
         font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    }
+
+    .song-card__time[data-player-current="true"] {
         min-width: 4ch;
         text-align: right;
         white-space: nowrap;
