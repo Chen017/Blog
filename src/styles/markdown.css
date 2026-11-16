@@ -250,8 +250,9 @@
         line-height: 2rem;
     }
 
-    .song-card__time {
-        min-width: 6ch;
+    .song-card__time[data-player-current="true"] {
+        font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+        min-width: 4ch;
         text-align: right;
         white-space: nowrap;
     }

@@ -48,8 +48,9 @@ Headless/virtual GPU results cannot establish all physical GPU/OS behavior.
 
 ## What the tests observe
 
-- `song-card.spec.mjs`: time labels and the progress rail retain their positions
-  as playback time changes, including minute boundaries, across the viewport matrix.
+- `song-card.spec.mjs`: elapsed-time digits and the progress rail retain their
+  positions across second and minute boundaries, including long tracks, without
+  extra gaps around the time labels, across the viewport matrix.
 - `navigation.spec.mjs`: every directed main-tab pair; title/current state/header
   position and overflow; keyboard and touch; real Pagefind failure/retry and
   focus; filtered/sorted article history and keyboard versus pointer source return; rapid

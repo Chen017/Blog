@@ -1,6 +1,6 @@
 
 (() => {
-  const SCRIPT_VERSION = "song-card-v6";
+  const SCRIPT_VERSION = "song-card-v7";
 
   const cleanups = window.__songCardCleanups || (window.__songCardCleanups = new Set());
   const initSongCards = () => {
@@ -29,6 +29,7 @@
       let rafId = null;
       let currentLineIndex = -1;
       let lastVolume = 1;
+      let currentTimeWidth = 4;
 
       const lyricOffset = parseFloat(card.dataset.lyricOffset || "0.35");
 
@@ -122,6 +123,13 @@
       const updateProgressDisplay = (current, duration) => {
         const percent = duration > 0 ? (current / duration) * 100 : 0;
         const clampedPercent = Math.max(0, Math.min(100, percent));
+        const timeWidth = Number.isFinite(duration) && duration > 0
+          ? Math.max(4, formatTime(duration).length)
+          : 4;
+        if (timeWidth !== currentTimeWidth) {
+          currentTimeEl.style.minWidth = timeWidth + "ch";
+          currentTimeWidth = timeWidth;
+        }
         card.style.setProperty("--song-progress", clampedPercent.toFixed(3) + "%");
         progressWrap.setAttribute("aria-valuenow", clampedPercent.toFixed(1));
         currentTimeEl.textContent = formatTime(current);
