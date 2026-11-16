@@ -56,7 +56,7 @@ test('Writing ends after the archive list and the order menu separates its optio
   expect(secondBox.y - (firstBox.y + firstBox.height)).toBeGreaterThanOrEqual(4);
 });
 
-test('the search scrollbar moves results and keeps the search input stationary', async ({ page }) => {
+test('the search scrollbar moves results and keeps the search input stationary', async ({ page, browserName, headless }) => {
   await visit(page);
   await page.getByRole('button', { name: 'Search', exact: true }).click();
   const input = page.locator('#search-input');
@@ -65,9 +65,13 @@ test('the search scrollbar moves results and keeps the search input stationary',
   await expect(results.locator('.search-result').nth(3)).toBeAttached();
   const position = (await input.boundingBox()).y;
   expect(await results.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
-  expect(await results.evaluate(el => CSS.supports('selector(::-webkit-scrollbar)')
-    ? getComputedStyle(el, '::-webkit-scrollbar').width === '7px'
-    : getComputedStyle(el).scrollbarWidth === 'thin')).toBe(true);
+  if (browserName === 'firefox') {
+    // Playwright hides headless Firefox scrollbars, overriding the computed width to none.
+    if (!headless) await expect(results).toHaveCSS('scrollbar-width', 'thin');
+    await expect(results).toHaveCSS('scrollbar-color', 'rgb(112, 134, 160) rgb(17, 26, 43)');
+  } else {
+    expect(await results.evaluate(el => getComputedStyle(el, '::-webkit-scrollbar').width)).toBe('7px');
+  }
   const documentScroll = await page.evaluate(() => scrollY);
   await results.locator('.search-result').last().focus();
   await expect.poll(() => results.evaluate(el => el.scrollTop)).toBeGreaterThan(0);

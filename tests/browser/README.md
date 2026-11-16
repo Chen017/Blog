@@ -62,8 +62,13 @@ Headless/virtual GPU results cannot establish all physical GPU/OS behavior.
   A complementary failed-module case keeps the original direct-load recovery.
   Additional cases verify the centered Home sign-off, default document overscroll
   on Links and Writing across history, the Writing period chevron and keyboard selection, and the search
-  results scroller without input movement. About covers slow decode, failure,
-  reduced motion, and back/forward navigation with a reserved photo area.
+  results scroller without input movement. The search test checks the 7px
+  scrollbar in Chromium and WebKit. It checks the standard scrollbar colors and
+  scrolling behavior in Firefox, and also verifies the thin width in headed
+  Firefox. Playwright hides scrollbars in headless Firefox, which computes their
+  width as `none`.
+  About covers slow decode, failure, reduced motion, and back/forward navigation
+  with a reserved photo area.
 - `motion.spec.mjs`: actual native WAAPI effects and computed starting poses,
   effect counts and original opening/return timing; rAF samples during natural
   return animation; no downward restart; return effects created before native
